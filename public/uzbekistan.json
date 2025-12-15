@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Uzbekistan" },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [55.99, 37.18],
+              [73.13, 37.18],
+              [73.13, 45.59],
+              [55.99, 45.59],
+              [55.99, 37.18]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

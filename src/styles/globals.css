@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+
+@theme {
+  --font-manrope: Manrope, sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-noto-sans: "Noto Sans", sans-serif;
+
+  --color-primary: #13ec5b;
+  --color-background-light: #f6f8f6;
+  --color-background-dark: #102216;
+  --color-surface-dark: #1a2e22;
+  --color-surface-light: #ffffff;
+}
+
+/* Qo'shimcha CSS qoidalaringiz */
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Manrope", sans-serif;
+}
+
+.manrope {
+  font-family: "Manrope", sans-serif;
+}
+
+.notosans {
+  font-family: "Noto Sans", sans-serif;
+}
+
+.space-grotesk {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.regions-container {
+  display: grid;
+  gap: 24px;
+}
+
+.region-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.region-card:hover {
+  transform: translateY(-2px);
+}
+
+.region-header {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.region-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.region-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 20px 24px;
+  background: #f7fafc;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.inverters-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  background: #edf2f7;
+}
+
+.inverters-grid.active {
+  display: grid;
+}
+
+.inverter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #48bb78;
+}
+
+.inverter-card.warning {
+  border-left-color: #ed8936;
+}
+
+.inverter-card.error {
+  border-left-color: #f56565;
+}
+
+.inverter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.inverter-name {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-online {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.status-warning {
+  background: #fbd38d;
+  color: #744210;
+}
+
+.status-offline {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.inverter-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 2px;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.rotated {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .overview-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .region-stats {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .inverters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.loader {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+
+.loader-large {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  background-color: #d4adfc;
+  border-radius: 10px;
+  animation: loading 2s infinite;
+}
+
+.loader-small {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  inset: 0;
+  margin: auto;
+  background-color: #5c469c;
+  z-index: 2;
+  border-radius: 6px;
+  animation: loading 2s infinite reverse;
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotateY(180deg);
+  }
+
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-in-out;
+}
