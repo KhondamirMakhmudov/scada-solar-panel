@@ -4,4 +4,6 @@ export const KEYS = {
   getMe: "getMe",
   users: "users",
   archive: "archive",
+  MODBUSDevices: "MODBUSDevices",
+  MODBUSRegisters: "MODBUSRegisters",
 };

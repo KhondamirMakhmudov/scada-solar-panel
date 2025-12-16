@@ -7,21 +7,10 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { motion } from "framer-motion";
 import Brand from "../brand";
-import {
-  PeopleAlt as PeopleAltIcon,
-  Mediation as MediationIcon,
-  SettingsRounded as SettingsRoundedIcon,
-  SchoolRounded as SchoolRoundedIcon,
-  CameraAlt as CameraAltIcon,
-  Wifi as WifiIcon,
-  Security as SecurityIcon,
-  Assessment as AssessmentIcon,
-} from "@mui/icons-material";
-import EventNoteIcon from "@mui/icons-material/EventNote";
+import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
 import ExitModal from "../modal/exit-modal";
 import { signOut, useSession } from "next-auth/react";
 import HomeIcon from "@mui/icons-material/Home";
-import { IconButton } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import GroupIcon from "@mui/icons-material/Group";
@@ -31,37 +20,92 @@ import RecyclingIcon from "@mui/icons-material/Recycling";
 import LinkIcon from "@mui/icons-material/Link";
 import HubIcon from "@mui/icons-material/Hub";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
-
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { get } from "lodash";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import SolarPowerIcon from "@mui/icons-material/SolarPower";
+import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 
 const menuItems = [
   {
     text: "Главная",
-    icon: <HomeIcon />,
+    icon: <DashboardIcon />,
     path: "/dashboard/main",
   },
+
   {
-    text: "Экологические показатели станции",
-    icon: <RecyclingIcon />,
-    path: "/dashboard/eco-system-stations",
+    text: "Солнечная электростанция",
+    icon: <SolarPowerIcon />,
+    submenu: [
+      {
+        text: "Общий обзор",
+        path: "/dashboard/solar/overview",
+      },
+      {
+        text: "Производство энергии",
+        path: "/dashboard/solar/production",
+      },
+      {
+        text: "Экологические показатели",
+        path: "/dashboard/solar/eco",
+      },
+    ],
   },
+
   {
-    text: "Коннекты",
-    icon: <LinkIcon />,
-    path: "/dashboard/connects",
+    text: "Modbus",
+    icon: <SettingsEthernetIcon />,
+    submenu: [
+      {
+        text: "Устройства",
+        path: "/dashboard/modbus/devices",
+      },
+      {
+        text: "Регистры",
+        path: "/dashboard/modbus/registers",
+      },
+      {
+        text: "Чтение данных",
+        path: "/dashboard/modbus/readings",
+      },
+    ],
   },
+
   {
-    text: "Узлы",
+    text: "OPC",
     icon: <HubIcon />,
-    path: "/dashboard/nodes",
+    submenu: [
+      {
+        text: "Серверы",
+        path: "/dashboard/opc/servers",
+      },
+      {
+        text: "Узлы",
+        path: "/dashboard/opc/nodes",
+      },
+      {
+        text: "Чтение данных",
+        path: "/dashboard/opc/readings",
+      },
+    ],
   },
+
   {
     text: "Архив",
     icon: <ArchiveIcon />,
-    path: "/dashboard/archive",
+    submenu: [
+      {
+        text: "История данных",
+        path: "/dashboard/archive/history",
+      },
+      {
+        text: "Отчёты",
+        path: "/dashboard/archive/reports",
+      },
+    ],
   },
+
   {
     text: "Пользователи",
     icon: <GroupIcon />,
@@ -154,7 +198,7 @@ export default function Sidebar({ isOpen = true }) {
   return (
     <aside
       className={`${
-        isOpen ? "w-[330px]" : "w-[80px]"
+        isOpen ? "w-[340px]" : "w-[80px]"
       } h-screen bg-background-dark px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-manrope border-r border-surface-dark`}
     >
       <div className="text-white">
@@ -222,7 +266,7 @@ export default function Sidebar({ isOpen = true }) {
                   {isOpen && (
                     <Typography
                       sx={{
-                        fontFamily: "'Space Grotesk', sans-serif",
+                        fontFamily: "Noto Sans, sans-serif",
                         fontSize: "15px",
                         fontWeight: isActive || isAnySubmenuActive ? 600 : 400,
                         flexGrow: 1,

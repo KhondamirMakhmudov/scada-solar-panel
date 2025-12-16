@@ -85,38 +85,12 @@ const MainContentHeader = ({ children, toggleSidebar }) => {
                 : "linear-gradient(135deg, #13ec5b 0%, #089e3d 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
+            fontFamily: "Manrope",
           }}
         >
           {children}
         </Typography>
       </div>
-
-      {/* <div className="flex items-center gap-3">
-
-        <IconButton
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="
-            transition-all duration-200
-            hover:scale-105 active:scale-95
-            border border-gray-300 dark:border-gray-600
-          "
-          sx={{
-            width: 44,
-            height: 44,
-            borderRadius: "10px",
-            backgroundColor: "rgba(19, 236, 91, 0.1)",
-            "&:hover": {
-              backgroundColor: "rgba(19, 236, 91, 0.2)",
-            },
-          }}
-        >
-          {theme === "dark" ? (
-            <Brightness7Icon sx={{ color: "#13ec5b", fontSize: 22 }} />
-          ) : (
-            <Brightness4Icon sx={{ color: "#13ec5b", fontSize: 22 }} />
-          )}
-        </IconButton>
-      </div> */}
     </div>
   );
 };

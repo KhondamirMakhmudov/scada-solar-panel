@@ -7,4 +7,6 @@ export const URLS = {
   users: "users",
   nodes: "nodes/",
   archive: "archive_data/",
+  MODBUSDevices: "api/devices",
+  MODBUSRegisters: "api/registers",
 };

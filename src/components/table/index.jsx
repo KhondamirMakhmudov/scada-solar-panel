@@ -83,7 +83,7 @@ const CustomTable = ({ data, columns, pagination }) => {
   return (
     <div className="overflow-x-auto border-none rounded-lg manrope">
       <table className="min-w-full text-sm text-left">
-        <thead className="bg-[#8b5cf6] text-white">
+        <thead className="bg-gradient-to-r from-primary/10 to-emerald-400/10 dark:from-primary/20 dark:to-emerald-400/20 text-white">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -113,7 +113,7 @@ const CustomTable = ({ data, columns, pagination }) => {
             </tr>
           ))}
         </thead>
-        <motion.tbody layout className="bg-[#1F2937] text-white">
+        <motion.tbody layout className="bg-surface-dark text-white">
           <AnimatePresence>
             {table.getRowModel().rows.map((row) => (
               <motion.tr
@@ -123,12 +123,12 @@ const CustomTable = ({ data, columns, pagination }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 5 }}
                 transition={{ duration: 0.2 }}
-                className="hover:bg-[#555b64] cursor-auto"
+                className="hover:bg-[#427754] cursor-auto transition-all"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-4 py-2 border-t border-t-[#E9E9E9]"
+                    className="px-4 py-2 border-t border-t-[#275035]"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

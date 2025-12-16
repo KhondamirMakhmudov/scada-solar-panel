@@ -17,7 +17,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEnter = () => {
-    router.push("/dashboard/main");
+    router.push("/dashboard/modbus/devices");
   };
 
   const handleExit = async () => {
@@ -77,12 +77,12 @@ export default function Home() {
             <Brand />
 
             <div className="max-w-md">
-              <p className="text-3xl font-bold leading-tight mb-4 text-white">
+              <p className="text-3xl font-bold leading-tight mb-4 text-white manrope">
                 Мониторинг энергии будущего в реальном времени.
               </p>
               <div className="flex items-center gap-2 text-primary/80">
                 <span className="material-symbols-outlined text-sm">bolt</span>
-                <span className="text-sm font-medium tracking-wide uppercase">
+                <span className="text-sm font-medium tracking-wide uppercase manrope">
                   Система активна
                 </span>
               </div>
@@ -122,7 +122,12 @@ export default function Home() {
                   <Typography
                     variant="h5"
                     component="h2"
-                    sx={{ color: "white", fontWeight: 600, mb: 1 }}
+                    sx={{
+                      color: "white",
+                      fontWeight: 600,
+                      mb: 1,
+                      fontFamily: "Manrope",
+                    }}
                   >
                     Вы уже в системе
                   </Typography>
