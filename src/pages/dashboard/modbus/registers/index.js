@@ -26,6 +26,7 @@ const Index = () => {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
     },
+    enabled: !!session?.accessToken,
   });
 
   const columns = [
@@ -53,6 +54,18 @@ const Index = () => {
         </div>
       ),
     },
+
+    {
+      accessorKey: "description",
+      header: "Описание",
+      cell: ({ row }) => (
+        <div className="max-w-[200px]">
+          <p className="font-medium text-gray-100">
+            {row.original.description}
+          </p>
+        </div>
+      ),
+    },
     {
       accessorKey: "dataType",
       header: "Тип данных",
@@ -72,6 +85,14 @@ const Index = () => {
       ),
     },
   ];
+
+  if (isLoading || isFetching) {
+    return (
+      <DashboardLayout headerTitle={"Регистры"}>
+        <ContentLoader />
+      </DashboardLayout>
+    );
+  }
   return (
     <DashboardLayout headerTitle={"Регистры"}>
       <motion.div

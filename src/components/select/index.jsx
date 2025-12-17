@@ -12,7 +12,7 @@ const CustomSelect = ({
   placeholder = "Выберите роль",
   className = "",
   returnObject = false, // ✅ true => object qaytaradi, false => faqat value
-  sortOptions = true, // ✅ yangi prop: true => alfavit bo‘yicha sort
+  sortOptions = true, // ✅ yangi prop: true => alfavit bo'yicha sort
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
@@ -48,7 +48,7 @@ const CustomSelect = ({
   return (
     <div className={`relative w-full rounded-md ${className}`} ref={selectRef}>
       {label && (
-        <label className="block mb-1 text-sm text-gray-400">
+        <label className="block mb-[4px] text-sm text-gray-200">
           {label}
           {required && <span className="text-red-500"> *</span>}
         </label>
@@ -58,31 +58,31 @@ const CustomSelect = ({
         type="button"
         onClick={toggleDropdown}
         className={clsx(
-          "w-full h-[55px] border rounded-md p-2 text-[15px] text-left bg-[#374151] text-gray-100 flex items-center justify-between focus:outline-none focus:ring-2",
+          "w-full h-[45px] border text-sm border-primary/30 rounded-md p-2  text-left bg-surface-dark text-gray-100 flex items-center justify-between focus:outline-none focus:ring-2 transition-all",
           error
             ? "border-red-500 focus:ring-red-500"
-            : "border-gray-300 focus:ring-blue-500"
+            : "border-surface-border hover:border-primary/30 focus:ring-primary/50"
         )}
       >
-        <span className={clsx("truncate", !value && "text-gray-400")}>
+        <span className={clsx("truncate", !value && "text-text-secondary")}>
           {selectedLabel || placeholder}
         </span>
         <KeyboardArrowDown
-          className={`transition-transform duration-200 ${
+          className={`transition-transform duration-200 text-primary ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <ul className="absolute z-9999 mt-2 w-full bg-[#374151] text-gray-100 border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute z-[9999] mt-2 w-full bg-surface-dark text-gray-100 border border-primary/30 rounded-md shadow-lg max-h-60 overflow-auto">
           {finalOptions.map((opt, idx) => (
             <li
               key={idx}
               className={clsx(
-                "px-4 py-2 hover:bg-[#555b64] cursor-pointer",
+                "px-4 py-2 hover:bg-background-dark cursor-pointer transition-colors",
                 (returnObject ? value?.value : value) === opt.value &&
-                  "bg-[#555b64] font-medium"
+                  "bg-primary/10 text-primary font-medium border-l-2 border-primary"
               )}
               onClick={() => handleSelect(opt)}
             >

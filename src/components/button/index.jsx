@@ -136,6 +136,39 @@ export const AddButton = ({
   );
 };
 
+// Add Button Component
+export const PrimaryButton = ({
+  onClick,
+  tooltip = "Добавить",
+  disabled = false,
+}) => {
+  return (
+    <Tooltip title={tooltip}>
+      <span>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          sx={{
+            width: "auto",
+            height: "32px",
+            minWidth: "32px",
+            background: disabled ? "#4a4a4a" : "#14532d",
+            color: disabled ? "#8a8a8a" : "#4ade80",
+            "&:hover": {
+              background: disabled ? "#4a4a4a" : "#166534",
+            },
+            "&:disabled": {
+              cursor: "not-allowed",
+            },
+          }}
+        >
+          Добавить
+        </Button>
+      </span>
+    </Tooltip>
+  );
+};
+
 // Action Buttons Group Component
 export const ActionButtonGroup = ({
   children,
