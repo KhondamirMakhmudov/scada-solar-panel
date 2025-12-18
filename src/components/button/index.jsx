@@ -4,6 +4,39 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 
+export const EyeButton = ({
+  onClick,
+  tooltip = "Осмотреть",
+  disabled = false,
+}) => {
+  return (
+    <Tooltip title={tooltip}>
+      <span>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          sx={{
+            width: "32px",
+            height: "32px",
+            minWidth: "32px",
+            background: disabled ? "#4a4a4a" : "#0c4a6e", // bg-blue-900/30 - 0c4a6e
+            color: disabled ? "#8a8a8a" : "#0284c7", // text-blue-600 - 0284c7
+            // border border-blue-600
+            "&:hover": {
+              background: disabled ? "#4a4a4a" : "#075985", // to'g'ri hover rang
+            },
+            "&:disabled": {
+              cursor: "not-allowed",
+            },
+          }}
+        >
+          <VisibilityIcon fontSize="small" />
+        </Button>
+      </span>
+    </Tooltip>
+  );
+};
+
 // Edit Button Component
 export const EditButton = ({
   onClick,

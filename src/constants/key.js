@@ -6,4 +6,6 @@ export const KEYS = {
   archive: "archive",
   MODBUSDevices: "MODBUSDevices",
   MODBUSRegisters: "MODBUSRegisters",
+  MODBUSRegistersByDeviceId: "MODBUSRegistersByDeviceId",
+  MODBUSRegister: "MODBUSRegister",
 };

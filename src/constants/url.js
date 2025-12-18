@@ -9,4 +9,5 @@ export const URLS = {
   archive: "archive_data/",
   MODBUSDevices: "api/devices",
   MODBUSRegisters: "api/registers",
+  MODBUSRegistersByDeviceId: "api/registers/device",
 };
