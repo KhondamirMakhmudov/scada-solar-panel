@@ -8,4 +8,5 @@ export const KEYS = {
   MODBUSRegisters: "MODBUSRegisters",
   MODBUSRegistersByDeviceId: "MODBUSRegistersByDeviceId",
   MODBUSRegister: "MODBUSRegister",
+  MODBUSreadingsByRegisterId: "MODBUSreadingsByRegisterId",
 };

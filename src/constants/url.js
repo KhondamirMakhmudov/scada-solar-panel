@@ -10,4 +10,5 @@ export const URLS = {
   MODBUSDevices: "api/devices",
   MODBUSRegisters: "api/registers",
   MODBUSRegistersByDeviceId: "api/registers/device",
+  MODBUSreadingsByRegisterId: "api/readings/register",
 };
