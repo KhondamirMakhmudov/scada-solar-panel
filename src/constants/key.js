@@ -9,4 +9,5 @@ export const KEYS = {
   MODBUSRegistersByDeviceId: "MODBUSRegistersByDeviceId",
   MODBUSRegister: "MODBUSRegister",
   MODBUSreadingsByRegisterId: "MODBUSreadingsByRegisterId",
+  OPCServers: "OPCServers",
 };
