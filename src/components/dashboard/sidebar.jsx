@@ -205,7 +205,21 @@ export default function Sidebar({ isOpen = true }) {
         {/* LOGO */}
         <div className="mb-8">
           <Link href="/">
-            <Brand />
+            <div
+              className={`flex gap-2 items-center  ${
+                !isOpen ? "justify-center" : "justify-start"
+              }`}
+            >
+              <span className="material-symbols-outlined text-primary">
+                solar_power
+              </span>
+
+              {isOpen && (
+                <span className="text-white text-xl font-bold tracking-tight">
+                  Solar SCADA
+                </span>
+              )}
+            </div>
           </Link>
         </div>
 
