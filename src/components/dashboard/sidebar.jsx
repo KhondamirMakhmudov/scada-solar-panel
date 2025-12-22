@@ -206,7 +206,7 @@ export default function Sidebar({ isOpen = true }) {
         <div className="mb-8">
           <Link href="/">
             <div
-              className={`flex gap-2 items-center ${
+              className={`flex gap-2 items-center  ${
                 !isOpen ? "justify-center" : "justify-start"
               }`}
             >

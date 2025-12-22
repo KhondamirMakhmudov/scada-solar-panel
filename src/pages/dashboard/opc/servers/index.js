@@ -250,24 +250,14 @@ const Index = () => {
         </div>
       ),
     },
+
     {
-      accessorKey: "serverType",
-      header: "Тип сервера",
+      accessorKey: "endpointUrl",
+      header: "Параметры подключения",
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
-          {row.original.serverType || "OPC UA"}
-        </span>
+        <div className="min-w-[300px]">{row.original.endpointUrl}</div>
       ),
     },
-    // {
-    //   accessorKey: "connectionParams",
-    //   header: "Параметры подключения",
-    //   cell: ({ row }) => (
-    //     <div className="min-w-[300px]">
-    //       {formatConnectionParams(row.original.connectionParams)}
-    //     </div>
-    //   ),
-    // },
     {
       accessorKey: "endpointUrl",
       header: "URL конечной точки",
@@ -280,9 +270,13 @@ const Index = () => {
     {
       accessorKey: "pollInterval",
       header: "Интервал опроса",
+
+      accessorKey: "username",
+      header: "Имя пользователья",
+
       cell: ({ row }) => (
         <span className="text-sm text-gray-300">
-          {row.original.pollInterval || 1000} мс
+          {row.original.username || "-"}
         </span>
       ),
     },
@@ -302,37 +296,31 @@ const Index = () => {
       ),
     },
     {
-      accessorKey: "status",
+      accessorKey: "isConnected",
       header: "Статус соединения",
       cell: ({ row }) => {
-        const getStatusInfo = (status) => {
-          const statusMap = {
-            CONNECTED: {
+        const getStatusInfo = (isConnected) => {
+          // Проверяем также на undefined/null для надежности
+          if (isConnected === true) {
+            return {
               text: "Подключен",
               color: "bg-primary/10 text-primary border-primary/30",
-            },
-            DISCONNECTED: {
+            };
+          } else if (isConnected === false) {
+            return {
               text: "Отключен",
               color: "bg-red-500/10 text-red-400 border-red-500/30",
-            },
-            CONNECTING: {
-              text: "Подключение",
-              color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
-            },
-            ERROR: {
-              text: "Ошибка",
-              color: "bg-red-500/10 text-red-400 border-red-500/30",
-            },
-            default: {
+            };
+          } else {
+            // Для null, undefined или других неожиданных значений
+            return {
               text: "Неизвестно",
               color: "bg-gray-500/10 text-gray-400 border-gray-500/30",
-            },
-          };
-
-          return statusMap[status] || statusMap.default;
+            };
+          }
         };
 
-        const statusInfo = getStatusInfo(row.original.status);
+        const statusInfo = getStatusInfo(row.original.isConnected);
 
         return (
           <span

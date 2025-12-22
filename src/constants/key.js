@@ -10,4 +10,5 @@ export const KEYS = {
   MODBUSRegister: "MODBUSRegister",
   MODBUSreadingsByRegisterId: "MODBUSreadingsByRegisterId",
   OPCServers: "OPCServers",
+  statusMonitoring: "statusMonitoring",
 };
