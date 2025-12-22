@@ -269,6 +269,15 @@ const Index = () => {
     //   ),
     // },
     {
+      accessorKey: "endpointUrl",
+      header: "URL конечной точки",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-300">
+          {row.original.endpointUrl || "-"}
+        </span>
+      ),
+    },
+    {
       accessorKey: "pollInterval",
       header: "Интервал опроса",
       cell: ({ row }) => (
