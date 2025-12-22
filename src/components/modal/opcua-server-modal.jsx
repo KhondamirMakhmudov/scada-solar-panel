@@ -78,6 +78,16 @@ export const OPCUAServerModal = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Endpoint URL ni o'zgarganda avtomatik "opc.tcp://" qo'shamiz
+  const handleEndpointUrlChange = (value) => {
+    // Agar "opc.tcp://" bilan boshlanmasa, qo'shamiz
+    let finalValue = value;
+    if (value && !value.startsWith("opc.tcp://")) {
+      finalValue = "opc.tcp://" + value;
+    }
+    setFormData((prev) => ({ ...prev, endpointUrl: finalValue }));
+  };
+
   const handleClose = () => {
     resetForm(); // Reset form when closing
     onClose();
@@ -101,7 +111,7 @@ export const OPCUAServerModal = ({
             {/* Server Name */}
             <Input
               type="text"
-              label={"Имя сервера *"}
+              label={"Имя сервера"}
               value={formData.name}
               inputClass="!h-[45px] text-sm"
               onChange={(e) => handleChange("name", e.target.value)}
@@ -112,11 +122,11 @@ export const OPCUAServerModal = ({
             {/* Endpoint URL */}
             <Input
               type="text"
-              label={"Endpoint URL *"}
+              label={"Endpoint URL"}
               value={formData.endpointUrl}
               inputClass="!h-[45px] text-sm"
-              onChange={(e) => handleChange("endpointUrl", e.target.value)}
-              placeholder="opc.tcp://192.168.1.100:4840"
+              onChange={(e) => handleEndpointUrlChange(e.target.value)}
+              placeholder="192.168.1.100:4840"
               required
             />
 
@@ -172,6 +182,10 @@ export const OPCUAServerModal = ({
                 <li>
                   При редактировании: оставьте поле пароля пустым, чтобы
                   сохранить текущий пароль
+                </li>
+                <li>
+                  Endpoint URL автоматически добавляется <code>opc.tcp://</code>{" "}
+                  в начало
                 </li>
               </ul>
             </div>

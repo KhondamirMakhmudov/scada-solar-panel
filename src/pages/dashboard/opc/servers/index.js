@@ -181,54 +181,6 @@ const Index = () => {
     }
   };
 
-  // Форматирование параметров подключения OPC UA
-  const formatConnectionParams = (paramsString) => {
-    try {
-      const params = JSON.parse(paramsString);
-      return (
-        <div className="flex flex-wrap gap-2">
-          {params.endpointUrl && (
-            <Tooltip title="URL endpoint OPC UA сервера">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-primary/20 text-primary truncate max-w-xs">
-                {params.endpointUrl}
-              </span>
-            </Tooltip>
-          )}
-          {params.securityPolicy && (
-            <Tooltip title="Политика безопасности">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
-                {params.securityPolicy}
-              </span>
-            </Tooltip>
-          )}
-          {params.messageSecurityMode && (
-            <Tooltip title="Режим безопасности сообщений">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-purple-500/20 text-purple-400">
-                {params.messageSecurityMode}
-              </span>
-            </Tooltip>
-          )}
-          {params.authType && (
-            <Tooltip title="Тип аутентификации">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-blue-500/20 text-blue-400">
-                {params.authType}
-              </span>
-            </Tooltip>
-          )}
-          {params.username && (
-            <Tooltip title="Имя пользователя">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-pink-500/20 text-pink-400">
-                User: {params.username}
-              </span>
-            </Tooltip>
-          )}
-        </div>
-      );
-    } catch (error) {
-      return <span className="text-red-400 text-sm">Ошибка парсинга</span>;
-    }
-  };
-
   const columns = [
     {
       header: "№",
@@ -251,13 +203,6 @@ const Index = () => {
       ),
     },
 
-    {
-      accessorKey: "endpointUrl",
-      header: "Параметры подключения",
-      cell: ({ row }) => (
-        <div className="min-w-[300px]">{row.original.endpointUrl}</div>
-      ),
-    },
     {
       accessorKey: "endpointUrl",
       header: "URL конечной точки",
