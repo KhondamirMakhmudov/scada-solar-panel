@@ -13,4 +13,5 @@ export const URLS = {
   MODBUSreadingsByRegisterId: "api/readings/register",
   OPCServers: "api/opc-servers",
   statusMonitoring: "api/v1/status",
+  OPCNodes: "api/opc-nodes",
 };

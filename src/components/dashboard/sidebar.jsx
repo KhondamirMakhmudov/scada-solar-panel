@@ -46,10 +46,10 @@ const menuItems = [
         text: "Производство энергии",
         path: "/dashboard/solar/production",
       },
-      {
-        text: "Экологические показатели",
-        path: "/dashboard/solar/eco",
-      },
+      // {
+      //   text: "Экологические показатели",
+      //   path: "/dashboard/solar/eco",
+      // },
     ],
   },
 
