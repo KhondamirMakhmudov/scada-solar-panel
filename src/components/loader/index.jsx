@@ -8,9 +8,10 @@ const ContentLoader = ({ classNames }) => {
         classNames
       )}
     >
-      <div className="loader">
-        <div className="loader-small"></div>
-        <div className="loader-large"></div>
+      <div class="spinner-box">
+        <div class="circle-border">
+          <div class="circle-core"></div>
+        </div>
       </div>
     </div>
   );

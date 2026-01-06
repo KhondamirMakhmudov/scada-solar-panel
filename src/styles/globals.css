@@ -211,57 +211,103 @@ body {
   }
 }
 
-.loader {
-  position: relative;
-  width: 70px;
-  height: 70px;
+/* From Uiverse.io by DevPTG */
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(359deg);
+  }
 }
 
-.loader-large {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-  background-color: #d4adfc;
-  border-radius: 10px;
-  animation: loading 2s infinite;
+@keyframes spin3D {
+  from {
+    transform: rotate3d(0.5, 0.5, 0.5, 360deg);
+  }
+
+  to {
+    transform: rotate3d(0deg);
+  }
 }
 
-.loader-small {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  inset: 0;
-  margin: auto;
-  background-color: #5c469c;
-  z-index: 2;
-  border-radius: 6px;
-  animation: loading 2s infinite reverse;
-}
-
-@keyframes loading {
+@keyframes configure-clockwise {
   0% {
-    transform: rotate(0deg);
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(90deg);
   }
 
   50% {
-    transform: rotateY(180deg);
+    transform: rotate(180deg);
+  }
+
+  75% {
+    transform: rotate(270deg);
   }
 
   100% {
-    transform: rotateX(180deg);
+    transform: rotate(360deg);
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@keyframes configure-xclockwise {
+  0% {
+    transform: rotate(45deg);
   }
-  to {
-    opacity: 1;
+
+  25% {
+    transform: rotate(-45deg);
+  }
+
+  50% {
+    transform: rotate(-135deg);
+  }
+
+  75% {
+    transform: rotate(-225deg);
+  }
+
+  100% {
+    transform: rotate(-315deg);
   }
 }
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-in-out;
+
+@keyframes pulse {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+}
+
+.circle-border {
+  width: 150px;
+  height: 150px;
+  padding: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: rgb(63, 249, 220);
+  background: linear-gradient(
+    0deg,
+    rgba(63, 249, 220, 0.1) 33%,
+    rgb(5, 255, 138) 100%
+  );
+  animation: spin 0.8s linear 0s infinite;
+}
+
+.circle-core {
+  width: 100%;
+  height: 100%;
+  background-color: #04090e00;
+  border-radius: 50%;
 }
