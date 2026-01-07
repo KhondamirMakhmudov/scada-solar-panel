@@ -304,7 +304,7 @@ const Index = () => {
             value={get(analiticsModbus, "data.activeTasksCount", 0)}
             delay={0.1}
           />
-          <StatCard
+          {/* <StatCard
             icon="check_circle"
             label="Успешных опросов"
             value={totalSuccessful.toLocaleString()}
@@ -321,7 +321,7 @@ const Index = () => {
             label="Средняя успешность"
             value={`${avgSuccessRate}%`}
             delay={0.4}
-          />
+          /> */}
         </div>
 
         {/* Devices Section */}

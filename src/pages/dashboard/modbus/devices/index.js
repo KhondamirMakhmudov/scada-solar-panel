@@ -22,6 +22,7 @@ import DeleteModal from "@/components/modal/delete-modal";
 import { DeviceModal } from "@/components/modal/device-modal";
 import { Tooltip } from "@mui/material";
 import ToggleButton from "@/components/button/toggle-button";
+import Link from "next/link";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -347,13 +348,21 @@ const Index = () => {
         transition={{ duration: 0.3 }}
         className="p-[15px] rounded-lg my-[20px] manrope border border-surface-dark bg-background-dark"
       >
-        <div className="mb-2">
+        <div className="mb-2 flex justify-between">
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
           >
             <span>Добавить устройство</span>
           </button>
+
+          <Link
+            href={"/dashboard/modbus/devices/status"}
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-black rounded-lg transition-colors duration-200 font-medium text-sm"
+          >
+            <span className="material-symbols-outlined">bar_chart</span>
+            Статус устройств
+          </Link>
         </div>
         <CustomTable
           data={get(devices, "data.content", [])}
