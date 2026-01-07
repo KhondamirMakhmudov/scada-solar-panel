@@ -4,7 +4,7 @@ import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { useSession } from "next-auth/react";
 import ContentLoader from "@/components/loader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/card/StatisticCard";
 import { get } from "lodash";
@@ -20,7 +20,7 @@ const DeviceCard = ({ device, deviceId, delay }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.4 }}
-      className="group relative bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
+      className="group relative bg-green-950 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
@@ -62,14 +62,14 @@ const DeviceCard = ({ device, deviceId, delay }) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+          <div className="bg-gray-800/50 rounded-lg p-3 border border-green-700/50">
             <p className="text-gray-400 text-xs mb-1">Успешных опросов</p>
             <p className="text-white text-xl font-bold">
               {device.successfulPolls.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+          <div className="bg-gray-800/50 rounded-lg p-3 border border-red-700/50">
             <p className="text-gray-400 text-xs mb-1">Неудачных опросов</p>
             <p className="text-white text-xl font-bold">
               {device.failedPolls.toLocaleString()}
@@ -132,6 +132,8 @@ function getTimeAgo(date) {
 const Index = () => {
   const { data: session } = useSession();
   const [filter, setFilter] = useState("all");
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [showRefreshWarning, setShowRefreshWarning] = useState(false);
 
   const {
     data: analiticsModbus,
@@ -160,6 +162,19 @@ const Index = () => {
     },
     enabled: !!session?.accessToken,
   });
+
+  // Auto-refresh warning after 2 minutes
+  useEffect(() => {
+    const warningTimer = setTimeout(() => {
+      setShowRefreshWarning(true);
+    }, 120000); // 2 minutes
+
+    return () => clearTimeout(warningTimer);
+  }, [lastUpdate]);
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
   if (isLoadingModbus || isLoadingOPCUA) {
     return (
@@ -192,6 +207,36 @@ const Index = () => {
   return (
     <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
       <div className="font-manrope py-6 space-y-6">
+        {/* Refresh Warning Banner */}
+        {showRefreshWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-yellow-400 text-2xl">
+                schedule
+              </span>
+              <div>
+                <p className="text-yellow-400 font-semibold">
+                  Данные могут быть устаревшими
+                </p>
+                <p className="text-yellow-300/80 text-sm">
+                  Рекомендуется обновить данные для получения актуальной
+                  информации
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-all"
+            >
+              Обновить сейчас
+            </button>
+          </motion.div>
+        )}
+
         {/* Header with Filters */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -202,39 +247,52 @@ const Index = () => {
             <p className="text-gray-400 text-sm">
               Мониторинг и управление устройствами в реальном времени
             </p>
+            <p className="text-gray-500 text-xs mt-1">
+              Последнее обновление: {lastUpdate.toLocaleTimeString("ru-RU")}
+            </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "all"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center gap-2"
             >
-              Все
+              <span className="material-symbols-outlined text-lg">refresh</span>
+              Обновить
             </button>
-            <button
-              onClick={() => setFilter("active")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "active"
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Активные
-            </button>
-            <button
-              onClick={() => setFilter("inactive")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "inactive"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Неактивные
-            </button>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFilter("all")}
+                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                  filter === "all"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                }`}
+              >
+                Все
+              </button>
+              <button
+                onClick={() => setFilter("active")}
+                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                  filter === "active"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                }`}
+              >
+                Активные
+              </button>
+              <button
+                onClick={() => setFilter("inactive")}
+                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                  filter === "inactive"
+                    ? "bg-red-500 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                }`}
+              >
+                Неактивные
+              </button>
+            </div>
           </div>
         </motion.div>
 

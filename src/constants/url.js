@@ -14,4 +14,6 @@ export const URLS = {
   OPCServers: "api/opc-servers",
   statusMonitoring: "api/v1/status",
   OPCNodes: "api/opc-nodes",
+  statusMonitoringModbus: "api/polling/status",
+  statusMonitoringOPCUA: "api/opcua/status",
 };

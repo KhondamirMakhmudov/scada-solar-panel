@@ -12,4 +12,6 @@ export const KEYS = {
   OPCServers: "OPCServers",
   statusMonitoring: "statusMonitoring",
   OPCNodes: "OPCNodes",
+  statusMonitoringModbus: "statusMonitoringModbus",
+  statusMonitoringOPCUA: "statusMonitoringOPCUA",
 };

@@ -175,8 +175,9 @@ const Index = () => {
 
   const initializeFlowDiagram = () => {
     const nodePositions = [
-      { x: 100, y: 100 }, // Solar panel 1
-      { x: 100, y: 300 }, // Solar panel 2
+      { x: 100, y: 200 }, // Solar panel 1
+      { x: 200, y: 400 }, // Solar panel 1
+      { x: 300, y: 600 }, // Solar panel 2
       { x: 400, y: 100 }, // Inverter 1
       { x: 400, y: 300 }, // Inverter 2
       { x: 700, y: 200 }, // Grid connection
@@ -185,12 +186,12 @@ const Index = () => {
     ];
 
     const newNodes = devices.map((device, index) => {
-      const position = nodePositions[index] || { x: 100 + index * 300, y: 200 };
+      const position = nodePositions[index] || { x: 100 + index * 600, y: 200 };
 
       // Determine device type based on parameters
       let deviceType = "inverter";
       let icon = "⚡";
-      let bgColor = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+      let bgColor = "blue";
 
       if (device.name.toLowerCase().includes("счётчик")) {
         deviceType = "meter";
@@ -255,14 +256,14 @@ const Index = () => {
       type: "output",
       position: { x: 700, y: 200 },
       data: {
-        label: "🏢 Электросеть",
+        label: "Электросеть",
         type: "grid",
         power: `${totals.power.toFixed(1)}W`,
         status: "connected",
         devices: `${devices.length} устройства`,
       },
       style: {
-        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+        background: "#006262",
         color: "white",
         border: "2px solid #1e40af",
         width: 200,
@@ -277,7 +278,7 @@ const Index = () => {
       type: "output",
       position: { x: 700, y: 400 },
       data: {
-        label: "📊 SCADA Мониторинг",
+        label: "SCADA Мониторинг",
         type: "monitoring",
         dataPoints: data.length,
         activeDevices: totals.activeDevices,
@@ -404,7 +405,6 @@ const Index = () => {
               style: {
                 ...node.style,
                 opacity: 1,
-                boxShadow: "0 4px 20px rgba(16, 185, 129, 0.4)",
               },
             };
           }
@@ -506,16 +506,16 @@ const Index = () => {
   // Full-page flow view
   if (showFullPageFlow) {
     return (
-      <div className="h-screen bg-gradient-to-br from-gray-50 to-emerald-50 dark:from-gray-900 dark:to-gray-950">
-        <div className="absolute top-0 left-0 right-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 p-4">
+      <div className="h-screen bg-surface-dark font-manrope">
+        <div className="absolute top-0 left-0 right-0 z-10 bg-white/80 dark:bg-green-900/80 backdrop-blur-lg rounded-b-xl border-b border-gray-200 dark:border-gray-800 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowFullPageFlow(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors duration-200"
+                className="flex items-center cursor-pointer gap-2 px-4 py-2 bg-surface-dark hover:bg-green-700 text-white rounded-xl transition-colors duration-200"
               >
                 <span className="material-symbols-outlined">arrow_back</span>
-                Назад к панели
+                Назад
               </button>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Визуализация SCADA системы
@@ -532,9 +532,9 @@ const Index = () => {
                   {connected ? "Подключено" : "Отключено"}
                 </span>
               </div>
-              <div className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold">
+              {/* <div className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold">
                 {totals.power.toFixed(0)}W
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
