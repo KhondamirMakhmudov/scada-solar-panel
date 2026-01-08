@@ -8,12 +8,31 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/card/StatisticCard";
 import { get } from "lodash";
+import usePostPythonQuery from "@/hooks/python/usePostQuery";
+import toast from "react-hot-toast";
 
-const DeviceCard = ({ device, deviceId, delay }) => {
+const DeviceCard = ({ device, delay, onAction }) => {
+  const [actionLoading, setActionLoading] = useState(null);
+  const [showActions, setShowActions] = useState(false);
+
   const totalPolls = device.successfulPolls + device.failedPolls;
-  const successRate = ((device.successfulPolls / totalPolls) * 100).toFixed(2);
-  const lastPollDate = new Date(device.lastPollTime);
-  const timeAgo = getTimeAgo(lastPollDate);
+  const successRate =
+    totalPolls > 0
+      ? ((device.successfulPolls / totalPolls) * 100).toFixed(2)
+      : "0.00";
+  const lastPollDate = device.lastPollTime
+    ? new Date(device.lastPollTime)
+    : null;
+  const timeAgo = lastPollDate ? getTimeAgo(lastPollDate) : "Нет данных";
+
+  const handleAction = async (action) => {
+    setActionLoading(action);
+    await onAction(device.deviceId, action);
+    setTimeout(() => {
+      setActionLoading(null);
+      setShowActions(false);
+    }, 1500);
+  };
 
   return (
     <motion.div
@@ -45,20 +64,104 @@ const DeviceCard = ({ device, deviceId, delay }) => {
               <h3 className="text-white font-semibold text-lg">
                 {device.deviceName}
               </h3>
-              <p className="text-gray-400 text-sm">ID: {deviceId}</p>
+              <p className="text-gray-400 text-sm">ID: {device.deviceId}</p>
             </div>
           </div>
 
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              device.isPolling
-                ? "bg-green-500/20 text-green-400"
-                : "bg-red-500/20 text-red-400"
-            }`}
-          >
-            {device.isPolling ? "Активен" : "Неактивен"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                device.isPolling
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-red-500/20 text-red-400"
+              }`}
+            >
+              {device.isPolling ? "Активен" : "Неактивен"}
+            </span>
+
+            {/* Actions Menu Toggle */}
+            <button
+              onClick={() => setShowActions(!showActions)}
+              className="w-8 h-8 rounded-lg bg-gray-800/80 hover:bg-gray-700 border border-gray-600 flex items-center justify-center transition-all"
+            >
+              <span className="material-symbols-outlined text-gray-300 text-lg">
+                more_vert
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Actions Dropdown */}
+        {showActions && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-4 bg-gray-800 border border-gray-700 rounded-xl p-2 space-y-1"
+          >
+            <button
+              onClick={() => handleAction("start")}
+              disabled={actionLoading !== null}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-green-500/10 border border-transparent hover:border-green-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === "start" ? (
+                <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="material-symbols-outlined text-green-400 text-xl">
+                  play_arrow
+                </span>
+              )}
+              <div className="flex-1">
+                <p className="text-white font-medium text-sm">
+                  Запустить опрос
+                </p>
+                <p className="text-gray-400 text-xs">Начать опрос устройства</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAction("stop")}
+              disabled={actionLoading !== null}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === "stop" ? (
+                <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="material-symbols-outlined text-red-400 text-xl">
+                  stop
+                </span>
+              )}
+              <div className="flex-1">
+                <p className="text-white font-medium text-sm">
+                  Остановить опрос
+                </p>
+                <p className="text-gray-400 text-xs">
+                  Приостановить опрос устройства
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAction("restart")}
+              disabled={actionLoading !== null}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === "restart" ? (
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <span className="material-symbols-outlined text-blue-400 text-xl">
+                  restart_alt
+                </span>
+              )}
+              <div className="flex-1">
+                <p className="text-white font-medium text-sm">Перезапустить</p>
+                <p className="text-gray-400 text-xs">
+                  Перезапустить опрос устройства
+                </p>
+              </div>
+            </button>
+          </motion.div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -135,33 +238,66 @@ const Index = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
 
-  const {
-    data: analiticsModbus,
-    isLoading: isLoadingModbus,
-    isFetching: isFetchingModbus,
-  } = useGetPythonQuery({
-    key: KEYS.statusMonitoringModbus,
-    url: URLS.statusMonitoringModbus,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    enabled: !!session?.accessToken,
+  const { data: analiticsModbus, isLoading: isLoadingModbus } =
+    useGetPythonQuery({
+      key: KEYS.statusMonitoringModbus,
+      url: URLS.statusMonitoringModbus,
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+        Accept: "application/json",
+      },
+      enabled: !!session?.accessToken,
+    });
+
+  const { mutate: startPolling } = usePostPythonQuery({
+    listKeyId: KEYS.statusMonitoringModbus,
   });
 
-  const {
-    data: analiticsOPCUA,
-    isLoading: isLoadingOPCUA,
-    isFetching: isFetchingOPCUA,
-  } = useGetPythonQuery({
-    key: KEYS.statusMonitoringOPCUA,
-    url: URLS.statusMonitoringOPCUA,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    enabled: !!session?.accessToken,
+  const { mutate: stopPolling } = usePostPythonQuery({
+    listKeyId: KEYS.statusMonitoringModbus,
   });
+
+  const { mutate: restartPolling } = usePostPythonQuery({
+    listKeyId: KEYS.statusMonitoringModbus,
+  });
+
+  const handleDeviceAction = async (deviceId, action) => {
+    const actionMap = {
+      start: {
+        url: `${URLS.actionPolling}${deviceId}/start`,
+        mutate: startPolling,
+      },
+      stop: {
+        url: `${URLS.actionPolling}${deviceId}/stop`,
+        mutate: stopPolling,
+      },
+      restart: {
+        url: `${URLS.actionPolling}${deviceId}/restart`,
+        mutate: restartPolling,
+      },
+    };
+
+    const selectedAction = actionMap[action];
+    if (selectedAction) {
+      selectedAction.mutate(
+        {
+          url: selectedAction.url,
+          attributes: {},
+          config: {
+            headers: {
+              Authorization: `Bearer ${session?.accessToken}`,
+            },
+          },
+        },
+        {
+          onSuccess: () => {
+            // Refetch data after successful action
+            toast.success("Success");
+          },
+        }
+      );
+    }
+  };
 
   // Auto-refresh warning after 2 minutes
   useEffect(() => {
@@ -173,36 +309,38 @@ const Index = () => {
   }, [lastUpdate]);
 
   const handleRefresh = () => {
-    window.location.reload();
+    refetchModbus();
+    setLastUpdate(new Date());
+    setShowRefreshWarning(false);
   };
 
-  if (isLoadingModbus || isLoadingOPCUA) {
-    return (
-      <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
-        <ContentLoader />
-      </DashboardLayout>
-    );
-  }
-
-  const devices = Object.entries(get(analiticsModbus, "data.devices", {}));
-  const filteredDevices = devices.filter(([_, device]) => {
+  const devices = get(analiticsModbus, "data.activeTasks", []);
+  const filteredDevices = devices.filter((device) => {
     if (filter === "active") return device.isPolling;
     if (filter === "inactive") return !device.isPolling;
     return true;
   });
 
   const totalSuccessful = devices.reduce(
-    (acc, [_, device]) => acc + device.successfulPolls,
+    (acc, device) => acc + device.successfulPolls,
     0
   );
   const totalFailed = devices.reduce(
-    (acc, [_, device]) => acc + device.failedPolls,
+    (acc, device) => acc + device.failedPolls,
     0
   );
   const avgSuccessRate =
     totalSuccessful + totalFailed > 0
       ? ((totalSuccessful / (totalSuccessful + totalFailed)) * 100).toFixed(1)
       : 0;
+
+  if (isLoadingModbus) {
+    return (
+      <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
+        <ContentLoader />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
@@ -304,7 +442,7 @@ const Index = () => {
             value={get(analiticsModbus, "data.activeTasksCount", 0)}
             delay={0.1}
           />
-          {/* <StatCard
+          <StatCard
             icon="check_circle"
             label="Успешных опросов"
             value={totalSuccessful.toLocaleString()}
@@ -321,7 +459,7 @@ const Index = () => {
             label="Средняя успешность"
             value={`${avgSuccessRate}%`}
             delay={0.4}
-          /> */}
+          />
         </div>
 
         {/* Devices Section */}
@@ -350,12 +488,12 @@ const Index = () => {
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredDevices.map(([id, device], index) => (
+              {filteredDevices.map((device, index) => (
                 <DeviceCard
-                  key={id}
+                  key={device.deviceId}
                   device={device}
-                  deviceId={id}
                   delay={0.6 + index * 0.1}
+                  onAction={handleDeviceAction}
                 />
               ))}
             </div>

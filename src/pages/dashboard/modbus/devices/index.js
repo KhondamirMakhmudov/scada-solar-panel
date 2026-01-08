@@ -23,6 +23,7 @@ import { DeviceModal } from "@/components/modal/device-modal";
 import { Tooltip } from "@mui/material";
 import ToggleButton from "@/components/button/toggle-button";
 import Link from "next/link";
+import usePostPythonQuery from "@/hooks/python/usePostQuery";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -101,6 +102,35 @@ const Index = () => {
       );
     }
   };
+
+  // after creating, the user should sync the devices to add it in modbus
+
+  const { mutate: syncDevices } = usePostPythonQuery({
+    listKeyId: "sync-devices",
+    hideSuccessToast: true,
+  });
+
+  const handleSyncronize = () => {
+    syncDevices(
+      {
+        url: URLS.syncDevices,
+        config: {
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Данные успешно синхронизированы");
+        },
+        onError: () => {
+          toast.error("Синхронизация устройства не удалась");
+        },
+      }
+    );
+  };
+
   // edit device
   const { mutate: updateDevice } = usePutQuery({
     listKeyId: KEYS.MODBUSDevices,
@@ -356,13 +386,23 @@ const Index = () => {
             <span>Добавить устройство</span>
           </button>
 
-          <Link
-            href={"/dashboard/modbus/devices/status"}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-black rounded-lg transition-colors duration-200 font-medium text-sm"
-          >
-            <span className="material-symbols-outlined">bar_chart</span>
-            Статус устройств
-          </Link>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSyncronize}
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+            >
+              <span className="material-symbols-outlined">sync</span>
+              <span>Синхронизировать</span>
+            </button>
+
+            <Link
+              href={"/dashboard/modbus/devices/status"}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-black rounded-lg transition-colors duration-200 font-medium text-sm"
+            >
+              <span className="material-symbols-outlined">bar_chart</span>
+              Статус устройств
+            </Link>
+          </div>
         </div>
         <CustomTable
           data={get(devices, "data.content", [])}
