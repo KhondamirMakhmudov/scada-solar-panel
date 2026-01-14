@@ -12,6 +12,7 @@ export const DeviceModal = ({
   const [formData, setFormData] = useState({
     name: "",
     protocolType: "",
+    serialNumber: "",
     enabled: true,
     pollInterval: "",
     // TCP params
@@ -65,6 +66,7 @@ export const DeviceModal = ({
     setFormData({
       name: "",
       protocolType: "",
+      serialNumber: "",
       enabled: true,
       pollInterval: "",
       host: "",
@@ -106,6 +108,7 @@ export const DeviceModal = ({
     const deviceData = {
       name: formData.name,
       protocolType: formData.protocolType,
+      serialNumber: formData.serialNumber,
       connectionParams,
       enabled: formData.enabled,
       pollInterval: parseInt(formData.pollInterval),
@@ -150,6 +153,15 @@ export const DeviceModal = ({
               inputClass="!h-[45px] text-sm"
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Введите имя устройства"
+              required
+            />
+            <Input
+              type="text"
+              label={"Серийный номер устройства"}
+              value={formData.serialNumber}
+              inputClass="!h-[45px] text-sm"
+              onChange={(e) => handleChange("serialNumber", e.target.value)}
+              placeholder="Введите серийный номер устройства"
               required
             />
 
