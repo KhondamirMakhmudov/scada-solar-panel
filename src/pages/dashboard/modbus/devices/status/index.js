@@ -309,7 +309,6 @@ const Index = () => {
   }, [lastUpdate]);
 
   const handleRefresh = () => {
-    refetchModbus();
     setLastUpdate(new Date());
     setShowRefreshWarning(false);
   };

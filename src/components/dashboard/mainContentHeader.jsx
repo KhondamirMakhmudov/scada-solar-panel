@@ -2,8 +2,7 @@ import { Typography, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
+import Image from "next/image";
 
 const MainContentHeader = ({ children, toggleSidebar }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -39,36 +38,14 @@ const MainContentHeader = ({ children, toggleSidebar }) => {
       `}
     >
       <div className="flex items-center gap-4">
-        <IconButton
-          onClick={toggleSidebar}
-          className="
-            group
-            transition-all duration-200
-            hover:bg-primary
-            active:scale-95
-            border border-gray-300 dark:border-gray-600
-          "
-          sx={{
-            width: 44,
-            height: 44,
-            borderRadius: "10px",
-            backgroundColor: "rgba(19, 236, 91, 0.1)",
-            "&:hover": {
-              backgroundColor: "#13ec5b",
-              "& svg": {
-                color: "#ffffff",
-              },
-            },
-          }}
-        >
-          <MenuIcon
-            sx={{
-              fontSize: 22,
-              color: "#13ec5b",
-              transition: "color 0.2s",
-            }}
+        <button onClick={toggleSidebar}>
+          <Image
+            src={"/icons/menu-open.svg"}
+            alt="solar-power"
+            width={40}
+            height={40}
           />
-        </IconButton>
+        </button>
 
         <Typography
           variant="h5"

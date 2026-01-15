@@ -224,7 +224,7 @@ const Index = () => {
           fitView
           className="bg-[#020617]"
         >
-          <Background color="#1e293b" variant="lines" gap={50} size={0.5} />
+          <Background color="#1e293b" variant="dot" gap={50} size={0.5} />
           <Controls />
         </ReactFlow>
 

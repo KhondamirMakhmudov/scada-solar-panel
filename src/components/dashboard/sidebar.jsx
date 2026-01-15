@@ -6,18 +6,14 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { motion } from "framer-motion";
-import Brand from "../brand";
 import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
 import ExitModal from "../modal/exit-modal";
 import { signOut, useSession } from "next-auth/react";
-import HomeIcon from "@mui/icons-material/Home";
 import Avatar from "@mui/material/Avatar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import GroupIcon from "@mui/icons-material/Group";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import Link from "next/link";
-import RecyclingIcon from "@mui/icons-material/Recycling";
-import LinkIcon from "@mui/icons-material/Link";
 import HubIcon from "@mui/icons-material/Hub";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
 import { KEYS } from "@/constants/key";
@@ -30,13 +26,27 @@ import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 const menuItems = [
   {
     text: "Главная",
-    icon: <DashboardIcon />,
+    icon: (
+      <Image
+        src={"/icons/domain.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     path: "/dashboard/main",
   },
 
   {
     text: "Солнечная электростанция",
-    icon: <SolarPowerIcon />,
+    icon: (
+      <Image
+        src={"/icons/sunny.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     submenu: [
       {
         text: "Общий обзор",
@@ -55,7 +65,14 @@ const menuItems = [
 
   {
     text: "Modbus",
-    icon: <SettingsEthernetIcon />,
+    icon: (
+      <Image
+        src={"/icons/app-badging.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     submenu: [
       {
         text: "Устройства",
@@ -74,7 +91,14 @@ const menuItems = [
 
   {
     text: "OPC",
-    icon: <HubIcon />,
+    icon: (
+      <Image
+        src={"/icons/linked-services.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     submenu: [
       {
         text: "Серверы",
@@ -93,7 +117,14 @@ const menuItems = [
 
   {
     text: "Архив",
-    icon: <ArchiveIcon />,
+    icon: (
+      <Image
+        src={"/icons/data-table.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     submenu: [
       {
         text: "История данных",
@@ -108,7 +139,14 @@ const menuItems = [
 
   {
     text: "Пользователи",
-    icon: <GroupIcon />,
+    icon: (
+      <Image
+        src={"/icons/shield-person.svg"}
+        alt="solar-power"
+        width={40}
+        height={40}
+      />
+    ),
     path: "/dashboard/users",
   },
 ];
@@ -134,7 +172,7 @@ export default function Sidebar({ isOpen = true }) {
     enabled: !!session?.accessToken,
   });
 
-  // 🔑 active submenu bo'lsa parentni ochiq qilib qo'yish
+  // active submenu bo'lsa parentni ochiq qilib qo'yish
   useEffect(() => {
     menuItems.forEach((item, index) => {
       if (item.submenu?.some((sub) => router.pathname === sub.path)) {
@@ -199,7 +237,7 @@ export default function Sidebar({ isOpen = true }) {
     <aside
       className={`${
         isOpen ? "w-[340px]" : "w-[80px]"
-      } h-screen bg-background-dark px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-manrope border-r border-surface-dark`}
+      } h-screen bg-background-dark px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-mono border-r border-surface-dark`}
     >
       <div className="text-white">
         {/* LOGO */}
@@ -210,9 +248,12 @@ export default function Sidebar({ isOpen = true }) {
                 !isOpen ? "justify-center" : "justify-start"
               }`}
             >
-              <span className="material-symbols-outlined text-primary">
-                solar_power
-              </span>
+              <Image
+                src={"/icons/solar-power.svg"}
+                alt="solar-power"
+                width={40}
+                height={40}
+              />
 
               {isOpen && (
                 <span className="text-white text-xl font-bold tracking-tight">
@@ -280,8 +321,9 @@ export default function Sidebar({ isOpen = true }) {
                   {isOpen && (
                     <Typography
                       sx={{
-                        fontFamily: "Noto Sans, sans-serif",
-                        fontSize: "15px",
+                        fontFamily: "Manrope, sans-serif",
+                        fontSize: "16px",
+                        textTransform: "uppercase",
                         fontWeight: isActive || isAnySubmenuActive ? 600 : 400,
                         flexGrow: 1,
                       }}

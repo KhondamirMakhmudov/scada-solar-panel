@@ -31,14 +31,14 @@ const Index = () => {
   const [selectNodeId, setSelectNodeId] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
 
-  // Получить все узлы
+  // nodes
   const {
     data: nodes,
     isLoading,
     isFetching,
   } = useGetQuery({
-    key: KEYS.OPCNodes, // Нужно добавить в constants/key.js
-    url: URLS.OPCNodes, // Нужно добавить в constants/url.js
+    key: KEYS.OPCNodes,
+    url: URLS.OPCNodes,
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",

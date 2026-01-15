@@ -311,3 +311,18 @@ body {
   background-color: #04090e00;
   border-radius: 50%;
 }
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: #102216;
+  border: 1px solid #114021;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #13ec52;
+}
