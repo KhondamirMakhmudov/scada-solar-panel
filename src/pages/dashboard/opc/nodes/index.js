@@ -46,7 +46,7 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
-  // Получить список серверов для выпадающего списка в модальном окне
+  // servers
   const { data: servers } = useGetQuery({
     key: KEYS.OPCServers,
     url: URLS.OPCServers,
@@ -57,7 +57,7 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
-  // Создать узел
+  // create node
   const { mutate: createNode } = usePostQuery({
     listKeyId: KEYS.OPCNodes,
   });
@@ -113,7 +113,7 @@ const Index = () => {
     }
   };
 
-  // Редактировать узел
+  // edit node
   const { mutate: updateNode } = usePutQuery({
     listKeyId: KEYS.OPCNodes,
   });
@@ -128,7 +128,7 @@ const Index = () => {
     setEditingNode(null);
   };
 
-  // Удалить узел
+  // delete node
   const handleDelete = async () => {
     try {
       const response = await fetch(
