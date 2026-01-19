@@ -433,7 +433,7 @@ const Index = () => {
 
             {displayData.length > 0 && (
               <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>🕐</span>
+                <span className="material-symbols-outlined">schedule</span>
                 <span>
                   Обновлено:{" "}
                   {new Date(displayData[0]?.timestamp).toLocaleString("ru-RU")}

@@ -6,8 +6,9 @@ import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { motion } from "framer-motion";
 import CustomTable from "@/components/table";
-import { get } from "lodash";
+import { get, isEmpty } from "lodash";
 import ContentLoader from "@/components/loader";
+import usePostPythonQuery from "@/hooks/python/usePostQuery";
 import {
   EditButton,
   DeleteButton,
@@ -22,6 +23,8 @@ import DeleteModal from "@/components/modal/delete-modal";
 import { Tooltip } from "@mui/material";
 import ToggleButton from "@/components/button/toggle-button";
 import { OPCUANodeModal } from "@/components/modal/opcua-nodes-modal";
+import NoData from "@/components/no-data";
+import useGetPythonQuery from "@/hooks/python/useGetQuery";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -30,6 +33,8 @@ const Index = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectNodeId, setSelectNodeId] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
+  const [selectedServerId, setSelectedServerId] = useState(null);
+  const [currentNodeId, setCurrentNodeId] = useState("");
 
   // nodes
   const {
@@ -57,6 +62,16 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
+  const { data: nodeChildren, isLoading: isLoadingChildren } =
+    useGetPythonQuery({
+      key: [KEYS.OPCNodeChildren, selectedServerId, currentNodeId],
+      url: `${URLS.OPCNodeChildren}?serverId=${selectedServerId}&nodeId=${currentNodeId}`,
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+        Accept: "application/json",
+      },
+      enabled: !!session?.accessToken && !!selectedServerId,
+    });
   // create node
   const { mutate: createNode } = usePostQuery({
     listKeyId: KEYS.OPCNodes,
@@ -380,7 +395,14 @@ const Index = () => {
           </button>
         </div>
 
-        <CustomTable data={get(nodes, "data", [])} columns={columns} />
+        {isEmpty(get(nodes, "data.content", [])) ? (
+          <NoData />
+        ) : (
+          <CustomTable
+            data={get(nodes, "data.content", [])}
+            columns={columns}
+          />
+        )}
       </motion.div>
 
       {/* Модальное окно для создания/редактирования узла */}
@@ -391,6 +413,12 @@ const Index = () => {
           onSubmit={handleCreate}
           editNode={editingNode}
           servers={get(servers, "data", [])}
+          nodeChildren={nodeChildren}
+          isLoadingChildren={isLoadingChildren}
+          onServerChange={setSelectedServerId}
+          onNodeIdChange={setCurrentNodeId}
+          currentNodeId={currentNodeId}
+          selectedServerId={selectedServerId}
         />
       )}
 

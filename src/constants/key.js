@@ -14,4 +14,5 @@ export const KEYS = {
   OPCNodes: "OPCNodes",
   statusMonitoringModbus: "statusMonitoringModbus",
   statusMonitoringOPCUA: "statusMonitoringOPCUA",
+  OPCNodeChildren: "OPCNodeChildren",
 };

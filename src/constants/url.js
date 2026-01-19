@@ -19,4 +19,5 @@ export const URLS = {
   OPCNodes: "api/opc-nodes",
   statusMonitoringOPCUA: "api/opcua/status",
   syncServers: "api/opcua/sync",
+  OPCNodeChildren: "api/opcua/browse/children",
 };
