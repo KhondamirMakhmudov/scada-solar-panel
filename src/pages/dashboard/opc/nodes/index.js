@@ -65,7 +65,7 @@ const Index = () => {
   const { data: nodeChildren, isLoading: isLoadingChildren } =
     useGetPythonQuery({
       key: [KEYS.OPCNodeChildren, selectedServerId, currentNodeId],
-      url: `${URLS.OPCNodeChildren}?serverId=${selectedServerId}&nodeId=${currentNodeId}`,
+      url: `${URLS.OPCNodeChildren}?serverId=${selectedServerId}&parentNodeId=${currentNodeId}`,
       headers: {
         Authorization: `Bearer ${session?.accessToken}`,
         Accept: "application/json",
