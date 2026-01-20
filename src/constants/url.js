@@ -20,4 +20,6 @@ export const URLS = {
   statusMonitoringOPCUA: "api/opcua/status",
   syncServers: "api/opcua/sync",
   OPCNodeChildren: "api/opcua/browse/children",
+  readingsByServerId: "api/opc-readings/serverId/",
+  readingsByNodeId: "api/opc-readings/node/",
 };
