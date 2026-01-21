@@ -11,8 +11,6 @@ import { get } from "lodash";
 import ContentLoader from "@/components/loader";
 import { Typography } from "@mui/material";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -261,8 +259,8 @@ const Index = () => {
             row.original.quality === "GOOD"
               ? "bg-primary/10 text-primary border border-primary/30"
               : row.original.quality === "BAD"
-              ? "bg-red-500/10 text-red-400 border border-red-500/30"
-              : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30"
+                ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30"
           }`}
         >
           {row.original.quality}
@@ -409,7 +407,7 @@ const Index = () => {
                   <span className="text-primary font-medium">
                     {
                       registerOptions.find(
-                        (r) => r.value === selectedRegisterId
+                        (r) => r.value === selectedRegisterId,
                       )?.label
                     }
                   </span>{" "}
