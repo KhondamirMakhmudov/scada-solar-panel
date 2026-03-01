@@ -13,7 +13,7 @@ import {
   DeleteButton,
   ActionButtonGroup,
   EyeButton,
-} from "@/components/button";
+} from "@/components/button/index";
 import CustomSelect from "@/components/select";
 import Input from "@/components/input";
 import usePostQuery from "@/hooks/java/usePostQuery";
@@ -151,7 +151,7 @@ const Index = () => {
             console.error("Update error:", error);
             toast.error("Не удалось обновить регистр");
           },
-        }
+        },
       );
     } else {
       // Create new register
@@ -181,7 +181,7 @@ const Index = () => {
             console.error("Create error:", error);
             toast.error("Не удалось создать регистр");
           },
-        }
+        },
       );
     }
   };
@@ -206,7 +206,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -411,8 +411,8 @@ const Index = () => {
                   {displayData.length === 1
                     ? "регистр"
                     : displayData.length < 5
-                    ? "регистра"
-                    : "регистров"}
+                      ? "регистра"
+                      : "регистров"}
                   )
                 </>
               ) : (
@@ -421,8 +421,8 @@ const Index = () => {
                   {displayData.length === 1
                     ? "регистр"
                     : displayData.length < 5
-                    ? "регистра"
-                    : "регистров"}
+                      ? "регистра"
+                      : "регистров"}
                   )
                 </>
               )}

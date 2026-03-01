@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useSession } from "@/hooks/useSession";
+import { useSession } from "next-auth/react";
 import { Button } from "@mui/material";
 
 export default function DashboardPage() {
@@ -48,34 +48,10 @@ export default function DashboardPage() {
             backgroundColor: "#6E39CB",
             color: "#FFFFFF",
             height: "40px",
-            borderRadius: "8px",
-            textTransform: "none",
-            fontSize: "15px",
-            fontWeight: "600",
-            px: 3,
-            "&:hover": {
-              backgroundColor: "#A877FD",
-            },
           }}
         >
-          Выйти
+          Выход
         </Button>
-      </div>
-
-      {/* Your dashboard content here */}
-      <div className="text-white">
-        <p>Содержимое панели мониторинга солнечных панелей</p>
-
-        {/* Display token info for debugging */}
-        <div className="mt-8 p-4 bg-[#1A132A] rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Информация о сессии:</h3>
-          <p className="text-sm text-gray-400">
-            Пользователь: {session?.user?.name}
-          </p>
-          <p className="text-sm text-gray-400">
-            Токен доступа: {session?.accessToken ? "Активен" : "Отсутствует"}
-          </p>
-        </div>
       </div>
     </div>
   );

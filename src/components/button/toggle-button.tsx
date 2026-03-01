@@ -1,6 +1,12 @@
 import { Tooltip } from "@mui/material";
 
-const ToggleButton = ({ enabled, onClick, tooltip }) => {
+interface ToggleButtonProps {
+  enabled: boolean;
+  onClick: () => void;
+  tooltip: string;
+}
+
+const ToggleButton = ({ enabled, onClick, tooltip }: ToggleButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <button

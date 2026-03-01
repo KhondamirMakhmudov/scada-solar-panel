@@ -3,12 +3,31 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
+import { ReactNode } from "react";
+
+interface ActionButtonProps {
+  onClick: () => void;
+  tooltip?: string;
+  disabled?: boolean;
+}
+
+interface PrimaryButtonProps extends ActionButtonProps {
+  label?: string;
+}
+
+type ButtonGroupAlign = "start" | "center" | "end";
+
+interface ActionButtonGroupProps {
+  children: ReactNode;
+  align?: ButtonGroupAlign;
+  gap?: number;
+}
 
 export const EyeButton = ({
   onClick,
   tooltip = "Осмотреть",
   disabled = false,
-}) => {
+}: ActionButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -42,7 +61,7 @@ export const EditButton = ({
   onClick,
   tooltip = "Изменить",
   disabled = false,
-}) => {
+}: ActionButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -75,7 +94,7 @@ export const DeleteButton = ({
   onClick,
   tooltip = "Удалить",
   disabled = false,
-}) => {
+}: ActionButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -108,7 +127,7 @@ export const ViewButton = ({
   onClick,
   tooltip = "Просмотр",
   disabled = false,
-}) => {
+}: ActionButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -141,7 +160,7 @@ export const AddButton = ({
   onClick,
   tooltip = "Добавить",
   disabled = false,
-}) => {
+}: ActionButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -173,8 +192,9 @@ export const AddButton = ({
 export const PrimaryButton = ({
   onClick,
   tooltip = "Добавить",
+  label = "Добавить",
   disabled = false,
-}) => {
+}: PrimaryButtonProps) => {
   return (
     <Tooltip title={tooltip}>
       <span>
@@ -195,7 +215,7 @@ export const PrimaryButton = ({
             },
           }}
         >
-          Добавить
+          {label}
         </Button>
       </span>
     </Tooltip>
@@ -207,15 +227,18 @@ export const ActionButtonGroup = ({
   children,
   align = "start", // "start", "center", "end"
   gap = 2,
-}) => {
-  const alignmentClass = {
+}: ActionButtonGroupProps) => {
+  const alignmentClass: Record<ButtonGroupAlign, string> = {
     start: "justify-start",
     center: "justify-center",
     end: "justify-end",
   };
 
   return (
-    <div className={`flex items-center ${alignmentClass[align]} gap-${gap}`}>
+    <div
+      className={`flex items-center ${alignmentClass[align]}`}
+      style={{ gap: `${gap * 0.25}rem` }}
+    >
       {children}
     </div>
   );
