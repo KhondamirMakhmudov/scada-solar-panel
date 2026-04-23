@@ -32,7 +32,7 @@ const ScadaMnemoNode = ({ data }) => {
               <span className="text-slate-400 uppercase text-[8px]">
                 {reg.name}:
               </span>
-              <span className="text-emerald-400 font-bold">
+              <span className="text-blue-400 font-bold">
                 {reg.value}{" "}
                 <small className="text-slate-600 text-[9px]">{reg.unit}</small>
               </span>
@@ -147,7 +147,7 @@ const Index = () => {
             nds.map((node) => {
               // Find readings belonging to this node's DeviceID
               const deviceMatches = readings.filter(
-                (r) => r.deviceId === node.data.deviceId
+                (r) => r.deviceId === node.data.deviceId,
               );
 
               if (deviceMatches.length === 0) return node;
@@ -179,7 +179,7 @@ const Index = () => {
                   registers: updatedRegisters, // The custom component will now re-render
                 },
               };
-            })
+            }),
           );
         }
       } catch (e) {
@@ -204,7 +204,7 @@ const Index = () => {
             <div
               className={`px-2 py-0.5 rounded text-[9px] font-bold ${
                 connected
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-blue-500/20 text-blue-400"
                   : "bg-red-500/20 text-red-400"
               }`}
             >
@@ -238,7 +238,7 @@ const Index = () => {
               <span className="w-2 h-2 rounded-full bg-blue-500" /> Generation
             </div>
             <div className="flex items-center gap-2 text-[10px] text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Valid
+              <span className="w-2 h-2 rounded-full bg-cyan-500" /> Valid
               Quality
             </div>
           </div>

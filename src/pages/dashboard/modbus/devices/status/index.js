@@ -39,7 +39,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.4 }}
-      className="group relative bg-green-950 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
+      className="group relative bg-slate-900 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
@@ -50,13 +50,13 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <div
               className={`w-10 h-10 rounded-lg ${
                 device.isPolling
-                  ? "bg-green-500/20 border-green-500/30"
+                  ? "bg-blue-500/20 border-blue-500/30"
                   : "bg-red-500/20 border-red-500/30"
               } border flex items-center justify-center`}
             >
               <div
                 className={`w-2.5 h-2.5 rounded-full ${
-                  device.isPolling ? "bg-green-400" : "bg-red-400"
+                  device.isPolling ? "bg-blue-400" : "bg-red-400"
                 } ${device.isPolling ? "animate-pulse" : ""}`}
               ></div>
             </div>
@@ -72,7 +72,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <span
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 device.isPolling
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-blue-500/20 text-blue-400"
                   : "bg-red-500/20 text-red-400"
               }`}
             >
@@ -102,12 +102,12 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <button
               onClick={() => handleAction("start")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-green-500/10 border border-transparent hover:border-green-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {actionLoading === "start" ? (
-                <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <span className="material-symbols-outlined text-green-400 text-xl">
+                <span className="material-symbols-outlined text-blue-400 text-xl">
                   play_arrow
                 </span>
               )}
@@ -165,7 +165,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-green-700/50">
+          <div className="bg-gray-800/50 rounded-lg p-3 border border-blue-700/50">
             <p className="text-gray-400 text-xs mb-1">Успешных опросов</p>
             <p className="text-white text-xl font-bold">
               {device.successfulPolls.toLocaleString()}
@@ -193,10 +193,10 @@ const DeviceCard = ({ device, delay, onAction }) => {
               transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
               className={`h-full rounded-full ${
                 parseFloat(successRate) > 95
-                  ? "bg-gradient-to-r from-green-500 to-emerald-400"
+                  ? "bg-gradient-to-r from-blue-500 to-cyan-400"
                   : parseFloat(successRate) > 90
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-400"
-                  : "bg-gradient-to-r from-red-500 to-pink-400"
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-400"
+                    : "bg-gradient-to-r from-red-500 to-pink-400"
               }`}
             ></motion.div>
           </div>
@@ -294,7 +294,7 @@ const Index = () => {
             // Refetch data after successful action
             toast.success("Success");
           },
-        }
+        },
       );
     }
   };
@@ -328,11 +328,11 @@ const Index = () => {
 
   const totalSuccessful = devices.reduce(
     (acc, device) => acc + device.successfulPolls,
-    0
+    0,
   );
   const totalFailed = devices.reduce(
     (acc, device) => acc + device.failedPolls,
-    0
+    0,
   );
   const avgSuccessRate =
     totalSuccessful + totalFailed > 0
@@ -419,7 +419,7 @@ const Index = () => {
                 onClick={() => setFilter("active")}
                 className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                   filter === "active"
-                    ? "bg-green-500 text-white"
+                    ? "bg-blue-500 text-white"
                     : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                 }`}
               >

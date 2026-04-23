@@ -1,52 +1,40 @@
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { List, ListItemButton, ListItemIcon, Typography } from "@mui/material";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
+import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
+import HubRoundedIcon from "@mui/icons-material/HubRounded";
+import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
+import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import { motion } from "framer-motion";
 import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
 import ExitModal from "../modal/exit-modal";
 import { signOut, useSession } from "next-auth/react";
 import Avatar from "@mui/material/Avatar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import GroupIcon from "@mui/icons-material/Group";
-import ArchiveIcon from "@mui/icons-material/Archive";
+
 import Link from "next/link";
-import HubIcon from "@mui/icons-material/Hub";
+
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { get } from "lodash";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import SolarPowerIcon from "@mui/icons-material/SolarPower";
-import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
+import Brand from "@/components/brand";
 
 const menuItems = [
   {
     text: "Главная",
-    icon: (
-      <Image
-        src={"/icons/domain.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <HomeRoundedIcon fontSize="medium" />,
     path: "/dashboard/main",
   },
 
   {
     text: "Солнечная электростанция",
-    icon: (
-      <Image
-        src={"/icons/sunny.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <WbSunnyRoundedIcon fontSize="medium" />,
     submenu: [
       {
         text: "Общий обзор",
@@ -65,14 +53,7 @@ const menuItems = [
 
   {
     text: "Modbus",
-    icon: (
-      <Image
-        src={"/icons/app-badging.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <MemoryRoundedIcon fontSize="medium" />,
     submenu: [
       {
         text: "Устройства",
@@ -91,14 +72,7 @@ const menuItems = [
 
   {
     text: "OPC",
-    icon: (
-      <Image
-        src={"/icons/linked-services.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <HubRoundedIcon fontSize="medium" />,
     submenu: [
       {
         text: "Серверы",
@@ -117,14 +91,7 @@ const menuItems = [
 
   {
     text: "Архив",
-    icon: (
-      <Image
-        src={"/icons/data-table.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <ArchiveRoundedIcon fontSize="medium" />,
     submenu: [
       {
         text: "История данных",
@@ -139,14 +106,7 @@ const menuItems = [
 
   {
     text: "Пользователи",
-    icon: (
-      <Image
-        src={"/icons/shield-person.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
-      />
-    ),
+    icon: <GroupRoundedIcon fontSize="medium" />,
     path: "/dashboard/users",
   },
 ];
@@ -230,14 +190,14 @@ export default function Sidebar({ isOpen = true }) {
   const userFullName = `${get(getMe, "data.first_name", "")} ${get(
     getMe,
     "data.last_name",
-    ""
+    "",
   )}`.trim();
 
   return (
     <aside
       className={`${
         isOpen ? "w-[340px]" : "w-[80px]"
-      } h-screen bg-background-dark px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-mono border-r border-surface-dark`}
+      } h-screen bg-[#131313] px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-mono border-r border-[#2a2a2a]`}
     >
       <div className="text-white">
         {/* LOGO */}
@@ -248,18 +208,7 @@ export default function Sidebar({ isOpen = true }) {
                 !isOpen ? "justify-center" : "justify-start"
               }`}
             >
-              <Image
-                src={"/icons/solar-power.svg"}
-                alt="solar-power"
-                width={40}
-                height={40}
-              />
-
-              {isOpen && (
-                <span className="text-white text-xl font-bold tracking-tight">
-                  Solar SCADA
-                </span>
-              )}
+              {isOpen ? <Brand /> : <Brand title="" />}
             </div>
           </Link>
         </div>
@@ -287,18 +236,18 @@ export default function Sidebar({ isOpen = true }) {
                     borderRadius: "10px",
                     my: 0.5,
                     color:
-                      isActive || isAnySubmenuActive ? "#13ec5b" : "#9CA3AF",
+                      isActive || isAnySubmenuActive ? "#3b82f6" : "#bfc7d4",
                     backgroundColor:
                       isActive || isAnySubmenuActive
-                        ? "rgba(19, 236, 91, 0.15) !important"
+                        ? "rgba(59, 130, 246, 0.15) !important"
                         : "transparent",
                     "&:hover": {
-                      backgroundColor: "rgba(19, 236, 91, 0.1)",
-                      color: "#13ec5b",
+                      backgroundColor: "rgba(59, 130, 246, 0.1)",
+                      color: "#3b82f6",
                     },
                     border:
                       isActive || isAnySubmenuActive
-                        ? "1px solid rgba(19, 236, 91, 0.3)"
+                        ? "1px solid rgba(59, 130, 246, 0.3)"
                         : "1px solid transparent",
                     justifyContent: isOpen ? "flex-start" : "center",
                     px: isOpen ? 2 : 1,
@@ -310,7 +259,7 @@ export default function Sidebar({ isOpen = true }) {
                     sx={{
                       minWidth: "auto",
                       color:
-                        isActive || isAnySubmenuActive ? "#13ec5b" : "#9CA3AF",
+                        isActive || isAnySubmenuActive ? "#3b82f6" : "#bfc7d4",
                       justifyContent: "center",
                       mr: isOpen ? 2 : 0,
                     }}
@@ -340,8 +289,8 @@ export default function Sidebar({ isOpen = true }) {
                           sx={{
                             color:
                               isActive || isAnySubmenuActive
-                                ? "#13ec5b"
-                                : "#9CA3AF",
+                                ? "#3b82f6"
+                                : "#bfc7d4",
                           }}
                         />
                       ) : (
@@ -350,8 +299,8 @@ export default function Sidebar({ isOpen = true }) {
                           sx={{
                             color:
                               isActive || isAnySubmenuActive
-                                ? "#13ec5b"
-                                : "#9CA3AF",
+                                ? "#3b82f6"
+                                : "#bfc7d4",
                           }}
                         />
                       )}
@@ -366,7 +315,7 @@ export default function Sidebar({ isOpen = true }) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="ml-8 pl-4 border-l-2 border-gray-700 mt-1 space-y-1"
+                    className="ml-8 pl-4 border-l-2 border-[#393939] mt-1 space-y-1"
                   >
                     {item.submenu.map((sub, subIndex) => {
                       const isSubActive = router.pathname === sub.path;
@@ -378,16 +327,16 @@ export default function Sidebar({ isOpen = true }) {
                           sx={{
                             borderRadius: "8px",
                             my: 0.5,
-                            color: isSubActive ? "#13ec5b" : "#9CA3AF",
+                            color: isSubActive ? "#3b82f6" : "#bfc7d4",
                             backgroundColor: isSubActive
-                              ? "rgba(19, 236, 91, 0.1)"
+                              ? "rgba(59, 130, 246, 0.1)"
                               : "transparent",
                             "&:hover": {
-                              backgroundColor: "rgba(19, 236, 91, 0.05)",
-                              color: "#13ec5b",
+                              backgroundColor: "rgba(59, 130, 246, 0.05)",
+                              color: "#3b82f6",
                             },
                             border: isSubActive
-                              ? "1px solid rgba(19, 236, 91, 0.2)"
+                              ? "1px solid rgba(59, 130, 246, 0.2)"
                               : "1px solid transparent",
                             pl: 3,
                             py: 1,
@@ -396,7 +345,7 @@ export default function Sidebar({ isOpen = true }) {
                           <div className="flex items-center w-full">
                             <span
                               className={`w-1.5 h-1.5 rounded-full mr-3 ${
-                                isSubActive ? "bg-primary" : "bg-gray-600"
+                                isSubActive ? "bg-[#3b82f6]" : "bg-[#393939]"
                               }`}
                             />
 
@@ -427,14 +376,14 @@ export default function Sidebar({ isOpen = true }) {
           onClick={() => setOpen((prev) => !prev)}
           sx={{
             borderRadius: "12px",
-            backgroundColor: "rgba(19, 236, 91, 0.1)",
-            border: "1px solid rgba(19, 236, 91, 0.2)",
+            backgroundColor: "rgba(59, 130, 246, 0.1)",
+            border: "1px solid rgba(59, 130, 246, 0.2)",
             justifyContent: isOpen ? "flex-start" : "center",
             px: isOpen ? 2 : 1,
             py: 1.5,
             "&:hover": {
-              backgroundColor: "rgba(19, 236, 91, 0.15)",
-              borderColor: "rgba(19, 236, 91, 0.3)",
+              backgroundColor: "rgba(59, 130, 246, 0.15)",
+              borderColor: "rgba(59, 130, 246, 0.3)",
             },
           }}
         >
@@ -455,12 +404,12 @@ export default function Sidebar({ isOpen = true }) {
               />
 
               {isOpen && (
-                <div className="text-white">
+                <div className="text-[#e5e2e1]">
                   <h4 className="text-[15px] font-semibold font-spaceGrotesk">
                     {get(getMe, "data.first_name", "")}{" "}
                     {get(getMe, "data.last_name", "")}
                   </h4>
-                  <p className="text-sm text-gray-400 font-manrope">
+                  <p className="text-sm text-[#bfc7d4] font-manrope">
                     {get(getMe, "data.username", "")}
                   </p>
                 </div>
@@ -470,10 +419,10 @@ export default function Sidebar({ isOpen = true }) {
             {isOpen && (
               <MoreVertIcon
                 sx={{
-                  color: "#9CA3AF",
+                  color: "#bfc7d4",
                   width: "20px",
                   "&:hover": {
-                    color: "#13ec5b",
+                    color: "#3b82f6",
                   },
                 }}
               />
@@ -489,17 +438,17 @@ export default function Sidebar({ isOpen = true }) {
             exit={{ opacity: 0, y: 10 }}
             className="absolute bottom-full left-0 right-0 mb-2"
           >
-            <div className="bg-surface-dark border border-gray-700 rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-[#1c1b1b] border border-[#2a2a2a] rounded-xl shadow-lg overflow-hidden">
               <Link
                 href="/dashboard/settings"
-                className={`flex p-3 hover:bg-gray-800 text-white items-center ${
+                className={`flex p-3 hover:bg-[#393939] text-[#e5e2e1] items-center ${
                   isOpen ? "gap-3" : "justify-center"
-                } transition-all duration-200 border-b border-gray-800`}
+                } transition-all duration-200 border-b border-[#2a2a2a]`}
               >
                 <SettingsRoundedIcon
                   sx={{
                     fontSize: "20px",
-                    color: "#9CA3AF",
+                    color: "#bfc7d4",
                   }}
                 />
                 {isOpen && (
@@ -511,14 +460,14 @@ export default function Sidebar({ isOpen = true }) {
 
               <button
                 onClick={() => setOpenExitModal(true)}
-                className={`flex p-3 hover:bg-gray-800 text-white items-center w-full text-left ${
+                className={`flex p-3 hover:bg-[#393939] text-[#e5e2e1] items-center w-full text-left ${
                   isOpen ? "gap-3" : "justify-center"
                 } transition-all duration-200`}
               >
                 <ExitToAppIcon
                   sx={{
                     fontSize: "20px",
-                    color: "#9CA3AF",
+                    color: "#bfc7d4",
                   }}
                 />
                 {isOpen && (

@@ -31,13 +31,13 @@ const DeviceCard = ({ device, deviceId, delay }) => {
             <div
               className={`w-10 h-10 rounded-lg ${
                 device.isPolling
-                  ? "bg-green-500/20 border-green-500/30"
+                  ? "bg-blue-500/20 border-blue-500/30"
                   : "bg-red-500/20 border-red-500/30"
               } border flex items-center justify-center`}
             >
               <div
                 className={`w-2.5 h-2.5 rounded-full ${
-                  device.isPolling ? "bg-green-400" : "bg-red-400"
+                  device.isPolling ? "bg-blue-400" : "bg-red-400"
                 } ${device.isPolling ? "animate-pulse" : ""}`}
               ></div>
             </div>
@@ -52,7 +52,7 @@ const DeviceCard = ({ device, deviceId, delay }) => {
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
               device.isPolling
-                ? "bg-green-500/20 text-green-400"
+                ? "bg-blue-500/20 text-blue-400"
                 : "bg-red-500/20 text-red-400"
             }`}
           >
@@ -90,10 +90,10 @@ const DeviceCard = ({ device, deviceId, delay }) => {
               transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
               className={`h-full rounded-full ${
                 parseFloat(successRate) > 95
-                  ? "bg-gradient-to-r from-green-500 to-emerald-400"
+                  ? "bg-gradient-to-r from-blue-500 to-cyan-400"
                   : parseFloat(successRate) > 90
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-400"
-                  : "bg-gradient-to-r from-red-500 to-pink-400"
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-400"
+                    : "bg-gradient-to-r from-red-500 to-pink-400"
               }`}
             ></motion.div>
           </div>
@@ -178,11 +178,11 @@ const Index = () => {
 
   const totalSuccessful = devices.reduce(
     (acc, [_, device]) => acc + device.successfulPolls,
-    0
+    0,
   );
   const totalFailed = devices.reduce(
     (acc, [_, device]) => acc + device.failedPolls,
-    0
+    0,
   );
   const avgSuccessRate =
     totalSuccessful + totalFailed > 0
@@ -219,7 +219,7 @@ const Index = () => {
               onClick={() => setFilter("active")}
               className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 filter === "active"
-                  ? "bg-green-500 text-white"
+                  ? "bg-blue-500 text-white"
                   : "bg-gray-800 text-gray-400 hover:bg-gray-700"
               }`}
             >

@@ -1,17 +1,10 @@
 import { Typography, IconButton } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import MenuOpenRoundedIcon from "@mui/icons-material/MenuOpenRounded";
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import Image from "next/image";
 
-const MainContentHeader = ({ children, toggleSidebar }) => {
+const MainContentHeader = ({ children, toggleSidebar, isSidebarOpen }) => {
   const [scrolled, setScrolled] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,47 +14,47 @@ const MainContentHeader = ({ children, toggleSidebar }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!mounted) return null;
-
   return (
     <div
       className={`
         sticky top-0 z-30 
         flex items-center justify-between
-        transition-all duration-300 rounded-md
+        transition-all duration-300 rounded-md border border-[#2a2a2a]
         px-6 py-4
         ${
           scrolled
-            ? "bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-lg shadow-sm"
-            : "bg-surface-light dark:bg-surface-dark"
+            ? "bg-[#131313]/90 backdrop-blur-lg shadow-[0_4px_20px_rgba(59,130,246,0.10)]"
+            : "bg-[#131313]"
         }
       `}
     >
       <div className="flex items-center gap-4">
-        <button onClick={toggleSidebar}>
-          <Image
-            src={"/icons/menu-open.svg"}
-            alt="solar-power"
-            width={40}
-            height={40}
-          />
-        </button>
+        <IconButton
+          onClick={toggleSidebar}
+          sx={{
+            color: "#bfc7d4",
+            border: "1px solid #2a2a2a",
+            borderRadius: "10px",
+            backgroundColor: "#1c1b1b",
+            "&:hover": {
+              color: "#3b82f6",
+              backgroundColor: "rgba(59,130,246,0.12)",
+              borderColor: "rgba(59,130,246,0.35)",
+            },
+          }}
+        >
+          {isSidebarOpen ? <MenuOpenRoundedIcon /> : <MenuRoundedIcon />}
+        </IconButton>
 
         <Typography
           variant="h5"
           className="
             font-spaceGrotesk 
-            text-gray-900 dark:text-white
+            text-[#e5e2e1]
           "
           sx={{
             fontWeight: 700,
             fontSize: "1.375rem",
-            background:
-              theme === "dark"
-                ? "linear-gradient(135deg, #13ec5b 0%, #0bc44d 100%)"
-                : "linear-gradient(135deg, #13ec5b 0%, #089e3d 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
             fontFamily: "Manrope",
           }}
         >

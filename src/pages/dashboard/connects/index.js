@@ -147,7 +147,7 @@ const Index = () => {
         onError: (error) => {
           toast.error(`Error is ${error}`, { position: "top-right" });
         },
-      }
+      },
     );
   };
 
@@ -188,7 +188,7 @@ const Index = () => {
             Authorization: `Bearer ${session?.accessToken}`,
           },
           body: JSON.stringify(changedFields),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -216,7 +216,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -268,7 +268,7 @@ const Index = () => {
         onError: (error) => {
           toast.error(`Error is ${error}`, { position: "top-right" });
         },
-      }
+      },
     );
   };
 
@@ -422,7 +422,7 @@ const Index = () => {
                               }
                             >
                               {copiedField === "ip" ? (
-                                <span className="text-green-400 text-xs">
+                                <span className="text-blue-400 text-xs">
                                   Скопировано
                                 </span>
                               ) : (
@@ -450,7 +450,7 @@ const Index = () => {
                               }
                             >
                               {copiedField === "port" ? (
-                                <span className="text-green-400 text-xs">
+                                <span className="text-blue-400 text-xs">
                                   Скопировано
                                 </span>
                               ) : (
@@ -478,12 +478,12 @@ const Index = () => {
                               onClick={() =>
                                 handleCopy(
                                   get(connect, "username", ""),
-                                  "username"
+                                  "username",
                                 )
                               }
                             >
                               {copiedField === "username" ? (
-                                <span className="text-green-400 text-xs">
+                                <span className="text-blue-400 text-xs">
                                   Скопировано
                                 </span>
                               ) : (
@@ -511,12 +511,12 @@ const Index = () => {
                               onClick={() =>
                                 handleCopy(
                                   get(connect, "password", ""),
-                                  "password"
+                                  "password",
                                 )
                               }
                             >
                               {copiedField === "password" ? (
-                                <span className="text-green-400 text-xs">
+                                <span className="text-blue-400 text-xs">
                                   Скопировано
                                 </span>
                               ) : (

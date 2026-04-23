@@ -75,7 +75,7 @@ const Index = () => {
             console.error("Update error:", error);
             toast.error("Не удалось обновить устройство");
           },
-        }
+        },
       );
     } else {
       // Create new device
@@ -98,7 +98,7 @@ const Index = () => {
             console.error("Create error:", error);
             toast.error("Не удалось создать устройство");
           },
-        }
+        },
       );
     }
   };
@@ -127,7 +127,7 @@ const Index = () => {
         onError: () => {
           toast.error("Синхронизация устройства не удалась");
         },
-      }
+      },
     );
   };
 
@@ -156,7 +156,7 @@ const Index = () => {
             Authorization: `Bearer ${session?.accessToken}`,
           },
           body: JSON.stringify({ selectDeviceId }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -190,7 +190,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -381,7 +381,7 @@ const Index = () => {
         <div className="mb-2 flex justify-between">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
           >
             <span>Добавить устройство</span>
           </button>
@@ -389,7 +389,7 @@ const Index = () => {
           <div className="flex gap-2">
             <button
               onClick={handleSyncronize}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
             >
               <span className="material-symbols-outlined">sync</span>
               <span>Синхронизировать</span>
@@ -397,7 +397,7 @@ const Index = () => {
 
             <Link
               href={"/dashboard/modbus/devices/status"}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-black rounded-lg transition-colors duration-200 font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium text-sm"
             >
               <span className="material-symbols-outlined">bar_chart</span>
               Статус устройств

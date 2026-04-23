@@ -128,7 +128,7 @@ const Index = () => {
         onError: (error) => {
           toast.error(`Error is ${error}`, { position: "top-right" });
         },
-      }
+      },
     );
   };
 
@@ -143,7 +143,7 @@ const Index = () => {
             Authorization: `Bearer ${session?.accessToken}`,
           },
           body: JSON.stringify({ id }), // faqat agar backend body kutsa
-        }
+        },
       );
 
       if (!response.ok) {
@@ -181,8 +181,8 @@ const Index = () => {
         <div
           className={`${
             row.original.role === "admin"
-              ? "bg-green-100 text-green-500 border border-green-500"
-              : "bg-blue-100 text-blue-500 border border-blue-500"
+              ? "bg-blue-100 text-blue-500 border border-blue-500"
+              : "bg-slate-100 text-slate-500 border border-slate-500"
           } inline py-1 px-2 rounded-md`}
         >
           {row.original.role === "admin" ? "Администратор" : "Пользователь"}

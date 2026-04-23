@@ -20,7 +20,7 @@ export default function TestPage() {
           onClick={() =>
             setData((prev) => ({ ...prev, pvActive: !prev.pvActive }))
           }
-          className="px-4 py-2 rounded bg-green-600 text-white"
+          className="px-4 py-2 rounded bg-blue-600 text-white"
         >
           Toggle PV
         </button>

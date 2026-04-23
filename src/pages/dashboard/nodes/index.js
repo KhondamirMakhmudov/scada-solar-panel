@@ -115,7 +115,7 @@ const Index = () => {
           });
           refetchNodes();
         },
-      }
+      },
     );
   };
 
@@ -161,7 +161,7 @@ const Index = () => {
             Authorization: `Bearer ${session?.accessToken}`,
             Accept: "application/json",
           },
-        }
+        },
       );
     } catch (error) {
       console.error("Error deleting node:", error);
@@ -345,7 +345,7 @@ const Index = () => {
                         <span className="px-3 py-1 bg-[#6E39CB]/20 text-[#6E39CB] rounded-full text-xs font-medium">
                           {node.units}
                         </span>
-                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-medium flex items-center gap-1">
+                        <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium flex items-center gap-1">
                           <CircleIcon style={{ fontSize: 8 }} />
                           {node.connects?.length || 0} подключений
                         </span>
@@ -357,7 +357,7 @@ const Index = () => {
                         whileTap={{ scale: 0.95 }}
                         onClick={() =>
                           setExpandedCard(
-                            expandedCard === node.id ? null : node.id
+                            expandedCard === node.id ? null : node.id,
                           )
                         }
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#6E39CB]/10 hover:bg-[#6E39CB]/20 border border-[#6E39CB]/30 hover:border-[#6E39CB]/50 transition-all duration-200"
@@ -415,7 +415,7 @@ const Index = () => {
                               <span className="text-gray-400">Создан:</span>
                               <span className="text-white">
                                 {new Date(node.created_at).toLocaleDateString(
-                                  "ru-RU"
+                                  "ru-RU",
                                 )}
                               </span>
                             </div>

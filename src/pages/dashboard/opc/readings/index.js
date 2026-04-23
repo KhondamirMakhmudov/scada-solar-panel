@@ -33,7 +33,7 @@ const StatCard = ({
   quality,
 }) => {
   const getStatusColor = () => {
-    if (quality === "GOOD") return "bg-green-500/20 text-green-400";
+    if (quality === "GOOD") return "bg-blue-500/20 text-blue-400";
     if (quality === "BAD") return "bg-red-500/20 text-red-400";
     return "bg-yellow-500/20 text-yellow-400";
   };

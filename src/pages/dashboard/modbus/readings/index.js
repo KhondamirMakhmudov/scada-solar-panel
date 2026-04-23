@@ -31,7 +31,7 @@ const StatCard = ({
   quality,
 }) => {
   const getStatusColor = () => {
-    if (quality === "GOOD") return "bg-green-500/20 text-green-400";
+    if (quality === "GOOD") return "bg-blue-500/20 text-blue-400";
     if (quality === "BAD") return "bg-red-500/20 text-red-400";
     return "bg-yellow-500/20 text-yellow-400";
   };
@@ -455,8 +455,8 @@ const Index = () => {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#13EC5B" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#13EC5B" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -478,7 +478,7 @@ const Index = () => {
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#13EC5B"
+                  stroke="#3B82F6"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorValue)"

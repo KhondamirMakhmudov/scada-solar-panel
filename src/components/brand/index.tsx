@@ -1,18 +1,19 @@
 import Image from "next/image";
 
-const Brand = () => {
+const Brand = ({
+  title = "“ISSIQLIK ELЕKTR STANSIYALARI” AKSIYADORLIK JAMIYATI",
+}) => {
   return (
-    <div className="flex gap-2 items-center  ">
+    <div className="flex items-center gap-2">
       <Image
-        src={"/icons/solar-power.svg"}
-        alt="solar-power"
-        width={40}
-        height={40}
+        src="/icons/ies_brand.svg"
+        alt="logo"
+        width={43}
+        height={46}
+        priority
+        className="w-[43px] h-auto"
       />
-
-      <span className="text-white text-xl font-bold tracking-tight">
-        Solar SCADA
-      </span>
+      <p className="m-0 text-[18px] font-bold leading-tight">{title}</p>
     </div>
   );
 };

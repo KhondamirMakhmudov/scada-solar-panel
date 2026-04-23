@@ -100,7 +100,7 @@ const Index = () => {
             console.error("Update error:", error);
             toast.error("Не удалось обновить узел OPC UA");
           },
-        }
+        },
       );
     } else {
       // Создать новый узел
@@ -123,7 +123,7 @@ const Index = () => {
             console.error("Create error:", error);
             toast.error("Не удалось создать узел OPC UA");
           },
-        }
+        },
       );
     }
   };
@@ -154,7 +154,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -182,7 +182,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -208,7 +208,7 @@ const Index = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.accessToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -367,7 +367,7 @@ const Index = () => {
 
   // Подсчитываем активные узлы
   const activeNodes = get(nodes, "data.content", []).filter(
-    (node) => node.saveToDb || node.sendToClient
+    (node) => node.saveToDb || node.sendToClient,
   ).length;
 
   return (
@@ -389,7 +389,7 @@ const Index = () => {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
           >
             <span>Добавить узел</span>
           </button>
