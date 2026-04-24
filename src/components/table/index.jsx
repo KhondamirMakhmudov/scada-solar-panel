@@ -33,7 +33,7 @@ const getPaginationRange = (currentPage, totalPages, siblingCount = 1) => {
 
   if (showLeftDots && !showRightDots) {
     const rightRange = [...Array(3 + 2 * siblingCount).keys()].map(
-      (n) => totalPages - (3 + 2 * siblingCount) + n + 1
+      (n) => totalPages - (3 + 2 * siblingCount) + n + 1,
     );
     return [1, "...", ...rightRange];
   }
@@ -83,7 +83,7 @@ const CustomTable = ({ data, columns, pagination }) => {
   return (
     <div className="overflow-x-auto border-none rounded-lg manrope">
       <table className="min-w-full text-sm text-left">
-        <thead className="bg-gradient-to-r from-primary/10 to-emerald-400/10 dark:from-primary/20 dark:to-emerald-400/20 text-white">
+        <thead className="bg-[#1f2937] text-white border-b border-[#2a2a2a]">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -95,7 +95,7 @@ const CustomTable = ({ data, columns, pagination }) => {
                   <span className="flex items-center gap-1">
                     {flexRender(
                       header.column.columnDef.header,
-                      header.getContext()
+                      header.getContext(),
                     )}
                     {header.column.getIsSorted() === "asc" ? (
                       <ArrowUpwardIcon fontSize="small" />
@@ -123,12 +123,12 @@ const CustomTable = ({ data, columns, pagination }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 5 }}
                 transition={{ duration: 0.2 }}
-                className="hover:bg-[#427754] cursor-auto transition-all"
+                className="hover:bg-white/5 cursor-auto transition-colors duration-150"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-4 py-2 border-t border-t-[#275035]"
+                    className="px-4 py-2 border-t border-t-[#2a2a2a]"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -159,8 +159,8 @@ const CustomTable = ({ data, columns, pagination }) => {
                 p === currentPage
                   ? "bg-blue-500 text-white"
                   : p === "..."
-                  ? "cursor-default text-gray-500"
-                  : "hover:bg-gray-100"
+                    ? "cursor-default text-gray-500"
+                    : "hover:bg-gray-100"
               }`}
             >
               {p}
