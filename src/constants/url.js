@@ -1,7 +1,7 @@
 export const URLS = {
   register: "auth/signup",
   login: "auth/login",
-  connects: "connections/",
+  connects: "connections",
   company: "company/",
   getMe: "me",
   users: "users",
