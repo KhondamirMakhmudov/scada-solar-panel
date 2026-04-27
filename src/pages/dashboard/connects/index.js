@@ -854,11 +854,6 @@ const Index = () => {
                 <p className="text-white font-semibold">
                   Параметры подключения
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Верхнеуровневый тип будет автоматически добавлен в
-                  <span className="text-slate-200"> params.type</span> при
-                  отправке.
-                </p>
               </div>
 
               <Button
@@ -926,7 +921,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-2 ">
             <Button
               onClick={handleCloseCreateModal}
               variant="outlined"
@@ -934,6 +929,7 @@ const Index = () => {
                 textTransform: "none",
                 color: "#cbd5e1",
                 borderColor: "#475569",
+                fontFamily: "'Manrope', sans-serif",
               }}
             >
               Отмена
@@ -946,6 +942,7 @@ const Index = () => {
                 textTransform: "none",
                 background: "#2563eb",
                 color: "#eff6ff",
+                fontFamily: "'Manrope', sans-serif",
                 "&:hover": {
                   background: "#1d4ed8",
                 },
@@ -1026,6 +1023,7 @@ const Index = () => {
                   color: "#bfdbfe",
                   borderColor: "#426080",
                   background: "#1b2633",
+                  fontFamily: "'Manrope', sans-serif",
                   "&:hover": {
                     background: "#223246",
                     borderColor: "#5a82b0",

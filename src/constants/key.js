@@ -1,5 +1,7 @@
 export const KEYS = {
   connects: "connects",
+  devices: "devices",
+  tags: "tags",
   company: "company",
   getMe: "getMe",
   users: "users",

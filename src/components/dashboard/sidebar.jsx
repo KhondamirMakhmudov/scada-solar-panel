@@ -8,8 +8,6 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
 import HubRoundedIcon from "@mui/icons-material/HubRounded";
-import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
-import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import { motion } from "framer-motion";
 import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
 import ExitModal from "../modal/exit-modal";
@@ -31,84 +29,90 @@ const menuItems = [
     icon: <HomeRoundedIcon fontSize="medium" />,
     path: "/dashboard/main",
   },
-
   {
-    text: "Солнечная электростанция",
-    icon: <WbSunnyRoundedIcon fontSize="medium" />,
-    submenu: [
-      {
-        text: "Общий обзор",
-        path: "/dashboard/solar/overview",
-      },
-      {
-        text: "Производство энергии",
-        path: "/dashboard/solar/production",
-      },
-      // {
-      //   text: "Экологические показатели",
-      //   path: "/dashboard/solar/eco",
-      // },
-    ],
-  },
-
-  {
-    text: "Modbus",
-    icon: <MemoryRoundedIcon fontSize="medium" />,
-    submenu: [
-      {
-        text: "Устройства",
-        path: "/dashboard/modbus/devices",
-      },
-      {
-        text: "Регистры",
-        path: "/dashboard/modbus/registers",
-      },
-      {
-        text: "Чтение данных",
-        path: "/dashboard/modbus/readings",
-      },
-    ],
-  },
-
-  {
-    text: "OPC",
+    text: "Подключения",
     icon: <HubRoundedIcon fontSize="medium" />,
-    submenu: [
-      {
-        text: "Серверы",
-        path: "/dashboard/opc/servers",
-      },
-      {
-        text: "Узлы",
-        path: "/dashboard/opc/nodes",
-      },
-      {
-        text: "Чтение данных",
-        path: "/dashboard/opc/readings",
-      },
-    ],
+    path: "/dashboard/connects",
   },
-
   {
-    text: "Архив",
-    icon: <ArchiveRoundedIcon fontSize="medium" />,
-    submenu: [
-      {
-        text: "История данных",
-        path: "/dashboard/archive/history",
-      },
-      {
-        text: "Отчёты",
-        path: "/dashboard/archive/reports",
-      },
-    ],
+    text: "Устройства",
+    icon: <MemoryRoundedIcon fontSize="medium" />,
+    path: "/dashboard/devices",
   },
-
   {
-    text: "Пользователи",
-    icon: <GroupRoundedIcon fontSize="medium" />,
-    path: "/dashboard/users",
+    text: "Теги",
+    icon: <WbSunnyRoundedIcon fontSize="medium" />,
+    path: "/dashboard/tags",
   },
+  // {
+  //   text: "Солнечная электростанция",
+  //   icon: <WbSunnyRoundedIcon fontSize="medium" />,
+  //   submenu: [
+  //     {
+  //       text: "Общий обзор",
+  //       path: "/dashboard/solar/overview",
+  //     },
+  //     {
+  //       text: "Производство энергии",
+  //       path: "/dashboard/solar/production",
+  //     },
+  //   ],
+  // },
+  // {
+  //   text: "Modbus",
+  //   icon: <MemoryRoundedIcon fontSize="medium" />,
+  //   submenu: [
+  //     {
+  //       text: "Устройства",
+  //       path: "/dashboard/modbus/devices",
+  //     },
+  //     {
+  //       text: "Регистры",
+  //       path: "/dashboard/modbus/registers",
+  //     },
+  //     {
+  //       text: "Чтение данных",
+  //       path: "/dashboard/modbus/readings",
+  //     },
+  //   ],
+  // },
+  // {
+  //   text: "OPC",
+  //   icon: <HubRoundedIcon fontSize="medium" />,
+  //   submenu: [
+  //     {
+  //       text: "Серверы",
+  //       path: "/dashboard/opc/servers",
+  //     },
+  //     {
+  //       text: "Узлы",
+  //       path: "/dashboard/opc/nodes",
+  //     },
+  //     {
+  //       text: "Чтение данных",
+  //       path: "/dashboard/opc/readings",
+  //     },
+  //   ],
+  // },
+  // {
+  //   text: "Архив",
+  //   icon: <ArchiveRoundedIcon fontSize="medium" />,
+  //   submenu: [
+  //     {
+  //       text: "История данных",
+  //       path: "/dashboard/archive/history",
+  //     },
+  //     {
+  //       text: "Отчёты",
+  //       path: "/dashboard/archive/reports",
+  //     },
+  //   ],
+  // },
+  // {
+  //   text: "Пользователи",
+  //   icon: <GroupRoundedIcon fontSize="medium" />,
+  //   path: "/dashboard/users",
+  // },
 ];
 
 export default function Sidebar({ isOpen = true }) {
