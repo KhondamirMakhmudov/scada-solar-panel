@@ -44,6 +44,11 @@ const menuItems = [
     icon: <WbSunnyRoundedIcon fontSize="medium" />,
     path: "/dashboard/tags",
   },
+  {
+    text: "Тест WebSocket",
+    icon: <HubRoundedIcon fontSize="medium" />,
+    path: "/dashboard/test/websocket",
+  },
   // {
   //   text: "Солнечная электростанция",
   //   icon: <WbSunnyRoundedIcon fontSize="medium" />,

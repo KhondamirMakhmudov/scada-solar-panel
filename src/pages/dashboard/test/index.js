@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SolarMnemonic from "@/components/test/SolarMnemonic";
+import Link from "next/link";
 
 export default function TestPage() {
   const [data, setData] = useState({
@@ -13,6 +14,12 @@ export default function TestPage() {
       <h1 className="text-xl font-semibold">
         Solar SCADA – Mnemonic Test Mode
       </h1>
+      <Link
+        href="/dashboard/test/websocket"
+        className="inline-block px-4 py-2 rounded bg-slate-800 text-white"
+      >
+        Open WebSocket test
+      </Link>
 
       {/* Controls */}
       <div className="flex gap-4">

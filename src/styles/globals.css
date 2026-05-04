@@ -320,10 +320,15 @@ body {
 }
 /* Track */
 ::-webkit-scrollbar-track {
-  background: #102216;
-  border: 1px solid #114021;
+  background: #131313;
+  border: 1px solid #1f2937;
 }
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #13ec52;
+  background: #3b82f6;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #60a5fa;
 }
