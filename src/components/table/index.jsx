@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 // ✅ Helper: sahifalarni hisoblab beradi (ellipsis bilan)
 const getPaginationRange = (currentPage, totalPages, siblingCount = 1) => {
@@ -147,7 +149,7 @@ const CustomTable = ({ data, columns, pagination }) => {
             disabled={currentPage === 1}
             className="px-3 py-1 border border-gray-200 cursor-pointer rounded disabled:opacity-50"
           >
-            ←
+            <ChevronLeftIcon fontSize="small" />
           </button>
 
           {getPaginationRange(currentPage, totalPages).map((p, i) => (
@@ -174,7 +176,7 @@ const CustomTable = ({ data, columns, pagination }) => {
             disabled={currentPage === totalPages}
             className="px-3 py-1 border border-gray-200 cursor-pointer rounded disabled:opacity-50"
           >
-            →
+            <ChevronRightIcon fontSize="small" />
           </button>
         </div>
       )}

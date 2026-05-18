@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { get } from "lodash";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
@@ -152,6 +152,8 @@ const Index = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [protocolFilter, setProtocolFilter] = useState("all");
   const [viewMode, setViewMode] = useState("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -466,6 +468,12 @@ const Index = () => {
     };
   }, [list]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredDevices.length / pageSize));
+  const paginatedDevices = filteredDevices.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const columns = [
     {
       header: "№",
@@ -715,10 +723,10 @@ const Index = () => {
               description="Попробуйте изменить параметры фильтрации или добавьте новое устройство."
             />
           ) : viewMode === "table" ? (
-            <CustomTable columns={columns} data={filteredDevices} />
+            <CustomTable columns={columns} data={paginatedDevices} />
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-              {filteredDevices.map((item) => (
+              {paginatedDevices.map((item) => (
                 <DeviceCard
                   key={item.id}
                   device={item}
@@ -727,6 +735,127 @@ const Index = () => {
                   onDelete={() => openDeleteModal(item)}
                 />
               ))}
+            </div>
+          )}
+
+          {filteredDevices.length > 0 && (
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-slate-700/60 pt-4 sm:flex-row">
+              <div className="flex items-center gap-2 text-sm text-slate-400">
+                <span>Строк на странице:</span>
+                {[10, 20, 50].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => {
+                      setPageSize(size);
+                      setCurrentPage(1);
+                    }}
+                    className={`h-8 w-10 rounded-md border text-xs font-medium transition ${
+                      pageSize === size
+                        ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
+                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Первая"
+                >
+                  «
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Назад"
+                >
+                  ‹
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(
+                    (page) =>
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 1,
+                  )
+                  .reduce((acc, page, idx, arr) => {
+                    if (idx > 0 && page - arr[idx - 1] > 1) {
+                      acc.push("...");
+                    }
+                    acc.push(page);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "..." ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="flex h-8 w-8 items-center justify-center text-slate-500"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setCurrentPage(item)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition ${
+                          currentPage === item
+                            ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
+                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Вперёд"
+                >
+                  ›
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Последняя"
+                >
+                  »
+                </button>
+              </div>
+
+              <span className="text-sm text-slate-400">
+                Страница{" "}
+                <span className="font-semibold text-slate-200">
+                  {currentPage}
+                </span>{" "}
+                из{" "}
+                <span className="font-semibold text-slate-200">
+                  {totalPages}
+                </span>
+                {" · "}
+                <span className="font-semibold text-slate-200">
+                  {filteredDevices.length}
+                </span>{" "}
+                записей
+              </span>
             </div>
           )}
         </div>

@@ -1,4 +1,9 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+﻿import { useState, useCallback, useEffect, useMemo } from "react";
+import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
   ReactFlow,
   Controls,
@@ -51,12 +56,12 @@ const ScadaFlowComponent = ({
       const position = nodePositions[index] || { x: 100 + index * 300, y: 200 };
 
       let deviceType = "inverter";
-      let icon = "⚡";
+      let icon = "вљЎ";
       let bgColor = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
 
-      if (device.name.toLowerCase().includes("счётчик")) {
+      if (device.name.toLowerCase().includes("СЃС‡С‘С‚С‡РёРє")) {
         deviceType = "meter";
-        icon = "📊";
+        icon = "рџ“Љ";
         bgColor = "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)";
       }
 
@@ -75,7 +80,12 @@ const ScadaFlowComponent = ({
         type: index === 0 ? "input" : "default",
         position,
         data: {
-          label: `${icon} ${device.name}`,
+          label: (
+            <span className="inline-flex items-center gap-2">
+              <DeviceIcon fontSize="inherit" className="text-[18px]" />
+              <span>{device.name}</span>
+            </span>
+          ),
           type: deviceType,
           deviceId: device.id,
           power: powerParam
@@ -89,7 +99,7 @@ const ScadaFlowComponent = ({
               }`
             : "N/A",
           temperature: tempParam
-            ? `${device.parameters[tempParam].value.toFixed(1)}°C`
+            ? `${device.parameters[tempParam].value.toFixed(1)}В°C`
             : "N/A",
           status: device.active ? "active" : "inactive",
           parameters: device.parameters,
@@ -115,11 +125,11 @@ const ScadaFlowComponent = ({
       type: "output",
       position: { x: 700, y: 200 },
       data: {
-        label: "🏢 Электросеть",
+        label: "рџЏў Р­Р»РµРєС‚СЂРѕСЃРµС‚СЊ",
         type: "grid",
         power: `${totals.power?.toFixed(1) || 0}W`,
         status: "connected",
-        devices: `${devices.length} устройства`,
+        devices: `${devices.length} СѓСЃС‚СЂРѕР№СЃС‚РІР°`,
       },
       style: {
         background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
@@ -137,7 +147,7 @@ const ScadaFlowComponent = ({
       type: "output",
       position: { x: 700, y: 400 },
       data: {
-        label: "📊 SCADA Мониторинг",
+        label: "рџ“Љ SCADA РњРѕРЅРёС‚РѕСЂРёРЅРі",
         type: "monitoring",
         dataPoints: data.length,
         activeDevices: totals.activeDevices || 0,
@@ -250,7 +260,7 @@ const ScadaFlowComponent = ({
                     }`
                   : node.data.voltage,
                 temperature: tempParam
-                  ? `${updatedParams[tempParam].value.toFixed(1)}°C`
+                  ? `${updatedParams[tempParam].value.toFixed(1)}В°C`
                   : node.data.temperature,
                 status: "active",
               },
@@ -329,12 +339,12 @@ const ScadaFlowComponent = ({
                   onClick={onClose}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors duration-200"
                 >
-                  <span className="text-xl">←</span>
-                  Назад к панели
+                  <span className="text-xl">в†ђ</span>
+                  РќР°Р·Р°Рґ Рє РїР°РЅРµР»Рё
                 </button>
               )}
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Визуализация SCADA системы
+                Р’РёР·СѓР°Р»РёР·Р°С†РёСЏ SCADA СЃРёСЃС‚РµРјС‹
               </h1>
             </div>
             <div className="flex items-center gap-4">
@@ -345,7 +355,7 @@ const ScadaFlowComponent = ({
                   }`}
                 ></div>
                 <span className="text-gray-700 dark:text-gray-300">
-                  {connected ? "Подключено" : "Отключено"}
+                  {connected ? "РџРѕРґРєР»СЋС‡РµРЅРѕ" : "РћС‚РєР»СЋС‡РµРЅРѕ"}
                 </span>
               </div>
               <div className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold">
@@ -403,20 +413,20 @@ const ScadaFlowComponent = ({
               className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-800"
             >
               <h3 className="font-bold text-gray-900 dark:text-white mb-3">
-                Статистика системы
+                РЎС‚Р°С‚РёСЃС‚РёРєР° СЃРёСЃС‚РµРјС‹
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Устройства:
+                    РЈСЃС‚СЂРѕР№СЃС‚РІР°:
                   </span>
                   <span className="font-bold text-gray-900 dark:text-white">
-                    {devices.length} шт.
+                    {devices.length} С€С‚.
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Мощность:
+                    РњРѕС‰РЅРѕСЃС‚СЊ:
                   </span>
                   <span className="font-bold text-green-600 dark:text-green-400">
                     {totals.power?.toFixed(1) || 0}W
@@ -424,18 +434,18 @@ const ScadaFlowComponent = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Сегодня:
+                    РЎРµРіРѕРґРЅСЏ:
                   </span>
                   <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {totals.energyToday?.toFixed(1) || 0} кВт·ч
+                    {totals.energyToday?.toFixed(1) || 0} РєР’С‚В·С‡
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Данные:
+                    Р”Р°РЅРЅС‹Рµ:
                   </span>
                   <span className="font-bold text-purple-600 dark:text-purple-400">
-                    {data.length} записей
+                    {data.length} Р·Р°РїРёСЃРµР№
                   </span>
                 </div>
               </div>
@@ -451,14 +461,14 @@ const ScadaFlowComponent = ({
       <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-900 dark:to-emerald-900/20">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-            <span className="text-2xl">🌐</span>
+            <span className="text-2xl">рџЊђ</span>
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Визуализация системы
+              Р’РёР·СѓР°Р»РёР·Р°С†РёСЏ СЃРёСЃС‚РµРјС‹
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Динамическая схема потоков энергии
+              Р”РёРЅР°РјРёС‡РµСЃРєР°СЏ СЃС…РµРјР° РїРѕС‚РѕРєРѕРІ СЌРЅРµСЂРіРёРё
             </p>
           </div>
         </div>
@@ -467,8 +477,8 @@ const ScadaFlowComponent = ({
             onClick={onClose}
             className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors duration-200 font-medium"
           >
-            <span className="text-xl">⛶</span>
-            Открыть в полный экран
+            <span className="text-xl">в›¶</span>
+            РћС‚РєСЂС‹С‚СЊ РІ РїРѕР»РЅС‹Р№ СЌРєСЂР°РЅ
           </button>
         )}
       </div>
@@ -505,31 +515,31 @@ const ScadaFlowComponent = ({
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-green-500 border border-green-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Инверторы
+              РРЅРІРµСЂС‚РѕСЂС‹
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-purple-500 border border-purple-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Счётчики
+              РЎС‡С‘С‚С‡РёРєРё
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-blue-500 border border-blue-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Электросеть
+              Р­Р»РµРєС‚СЂРѕСЃРµС‚СЊ
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-pink-500 border border-pink-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Мониторинг
+              РњРѕРЅРёС‚РѕСЂРёРЅРі
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-0.5 bg-yellow-500 animate-pulse"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Поток энергии
+              РџРѕС‚РѕРє СЌРЅРµСЂРіРёРё
             </span>
           </div>
         </div>
@@ -539,3 +549,5 @@ const ScadaFlowComponent = ({
 };
 
 export default ScadaFlowComponent;
+
+

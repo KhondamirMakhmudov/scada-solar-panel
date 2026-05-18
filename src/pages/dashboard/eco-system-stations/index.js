@@ -10,6 +10,7 @@ import {
   getColorByDanger,
 } from "@/constants/eco";
 import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ContentLoader from "@/components/loader";
 
 const EcologyPage = () => {
@@ -18,7 +19,7 @@ const EcologyPage = () => {
   useEffect(() => {
     const socket = new WebSocket("ws://10.20.6.64/ws");
 
-    socket.onopen = () => console.log("✅ WebSocket connected");
+    socket.onopen = () => console.log("WebSocket connected");
 
     socket.onmessage = (event) => {
       try {
@@ -27,7 +28,7 @@ const EcologyPage = () => {
 
         setData((prev) => {
           const idx = prev.findIndex(
-            (item) => item.unique_key === parsed.unique_key
+            (item) => item.unique_key === parsed.unique_key,
           );
 
           if (idx !== -1) {
@@ -38,17 +39,17 @@ const EcologyPage = () => {
           return [...prev, parsed];
         });
       } catch {
-        console.warn("⚠️ Invalid JSON:", event.data);
+        console.warn("Invalid JSON:", event.data);
       }
     };
 
-    socket.onclose = () => console.log("❌ WebSocket disconnected");
+    socket.onclose = () => console.log("WebSocket disconnected");
     return () => socket.close();
   }, []);
 
   // Get unique station names
   const stationNames = [...new Set(data.map((item) => item.name))].filter(
-    Boolean
+    Boolean,
   );
 
   // Sort items by parameter order
@@ -144,7 +145,7 @@ const EcologyPage = () => {
 
                       const percentage = Math.min(
                         Math.abs(value / max) * 100,
-                        100
+                        100,
                       );
                       const dangerLevel = getDangerLevel(value, cfg);
                       const colorClass = getColorByDanger(dangerLevel);
@@ -162,7 +163,9 @@ const EcologyPage = () => {
                         >
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-white text-sm font-medium flex items-center gap-2">
-                              {!isPhysical && dangerLevel === "danger" && "⚠️"}
+                              {!isPhysical && dangerLevel === "danger" && (
+                                <WarningAmberIcon fontSize="small" />
+                              )}
                               {title}
                             </span>
                             <span className="text-white font-bold text-lg">
