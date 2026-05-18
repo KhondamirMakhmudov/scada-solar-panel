@@ -178,7 +178,6 @@ export default function WebSocketTestPage() {
                 />
               )}
             </div>
-
           </div>
 
           <div className="lg:col-span-2 space-y-4">
