@@ -1,7 +1,8 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { get } from "lodash";
 import { config } from "@/config";
-import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
+
 import { buildScadaWsUrl, useWebSocket } from "@/hooks/useWebsoket";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import CustomSelect from "@/components/select";
@@ -15,6 +16,7 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 /* ---------- Visual constants ---------------------------------------------- */
 // Cycle of saturated indicator colors used for tag accents + sparklines.
@@ -144,6 +146,7 @@ function Sparkline({
 
 /* ---------- Page --------------------------------------------------------- */
 export default function WebSocketTestPage() {
+  const router = useRouter();
   const [channel, setChannel] = useState("devices");
   const [entityId, setEntityId] = useState("");
   const [filter, setFilter] = useState("all"); // all | recv | sent | err
@@ -266,8 +269,8 @@ export default function WebSocketTestPage() {
   }, [tagList, tagSearch]);
 
   return (
-    <DashboardLayout headerTitle="Тест WebSocket SCADA">
-      <div className="font-manrope text-slate-200 -mt-2">
+    <div className="w-full min-h-screen bg-[#0e0e0e] text-[#e5e2e1] p-6">
+      <div className="font-manrope text-slate-200">
         {/* ============================================================
             TOP STATUS BAR
             ============================================================ */}
@@ -344,6 +347,14 @@ export default function WebSocketTestPage() {
           />
 
           <div className="ml-auto flex items-center gap-2 px-4 py-2">
+            <ToolBtn
+              onClick={() => router.push("/dashboard/main")}
+              accent="slate"
+              title="Вернуться на главную"
+            >
+              <ArrowBackIcon style={{ fontSize: 14 }} />
+              НАЗАД
+            </ToolBtn>
             <ToolBtn
               disabled={!wsUrl || isConnected || isConnecting}
               onClick={connect}
@@ -621,7 +632,7 @@ export default function WebSocketTestPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 
