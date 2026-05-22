@@ -24,4 +24,5 @@ export const URLS = {
   OPCNodeChildren: "api/opcua/browse/children",
   readingsByServerId: "api/opc-readings/server/",
   readingsByNodeId: "api/opc-readings/node/",
+  systemOverview: "overview",
 };

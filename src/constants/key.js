@@ -19,4 +19,5 @@ export const KEYS = {
   OPCNodeChildren: "OPCNodeChildren",
   readingsByServerId: "readingsByServerId",
   readingsByNodeId: "readingsByNodeId",
+  systemOverview: "systemOverview",
 };

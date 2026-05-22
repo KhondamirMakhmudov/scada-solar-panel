@@ -2,6 +2,16 @@
 import { useRouter } from "next/router";
 import { get } from "lodash";
 import { config } from "@/config";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 import { buildScadaWsUrl, useWebSocket } from "@/hooks/useWebsoket";
 import useGetQuery from "@/hooks/all/useGetQuery";
@@ -546,11 +556,22 @@ export default function WebSocketTestPage() {
                     : "Подключитесь, чтобы увидеть текущие значения тегов"}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
-                  {activeTags.map((t) => (
-                    <TagTile key={t.last.tag_id} t={t} />
-                  ))}
-                </div>
+                <>
+                  {/* Tiles */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 mb-4">
+                    {activeTags.map((t) => (
+                      <TagTile key={t.last.tag_id} t={t} />
+                    ))}
+                  </div>
+
+                  {/* Chart - Real-time line graph */}
+                  <div className="mt-6 pt-4 border-t border-white/10">
+                    <div className="mb-3">
+                      <SectionLabel>ТРЕНД ЗНАЧЕНИЙ</SectionLabel>
+                    </div>
+                    <RealTimeChart activeTags={activeTags} />
+                  </div>
+                </>
               )}
             </div>
 
@@ -637,6 +658,83 @@ export default function WebSocketTestPage() {
 }
 
 /* ---------- Sub-components ----------------------------------------------- */
+function RealTimeChart({ activeTags }) {
+  const chartData = useMemo(() => {
+    if (!activeTags || activeTags.length === 0) return [];
+
+    const maxLen = Math.max(
+      ...activeTags.map((t) => t.history?.length || 0),
+      0,
+    );
+    if (maxLen === 0) return [];
+
+    const data = [];
+    for (let i = 0; i < maxLen; i++) {
+      const point = { time: i };
+      activeTags.forEach((tag) => {
+        const hist = tag.history;
+        const item = hist?.[i];
+        if (item) {
+          const key = tag.last?.tag_name || tag.last?.tag_id;
+          if (key) {
+            point[key] = item.v;
+          }
+        }
+      });
+      data.push(point);
+    }
+    return data;
+  }, [activeTags]);
+
+  if (!activeTags || activeTags.length === 0) {
+    return null;
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <div className="text-slate-500 text-xs py-4">Собираем данные...</div>
+    );
+  }
+
+  return (
+    <div
+      className="w-full bg-[#070a0f] rounded border border-white/10 p-3"
+      style={{ height: "340px" }}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1a2a3a" />
+          <XAxis dataKey="time" stroke="#64748b" tick={{ fontSize: 11 }} />
+          <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#0a0d12",
+              border: "1px solid #334155",
+              borderRadius: "4px",
+            }}
+            labelStyle={{ color: "#94a3b8" }}
+          />
+          <Legend />
+          {activeTags.map((tag) => {
+            const key = tag.last?.tag_name || tag.last?.tag_id;
+            if (!key) return null;
+            return (
+              <Line
+                key={key}
+                dataKey={key}
+                stroke={colorFor(key)}
+                dot={false}
+                strokeWidth={2}
+                isAnimationActive={false}
+              />
+            );
+          })}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function SectionLabel({ children }) {
   return (
     <div className="text-[10px] text-slate-400 tracking-widest font-bold uppercase">

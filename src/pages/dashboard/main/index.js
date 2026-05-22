@@ -4,164 +4,112 @@ import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { useSession } from "next-auth/react";
 import ContentLoader from "@/components/loader";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import StatCard from "@/components/card/StatisticCard";
 import { get } from "lodash";
+import {
+  Cable,
+  Devices,
+  LocalOffer,
+  Settings,
+  CheckCircle,
+  ErrorCircle,
+  WarningCircle,
+} from "@mui/icons-material";
 
-const DeviceCard = ({ device, deviceId, delay }) => {
-  const totalPolls = device.successfulPolls + device.failedPolls;
-  const successRate = ((device.successfulPolls / totalPolls) * 100).toFixed(2);
-  const lastPollDate = new Date(device.lastPollTime);
-  const timeAgo = getTimeAgo(lastPollDate);
+const MetricCard = ({ icon: Icon, label, value, status, delay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.4 }}
+    className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
+  >
+    <div className="flex items-center gap-2 mb-2">
+      <Icon className="text-blue-400" />
+      <p className="text-gray-400 text-xs">{label}</p>
+    </div>
+    <p className="text-white text-2xl font-bold mb-1">{value}</p>
+    {status && <p className={`text-xs ${status.color}`}>{status.text}</p>}
+  </motion.div>
+);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay, duration: 0.4 }}
-      className="group relative bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-      <div className="relative">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-10 h-10 rounded-lg ${
-                device.isPolling
-                  ? "bg-blue-500/20 border-blue-500/30"
-                  : "bg-red-500/20 border-red-500/30"
-              } border flex items-center justify-center`}
-            >
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  device.isPolling ? "bg-blue-400" : "bg-red-400"
-                } ${device.isPolling ? "animate-pulse" : ""}`}
-              ></div>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-lg">
-                {device.deviceName}
-              </h3>
-              <p className="text-gray-400 text-sm">ID: {deviceId}</p>
-            </div>
-          </div>
-
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              device.isPolling
-                ? "bg-blue-500/20 text-blue-400"
-                : "bg-red-500/20 text-red-400"
-            }`}
-          >
-            {device.isPolling ? "Активен" : "Неактивен"}
-          </span>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-            <p className="text-gray-400 text-xs mb-1">Успешных опросов</p>
-            <p className="text-white text-xl font-bold">
-              {device.successfulPolls.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-            <p className="text-gray-400 text-xs mb-1">Неудачных опросов</p>
-            <p className="text-white text-xl font-bold">
-              {device.failedPolls.toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        {/* Success Rate Bar */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-400 text-sm">Успешность</span>
-            <span className="text-white font-semibold">{successRate}%</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${successRate}%` }}
-              transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
-              className={`h-full rounded-full ${
-                parseFloat(successRate) > 95
-                  ? "bg-gradient-to-r from-blue-500 to-cyan-400"
-                  : parseFloat(successRate) > 90
-                    ? "bg-gradient-to-r from-yellow-500 to-orange-400"
-                    : "bg-gradient-to-r from-red-500 to-pink-400"
-              }`}
-            ></motion.div>
-          </div>
-        </div>
-
-        {/* Last Poll Time */}
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Последний опрос:</span>
-          <span className="text-gray-300 font-medium">{timeAgo}</span>
-        </div>
-
-        {device.lastError && (
-          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm font-medium">
-              ⚠ Ошибка: {device.lastError}
-            </p>
-          </div>
-        )}
+const StatusItem = ({
+  label,
+  count,
+  total,
+  statusColor,
+  statusText,
+  statusIcon: StatusIcon,
+  delay,
+}) => (
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay, duration: 0.3 }}
+    className="flex items-center justify-between py-4 px-4 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/30 transition-colors"
+  >
+    <p className="text-gray-300 text-sm flex-1">{label}</p>
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <span className="text-gray-400 font-medium text-sm">
+          {count}/{total}
+        </span>
       </div>
-    </motion.div>
-  );
-};
+      <div className="flex items-center gap-2 min-w-[120px] justify-end">
+        {StatusIcon && <StatusIcon sx={{ fontSize: 18, color: "inherit" }} className={statusColor} />}
+        <span className={`text-xs font-medium ${statusColor}`}>
+          {statusText}
+        </span>
+      </div>
+    </div>
+  </motion.div>
+);
 
-function getTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-
-  if (seconds < 60) return `${seconds} сек. назад`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} мин. назад`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} ч. назад`;
-  const days = Math.floor(hours / 24);
-  return `${days} дн. назад`;
-}
+const ConnectionTypeCard = ({ name, count, isActive, delay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.4 }}
+    className="bg-gray-900 border border-gray-700 rounded-xl p-4"
+  >
+    <p className="text-gray-400 text-xs mb-2">{name}</p>
+    <div className="flex items-baseline gap-2 mb-3">
+      <span className="text-white text-xl font-bold">{count}</span>
+      <span className="text-gray-400 text-xs">
+        соединени{count === 1 ? "е" : "й"}
+      </span>
+    </div>
+    <div className="flex items-center gap-2">
+      <span
+        className={`w-2 h-2 rounded-full ${
+          isActive ? "bg-green-500" : "bg-red-500"
+        }`}
+      ></span>
+      <span
+        className={`text-xs ${isActive ? "text-green-400" : "text-red-400"}`}
+      >
+        {isActive ? "Активно" : "Неактивно"}
+      </span>
+    </div>
+  </motion.div>
+);
 
 const Index = () => {
   const { data: session } = useSession();
-  const [filter, setFilter] = useState("all");
 
   const {
-    data: analiticsModbus,
-    isLoading: isLoadingModbus,
-    isFetching: isFetchingModbus,
+    data: systemOverview,
+    isLoading,
+    isFetching,
   } = useGetPythonQuery({
-    key: KEYS.statusMonitoringModbus,
-    url: URLS.statusMonitoringModbus,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    enabled: !!session?.accessToken,
+    key: KEYS.systemOverview,
+    url: URLS.systemOverview,
+    // headers: {
+    //   Authorization: `Bearer ${session?.accessToken}`,
+    //   Accept: "application/json",
+    // },
   });
 
-  const {
-    data: analiticsOPCUA,
-    isLoading: isLoadingOPCUA,
-    isFetching: isFetchingOPCUA,
-  } = useGetPythonQuery({
-    key: KEYS.statusMonitoringOPCUA,
-    url: URLS.statusMonitoringOPCUA,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    enabled: !!session?.accessToken,
-  });
-
-  if (isLoadingModbus || isLoadingOPCUA) {
+  if (isLoading || isFetching) {
     return (
       <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
         <ContentLoader />
@@ -169,140 +117,152 @@ const Index = () => {
     );
   }
 
-  const devices = Object.entries(get(analiticsModbus, "data.devices", {}));
-  const filteredDevices = devices.filter(([_, device]) => {
-    if (filter === "active") return device.isPolling;
-    if (filter === "inactive") return !device.isPolling;
-    return true;
-  });
-
-  const totalSuccessful = devices.reduce(
-    (acc, [_, device]) => acc + device.successfulPolls,
-    0,
-  );
-  const totalFailed = devices.reduce(
-    (acc, [_, device]) => acc + device.failedPolls,
-    0,
-  );
-  const avgSuccessRate =
-    totalSuccessful + totalFailed > 0
-      ? ((totalSuccessful / (totalSuccessful + totalFailed)) * 100).toFixed(1)
-      : 0;
+  // Extract system overview data
+  const data = get(systemOverview, "data.data", {});
+  const connections = get(data, "connections", {});
+  const devices = get(data, "devices", {});
+  const tags = get(data, "tags", {});
+  const connectionTypes = get(data, "connectionsByType", {});
+  const drivers = get(data, "drivers", 0);
 
   return (
     <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
       <div className="font-manrope py-6 space-y-6">
-        {/* Header with Filters */}
+        {/* System Overview Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
           <div>
+            <h2 className="text-2xl font-bold text-white mb-1">
+              Обзор системы
+            </h2>
             <p className="text-gray-400 text-sm">
               Мониторинг и управление устройствами в реальном времени
             </p>
           </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "all"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Все
-            </button>
-            <button
-              onClick={() => setFilter("active")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "active"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Активные
-            </button>
-            <button
-              onClick={() => setFilter("inactive")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                filter === "inactive"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Неактивные
-            </button>
-          </div>
         </motion.div>
 
-        {/* System Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <StatCard
-            icon="database"
-            label="Активные устройства"
-            value={get(analiticsModbus, "data.activeTasksCount", 0)}
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            icon={Cable}
+            label="Соединения"
+            value={connections.total || 0}
+            status={
+              connections.enabled === connections.total
+                ? { color: "text-green-400", text: "Все активны" }
+                : {
+                    color: "text-yellow-400",
+                    text: `${connections.disabled} неактивны`,
+                  }
+            }
             delay={0.1}
           />
-          <StatCard
-            icon="check_circle"
-            label="Успешных опросов"
-            value={totalSuccessful.toLocaleString()}
+          <MetricCard
+            icon={Devices}
+            label="Устройства"
+            value={devices.total || 0}
+            status={
+              devices.enabled === devices.total
+                ? { color: "text-green-400", text: "Все в сети" }
+                : {
+                    color: "text-yellow-400",
+                    text: `${devices.disabled} оффлайн`,
+                  }
+            }
             delay={0.2}
           />
-          <StatCard
-            icon="cancel"
-            label="Неудачных опросов"
-            value={totalFailed.toLocaleString()}
+          <MetricCard
+            icon={LocalOffer}
+            label="Параметры"
+            value={tags.total || 0}
+            status={
+              tags.disabled === 0
+                ? { color: "text-green-400", text: "Все активны" }
+                : {
+                    color: "text-yellow-400",
+                    text: `${tags.disabled} неактивны`,
+                  }
+            }
             delay={0.3}
           />
-          <StatCard
-            icon="trending_up"
-            label="Средняя успешность"
-            value={`${avgSuccessRate}%`}
+          <MetricCard
+            icon={Settings}
+            label="Драйверы"
+            value={drivers}
+            status={{ color: "text-blue-400", text: "Работают" }}
             delay={0.4}
           />
         </div>
 
-        {/* Devices Section */}
-        <div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="flex items-center justify-between mb-4"
-          >
-            <h2 className="text-2xl font-bold text-white">
-              Устройства ({filteredDevices.length})
-            </h2>
-          </motion.div>
+        {/* Connection Types Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Типы соединений
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(connectionTypes).map(([type, count], idx) => (
+              <ConnectionTypeCard
+                key={type}
+                name={type.replace(/_/g, " ")}
+                count={count}
+                isActive={true}
+                delay={0.5 + (idx + 1) * 0.1}
+              />
+            ))}
+          </div>
+        </motion.div>
 
-          {filteredDevices.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-center py-12 bg-gray-800/50 rounded-2xl border border-gray-700"
-            >
-              <p className="text-gray-400 text-lg">
-                Нет устройств для отображения
-              </p>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredDevices.map(([id, device], index) => (
-                <DeviceCard
-                  key={id}
-                  device={device}
-                  deviceId={id}
-                  delay={0.6 + index * 0.1}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* System Health Status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">
+              Статус системы
+            </h3>
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+          </div>
+          <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/60 rounded-xl overflow-hidden shadow-lg">
+            <StatusItem
+              label="Активные соединения"
+              count={connections.enabled || 0}
+              total={connections.total || 0}
+              statusColor="text-green-400"
+              statusText="Здорово"
+              statusIcon={CheckCircle}
+              delay={0.7}
+            />
+            <StatusItem
+              label="Доступные устройства"
+              count={devices.enabled || 0}
+              total={devices.total || 0}
+              statusColor="text-green-400"
+              statusText="Работают"
+              statusIcon={CheckCircle}
+              delay={0.8}
+            />
+            <StatusItem
+              label="Активные параметры"
+              count={(tags.total || 0) - (tags.disabled || 0)}
+              total={tags.total || 0}
+              statusColor={tags.disabled > 0 ? "text-yellow-400" : "text-green-400"}
+              statusText={tags.disabled > 0 ? "Деградированы" : "Нормально"}
+              statusIcon={
+                tags.disabled > 0 ? WarningCircle : CheckCircle
+              }
+              delay={0.9}
+            />
+          </div>
+        </motion.div>
       </div>
     </DashboardLayout>
   );
