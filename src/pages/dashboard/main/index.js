@@ -55,7 +55,12 @@ const StatusItem = ({
         </span>
       </div>
       <div className="flex items-center gap-2 min-w-[120px] justify-end">
-        {StatusIcon && <StatusIcon sx={{ fontSize: 18, color: "inherit" }} className={statusColor} />}
+        {StatusIcon && (
+          <StatusIcon
+            sx={{ fontSize: 18, color: "inherit" }}
+            className={statusColor}
+          />
+        )}
         <span className={`text-xs font-medium ${statusColor}`}>
           {statusText}
         </span>
@@ -226,9 +231,7 @@ const Index = () => {
           transition={{ delay: 0.7 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">
-              Статус системы
-            </h3>
+            <h3 className="text-lg font-semibold text-white">Статус системы</h3>
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
           </div>
           <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/60 rounded-xl overflow-hidden shadow-lg">
@@ -254,11 +257,11 @@ const Index = () => {
               label="Активные параметры"
               count={(tags.total || 0) - (tags.disabled || 0)}
               total={tags.total || 0}
-              statusColor={tags.disabled > 0 ? "text-yellow-400" : "text-green-400"}
-              statusText={tags.disabled > 0 ? "Деградированы" : "Нормально"}
-              statusIcon={
-                tags.disabled > 0 ? WarningCircle : CheckCircle
+              statusColor={
+                tags.disabled > 0 ? "text-yellow-400" : "text-green-400"
               }
+              statusText={tags.disabled > 0 ? "Деградированы" : "Нормально"}
+              statusIcon={tags.disabled > 0 ? WarningCircle : CheckCircle}
               delay={0.9}
             />
           </div>
