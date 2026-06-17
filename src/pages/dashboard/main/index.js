@@ -108,10 +108,12 @@ const Index = () => {
   } = useGetPythonQuery({
     key: KEYS.systemOverview,
     url: URLS.systemOverview,
-    // headers: {
-    //   Authorization: `Bearer ${session?.accessToken}`,
-    //   Accept: "application/json",
-    // },
+
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
 
   if (isLoading || isFetching) {

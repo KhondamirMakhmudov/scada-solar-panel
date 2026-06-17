@@ -27,6 +27,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useSession } from "next-auth/react";
 
 /* ---------- Visual constants ---------------------------------------------- */
 // Cycle of saturated indicator colors used for tag accents + sparklines.
@@ -156,6 +157,7 @@ function Sparkline({
 
 /* ---------- Page --------------------------------------------------------- */
 export default function WebSocketTestPage() {
+  const session = useSession();
   const router = useRouter();
   const [channel, setChannel] = useState("devices");
   const [entityId, setEntityId] = useState("");
@@ -166,10 +168,20 @@ export default function WebSocketTestPage() {
   const { data: devicesData, isLoading: isLoadingDevices } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
   const { data: tagsData, isLoading: isLoadingTags } = useGetQuery({
     key: KEYS.tags,
     url: URLS.tags,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
 
   const deviceList = get(devicesData, "data.data", []);

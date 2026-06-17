@@ -77,6 +77,11 @@ const Index = () => {
   const { data: connects, isLoading: isLoadingConnects } = useGetQuery({
     key: KEYS.connects,
     url: URLS.connects,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
 
   const { mutate: createConnection, isLoading: isCreatingConnection } =

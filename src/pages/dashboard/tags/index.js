@@ -223,11 +223,19 @@ const Index = () => {
   } = useGetQuery({
     key: KEYS.tags,
     url: URLS.tags,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
   });
 
   const { data: devices } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
   });
 
   const { mutate: createTag, isLoading: isCreatingTag } = usePostQuery({

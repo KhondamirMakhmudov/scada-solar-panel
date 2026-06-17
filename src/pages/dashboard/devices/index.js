@@ -177,11 +177,21 @@ const Index = () => {
   } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
 
   const { data: connects } = useGetQuery({
     key: KEYS.connects,
     url: URLS.connects,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
   });
 
   const { mutate: createDevice, isLoading: isCreatingDevice } = usePostQuery({
