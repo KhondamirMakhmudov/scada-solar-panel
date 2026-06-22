@@ -45,79 +45,15 @@ const menuItems = [
     path: "/dashboard/tags",
   },
   {
+    text: "Экраны",
+    icon: <HubRoundedIcon fontSize="medium" />,
+    path: "/dashboard/screens",
+  },
+  {
     text: "Тест WebSocket",
     icon: <HubRoundedIcon fontSize="medium" />,
     path: "/dashboard/test/websocket",
   },
-  // {
-  //   text: "Солнечная электростанция",
-  //   icon: <WbSunnyRoundedIcon fontSize="medium" />,
-  //   submenu: [
-  //     {
-  //       text: "Общий обзор",
-  //       path: "/dashboard/solar/overview",
-  //     },
-  //     {
-  //       text: "Производство энергии",
-  //       path: "/dashboard/solar/production",
-  //     },
-  //   ],
-  // },
-  // {
-  //   text: "Modbus",
-  //   icon: <MemoryRoundedIcon fontSize="medium" />,
-  //   submenu: [
-  //     {
-  //       text: "Устройства",
-  //       path: "/dashboard/modbus/devices",
-  //     },
-  //     {
-  //       text: "Регистры",
-  //       path: "/dashboard/modbus/registers",
-  //     },
-  //     {
-  //       text: "Чтение данных",
-  //       path: "/dashboard/modbus/readings",
-  //     },
-  //   ],
-  // },
-  // {
-  //   text: "OPC",
-  //   icon: <HubRoundedIcon fontSize="medium" />,
-  //   submenu: [
-  //     {
-  //       text: "Серверы",
-  //       path: "/dashboard/opc/servers",
-  //     },
-  //     {
-  //       text: "Узлы",
-  //       path: "/dashboard/opc/nodes",
-  //     },
-  //     {
-  //       text: "Чтение данных",
-  //       path: "/dashboard/opc/readings",
-  //     },
-  //   ],
-  // },
-  // {
-  //   text: "Архив",
-  //   icon: <ArchiveRoundedIcon fontSize="medium" />,
-  //   submenu: [
-  //     {
-  //       text: "История данных",
-  //       path: "/dashboard/archive/history",
-  //     },
-  //     {
-  //       text: "Отчёты",
-  //       path: "/dashboard/archive/reports",
-  //     },
-  //   ],
-  // },
-  // {
-  //   text: "Пользователи",
-  //   icon: <GroupRoundedIcon fontSize="medium" />,
-  //   path: "/dashboard/users",
-  // },
 ];
 
 export default function Sidebar({ isOpen = true }) {
@@ -208,7 +144,7 @@ export default function Sidebar({ isOpen = true }) {
         isOpen ? "w-[340px]" : "w-[80px]"
       } h-screen bg-[#131313] px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-mono border-r border-[#2a2a2a]`}
     >
-      <div className="text-white">
+      <div className="text-white pt-8 pb-8">
         {/* LOGO */}
         <div className="mb-8">
           <Link href="/">
@@ -233,6 +169,9 @@ export default function Sidebar({ isOpen = true }) {
 
             return (
               <div key={index}>
+                {item.text === "Экраны" && (
+                  <div className="my-2 border-t border-[#2a2a2a]"></div>
+                )}
                 {/* Parent item */}
                 <ListItemButton
                   onClick={() =>
@@ -316,6 +255,10 @@ export default function Sidebar({ isOpen = true }) {
                     </span>
                   )}
                 </ListItemButton>
+
+                {item.text === "Экраны" && (
+                  <div className="my-2 border-b border-[#2a2a2a]"></div>
+                )}
 
                 {/* Submenu */}
                 {item.submenu && isOpenSubmenu && isOpen && (

@@ -17,7 +17,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEnter = () => {
-    router.push("/dashboard/modbus/devices");
+    router.push("/dashboard/main");
   };
 
   const handleExit = async () => {
