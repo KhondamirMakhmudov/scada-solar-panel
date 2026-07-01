@@ -20,4 +20,5 @@ export const KEYS = {
   readingsByServerId: "readingsByServerId",
   readingsByNodeId: "readingsByNodeId",
   systemOverview: "systemOverview",
+  screens: "screens",
 };

@@ -41,4 +41,24 @@ requestPython.interceptors.response.use(
   }
 );
 
-export { request, requestPython };
+const requestScreens = axios.create({
+  baseURL: config.SCREENS_API_URL,
+  params: {},
+  headers: {
+    common: {
+      Accept: "application/json",
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  },
+});
+
+requestScreens.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export { request, requestPython, requestScreens };

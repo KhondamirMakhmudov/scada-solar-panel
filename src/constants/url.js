@@ -25,4 +25,5 @@ export const URLS = {
   readingsByServerId: "api/opc-readings/server/",
   readingsByNodeId: "api/opc-readings/node/",
   systemOverview: "overview",
+  screens: "screens",
 };
