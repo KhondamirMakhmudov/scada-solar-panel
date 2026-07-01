@@ -1,7 +1,7 @@
 // useWebSocket.js
 import { useEffect, useRef, useState, useCallback } from "react";
 
-export function buildScadaWsUrl({ baseHttpUrl, channel = "devices", id }) {
+export function buildScadaWsUrl({ baseHttpUrl, channel = "devices", id, token }) {
   if (!id) throw new Error("id is required");
 
   const fallbackOrigin =
@@ -19,7 +19,8 @@ export function buildScadaWsUrl({ baseHttpUrl, channel = "devices", id }) {
   const hasApiV1 = /\/api\/v1$/i.test(wsBase);
   const prefix = hasApiV1 ? wsBase : `${wsBase}/api/v1`;
 
-  return `${prefix}/ws/${channel}/${encodeURIComponent(id)}`;
+  const url = `${prefix}/ws/${channel}/${encodeURIComponent(id)}`;
+  return token ? `${url}?token=${encodeURIComponent(token)}` : url;
 }
 
 export function useWebSocket(

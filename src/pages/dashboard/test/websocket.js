@@ -18,8 +18,10 @@ import useGetQuery from "@/hooks/all/useGetQuery";
 import CustomSelect from "@/components/select";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
+import { requestScreens } from "@/services/api";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import WifiTetheringOutlinedIcon from "@mui/icons-material/WifiTetheringOutlined";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import StopRoundedIcon from "@mui/icons-material/StopRounded";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -60,6 +62,11 @@ const CHANNEL_META = {
     label: "Теги",
     icon: WifiTetheringOutlinedIcon,
     description: "Получить данные конкретного тега (датчика)",
+  },
+  screens: {
+    label: "Экраны",
+    icon: DashboardOutlinedIcon,
+    description: "Один сокет на все теги экрана (screen.tag_ids)",
   },
 };
 
@@ -157,7 +164,7 @@ function Sparkline({
 
 /* ---------- Page --------------------------------------------------------- */
 export default function WebSocketTestPage() {
-  const session = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [channel, setChannel] = useState("devices");
   const [entityId, setEntityId] = useState("");
@@ -183,12 +190,36 @@ export default function WebSocketTestPage() {
     },
     enabled: !!session?.accessToken,
   });
+  const { data: screensData, isLoading: isLoadingScreens } = useGetQuery({
+    key: KEYS.screens,
+    url: URLS.screens,
+    apiClient: requestScreens,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
+  });
 
-  const deviceList = get(devicesData, "data.data", []);
-  const tagList = get(tagsData, "data.data", []);
-  const currentList = channel === "devices" ? deviceList : tagList;
+  const deviceList = useMemo(() => get(devicesData, "data.data", []), [devicesData]);
+  const tagList = useMemo(() => get(tagsData, "data.data", []), [tagsData]);
+  const screenList = useMemo(() => {
+    const raw = get(screensData, "data.data", get(screensData, "data", []));
+    return Array.isArray(raw) ? raw : [];
+  }, [screensData]);
+
+  const currentList = useMemo(() => {
+    if (channel === "devices") return deviceList;
+    if (channel === "tags") return tagList;
+    return screenList;
+  }, [channel, deviceList, tagList, screenList]);
+
   const isLoadingList =
-    channel === "devices" ? isLoadingDevices : isLoadingTags;
+    channel === "devices"
+      ? isLoadingDevices
+      : channel === "tags"
+        ? isLoadingTags
+        : isLoadingScreens;
 
   useEffect(() => {
     setEntityId("");
@@ -206,11 +237,16 @@ export default function WebSocketTestPage() {
 
   const wsUrl = useMemo(() => {
     try {
-      return buildScadaWsUrl({ baseHttpUrl, channel, id: entityId });
+      return buildScadaWsUrl({
+        baseHttpUrl,
+        channel,
+        id: entityId,
+        token: session?.accessToken,
+      });
     } catch {
       return "";
     }
-  }, [baseHttpUrl, channel, entityId]);
+  }, [baseHttpUrl, channel, entityId, session?.accessToken]);
 
   const { status, messages, connect, disconnect, clearMessages } = useWebSocket(
     wsUrl,
@@ -232,7 +268,7 @@ export default function WebSocketTestPage() {
   const tagState = useMemo(() => {
     const m = {};
     for (const msg of messages) {
-      if (msg.direction !== "←") continue;
+      if (msg.direction !== "in") continue;
       const data = parsePayload(msg.text);
       if (!data || !data.tag_id) continue;
       if (!m[data.tag_id]) {
@@ -268,8 +304,8 @@ export default function WebSocketTestPage() {
   /* Filter for the log table. */
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
-      if (filter === "recv") return m.direction === "←";
-      if (filter === "sent") return m.direction === "→";
+      if (filter === "recv") return m.direction === "in";
+      if (filter === "sent") return m.direction === "out";
       if (filter === "err") {
         const d = parsePayload(m.text);
         return d && d.is_error;
@@ -280,15 +316,15 @@ export default function WebSocketTestPage() {
 
   const stats = {
     total: messages.length,
-    sent: messages.filter((m) => m.direction === "→").length,
-    received: messages.filter((m) => m.direction === "←").length,
+    sent: messages.filter((m) => m.direction === "out").length,
+    received: messages.filter((m) => m.direction === "in").length,
   };
 
   const filteredTagList = useMemo(() => {
-    if (!tagSearch) return tagList;
+    if (!tagSearch) return currentList;
     const q = tagSearch.toLowerCase();
-    return tagList.filter((t) => (t.name || "").toLowerCase().includes(q));
-  }, [tagList, tagSearch]);
+    return currentList.filter((t) => (t.name || "").toLowerCase().includes(q));
+  }, [currentList, tagSearch]);
 
   return (
     <div className="w-full min-h-screen bg-[#0e0e0e] text-[#e5e2e1] p-6">
@@ -413,12 +449,16 @@ export default function WebSocketTestPage() {
             {/* Channel toggle */}
             <div className="p-3 border-b border-white/10">
               <SectionLabel>ТИП ДАННЫХ</SectionLabel>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
+              <div className="grid grid-cols-3 gap-1.5 mt-2">
                 {Object.entries(CHANNEL_META).map(([key, preset]) => {
                   const Ico = preset.icon;
                   const active = channel === key;
                   const count =
-                    key === "devices" ? deviceList.length : tagList.length;
+                    key === "devices"
+                      ? deviceList.length
+                      : key === "tags"
+                        ? tagList.length
+                        : screenList.length;
                   return (
                     <button
                       key={key}
@@ -446,7 +486,11 @@ export default function WebSocketTestPage() {
             <div className="p-3">
               <div className="flex items-center justify-between mb-2">
                 <SectionLabel>
-                  {channel === "devices" ? "УСТРОЙСТВА" : "ТЕГИ"}
+                  {channel === "devices"
+                    ? "УСТРОЙСТВА"
+                    : channel === "tags"
+                      ? "ТЕГИ"
+                      : "ЭКРАНЫ"}
                 </SectionLabel>
                 {currentList.length > 0 && (
                   <span className="text-[10px] text-slate-500 font-mono border border-white/10 rounded px-1.5 py-0.5">
@@ -858,7 +902,7 @@ function Th({ children, align = "left" }) {
 }
 
 function LogRow({ m, alt }) {
-  const isRecv = m.direction === "←";
+  const isRecv = m.direction === "in";
   const dirColor = isRecv ? "text-emerald-400" : "text-sky-400";
   const d = parsePayload(m.text);
   const isErr = d?.is_error;

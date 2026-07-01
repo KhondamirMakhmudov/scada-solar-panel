@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { get } from "lodash";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
@@ -15,6 +16,7 @@ import {
   Close,
   KeyboardArrowDown,
   Sell,
+  AccountTree,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
@@ -131,9 +133,7 @@ const TagMultiSelect = ({
   return (
     <div className="relative w-full" ref={ref}>
       {label && (
-        <label className="block mb-[4px] text-sm text-gray-200">
-          {label}
-        </label>
+        <label className="block mb-[4px] text-sm text-gray-200">{label}</label>
       )}
       <button
         type="button"
@@ -258,7 +258,7 @@ const ParamsEditor = ({ rows, onChange }) => {
   );
 };
 
-const ScreenCard = ({ screen, onView, onEdit, onDelete }) => (
+const ScreenCard = ({ screen, onOpen, onView, onEdit, onDelete }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -308,6 +308,12 @@ const ScreenCard = ({ screen, onView, onEdit, onDelete }) => (
 
     <div className="mt-4 pt-4 border-t border-slate-700/60">
       <ActionButtonGroup>
+        <button
+          onClick={onOpen}
+          className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+        >
+          <AccountTree sx={{ fontSize: 14 }} /> Схема
+        </button>
         <EyeButton onClick={onView} tooltip="Детали экрана" />
         <EditButton onClick={onEdit} tooltip="Изменить экран" />
         <DeleteButton onClick={onDelete} tooltip="Удалить экран" />
@@ -317,6 +323,7 @@ const ScreenCard = ({ screen, onView, onEdit, onDelete }) => (
 );
 
 const Index = () => {
+  const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
@@ -353,14 +360,20 @@ const Index = () => {
     key: KEYS.screens,
     url: URLS.screens,
     apiClient: requestScreens,
-    headers: { ...authHeaders, Accept: "application/json" },
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+    },
+    enabled: !!session?.accessToken,
   });
 
   const { data: tagsResp } = useGetQuery({
     key: KEYS.tags,
     url: URLS.tags,
     apiClient: requestPython,
-    headers: { ...authHeaders, Accept: "application/json" },
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+    },
+    enabled: !!session?.accessToken,
   });
 
   const { mutate: createScreen, isLoading: isCreatingScreen } = usePostQuery({
@@ -370,13 +383,12 @@ const Index = () => {
     hideSuccessToast: true,
   });
 
-  const { mutate: deleteScreen, isPending: isDeletingScreen } =
-    useDeleteQuery({
-      apiClient: requestScreens,
-      listKeyId: KEYS.screens,
-      hideErrorToast: true,
-      hideSuccessToast: true,
-    });
+  const { mutate: deleteScreen, isPending: isDeletingScreen } = useDeleteQuery({
+    apiClient: requestScreens,
+    listKeyId: KEYS.screens,
+    hideErrorToast: true,
+    hideSuccessToast: true,
+  });
 
   const rawList = get(screensResp, "data.data", get(screensResp, "data", []));
   const listRaw = Array.isArray(rawList) ? rawList : [];
@@ -402,8 +414,7 @@ const Index = () => {
           id: item?.id || `screen-${index + 1}`,
           name: item?.name || `Экран ${index + 1}`,
           description: item?.description || "",
-          isActive:
-            typeof item?.isActive === "boolean" ? item.isActive : true,
+          isActive: typeof item?.isActive === "boolean" ? item.isActive : true,
           tagIds,
           tagNames: tagIds.map((id) => tagMap.get(id) || id),
           params: item?.params || {},
@@ -540,6 +551,10 @@ const Index = () => {
     );
   };
 
+  const openDiagram = (screen) => {
+    router.push(`/dashboard/screens/${screen.id}`);
+  };
+
   const openViewModal = (screen) => {
     setSelectedScreen(screen);
     setShowViewModal(true);
@@ -662,6 +677,12 @@ const Index = () => {
       header: "Действия",
       cell: ({ row }) => (
         <ActionButtonGroup>
+          <button
+            onClick={() => openDiagram(row.original)}
+            className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+          >
+            <AccountTree sx={{ fontSize: 14 }} /> Схема
+          </button>
           <EyeButton
             onClick={() => openViewModal(row.original)}
             tooltip="Детали экрана"
@@ -829,6 +850,7 @@ const Index = () => {
                 <ScreenCard
                   key={item.id}
                   screen={item}
+                  onOpen={() => openDiagram(item)}
                   onView={() => openViewModal(item)}
                   onEdit={() => openEditModal(item)}
                   onDelete={() => openDeleteModal(item)}
