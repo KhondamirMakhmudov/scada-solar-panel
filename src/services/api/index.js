@@ -1,5 +1,20 @@
 import axios from "axios";
+import { signOut } from "next-auth/react";
 import { config } from "@/config";
+
+let isSigningOut = false;
+
+const handleAuthError = (error) => {
+  if (
+    error?.response?.status === 401 &&
+    typeof window !== "undefined" &&
+    !isSigningOut
+  ) {
+    isSigningOut = true;
+    signOut({ callbackUrl: "/" });
+  }
+  return Promise.reject(error);
+};
 
 const request = axios.create({
   baseURL: config.JAVA_API_URL,
@@ -12,14 +27,7 @@ const request = axios.create({
   },
 });
 
-request.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+request.interceptors.response.use((response) => response, handleAuthError);
 
 const requestPython = axios.create({
   baseURL: config.PYTHON_API_URL,
@@ -33,12 +41,8 @@ const requestPython = axios.create({
 });
 
 requestPython.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (response) => response,
+  handleAuthError,
 );
 
 const requestScreens = axios.create({
@@ -53,12 +57,8 @@ const requestScreens = axios.create({
 });
 
 requestScreens.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (response) => response,
+  handleAuthError,
 );
 
 export { request, requestPython, requestScreens };

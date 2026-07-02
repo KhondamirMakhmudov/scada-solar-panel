@@ -8,16 +8,23 @@ import ContentLoader from "@/components/loader";
 // Not a visual page-chrome component; each dashboard page still owns its
 // own DashboardLayout for sidebar/header.
 const Layout = ({ children }) => {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Редиректим немедленно только при окончательном истечении токена.
+  // "Мягкие" ошибки (RefreshTokenInvalidated / RefreshAccessTokenError —
+  // вероятная коллизия с логином в другом проекте) не блокируют рендер:
+  // SessionErrorHandler в _app.js сам решает, разлогинивать ли, после
+  // попытки тихого восстановления сессии.
+  const isHardSessionError = session?.error === "RefreshTokenExpired";
+
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" || isHardSessionError) {
       router.replace("/");
     }
-  }, [status, router]);
+  }, [status, isHardSessionError, router]);
 
-  if (status === "loading" || status === "unauthenticated") {
+  if (status === "loading" || status === "unauthenticated" || isHardSessionError) {
     return <ContentLoader />;
   }
 
