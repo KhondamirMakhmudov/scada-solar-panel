@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
+import { formatTagLabel } from "@/lib/tagNameTranslation";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,10 +14,8 @@ import {
   ViewModule,
   CheckCircle,
   Circle,
-  Close,
   KeyboardArrowDown,
   Sell,
-  AccountTree,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
@@ -32,6 +31,8 @@ import {
   DeleteButton,
   EditButton,
   EyeButton,
+  DiagramButton,
+  PreviewButton,
 } from "@/components/button";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
@@ -61,7 +62,6 @@ const DEFAULT_FORM = {
   description: "",
   isActive: true,
   tagIds: [],
-  params: [{ key: "", value: "" }],
 };
 
 const formatDate = (value) => {
@@ -75,23 +75,33 @@ const formatDate = (value) => {
   }).format(date);
 };
 
-const paramsToList = (params) => {
-  const entries = Object.entries(params || {});
-  return entries.length
-    ? entries.map(([key, value]) => ({
-        key,
-        value: typeof value === "string" ? value : JSON.stringify(value),
-      }))
-    : [{ key: "", value: "" }];
-};
+const TagChipList = ({ names, max = 3 }) => {
+  if (!names.length) {
+    return <span className="text-xs text-slate-600">Нет тегов</span>;
+  }
 
-const listToParams = (list) =>
-  (list || []).reduce((acc, row) => {
-    const key = row.key?.trim();
-    if (!key) return acc;
-    acc[key] = row.value ?? "";
-    return acc;
-  }, {});
+  const visible = names.slice(0, max);
+  const overflow = names.length - visible.length;
+
+  return (
+    <>
+      {visible.map((name) => (
+        <span
+          key={name}
+          className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
+        >
+          <Sell sx={{ fontSize: 11 }} />
+          {name}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className="inline-flex items-center rounded-md bg-slate-700/40 border border-slate-600/50 text-slate-400 text-xs px-2 py-0.5">
+          +{overflow}
+        </span>
+      )}
+    </>
+  );
+};
 
 const TagMultiSelect = ({
   label,
@@ -200,65 +210,7 @@ const TagMultiSelect = ({
   );
 };
 
-const ParamsEditor = ({ rows, onChange }) => {
-  const updateRow = (index, field, val) => {
-    const next = rows.map((row, i) =>
-      i === index ? { ...row, [field]: val } : row,
-    );
-    onChange(next);
-  };
-
-  const addRow = () => onChange([...rows, { key: "", value: "" }]);
-
-  const removeRow = (index) => {
-    const next = rows.filter((_, i) => i !== index);
-    onChange(next.length ? next : [{ key: "", value: "" }]);
-  };
-
-  return (
-    <div className="rounded-xl border border-slate-700 p-3 bg-slate-900/50">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-          Параметры (params)
-        </p>
-        <button
-          type="button"
-          onClick={addRow}
-          className="flex items-center gap-1 text-xs text-blue-300 hover:text-blue-200"
-        >
-          <Add sx={{ fontSize: 14 }} /> Добавить параметр
-        </button>
-      </div>
-      <div className="space-y-2">
-        {rows.map((row, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <input
-              value={row.key}
-              onChange={(e) => updateRow(index, "key", e.target.value)}
-              placeholder="Ключ"
-              className="h-10 flex-1 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
-            />
-            <input
-              value={row.value}
-              onChange={(e) => updateRow(index, "value", e.target.value)}
-              placeholder="Значение"
-              className="h-10 flex-1 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
-            />
-            <button
-              type="button"
-              onClick={() => removeRow(index)}
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-slate-700 text-slate-400 hover:border-rose-500/60 hover:text-rose-300"
-            >
-              <Close sx={{ fontSize: 15 }} />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const ScreenCard = ({ screen, onOpen, onView, onEdit, onDelete }) => (
+const ScreenCard = ({ screen, onOpen, onOpenRuntime, onView, onEdit, onDelete }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -287,19 +239,7 @@ const ScreenCard = ({ screen, onOpen, onView, onEdit, onDelete }) => (
     </div>
 
     <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-      {screen.tagNames.length ? (
-        screen.tagNames.map((name) => (
-          <span
-            key={name}
-            className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
-          >
-            <Sell sx={{ fontSize: 11 }} />
-            {name}
-          </span>
-        ))
-      ) : (
-        <span className="text-xs text-slate-600">Нет тегов</span>
-      )}
+      <TagChipList names={screen.tagNames} />
     </div>
 
     <p className="text-gray-600 text-xs mt-3">
@@ -308,12 +248,8 @@ const ScreenCard = ({ screen, onOpen, onView, onEdit, onDelete }) => (
 
     <div className="mt-4 pt-4 border-t border-slate-700/60">
       <ActionButtonGroup>
-        <button
-          onClick={onOpen}
-          className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
-        >
-          <AccountTree sx={{ fontSize: 14 }} /> Схема
-        </button>
+        <DiagramButton onClick={onOpen} tooltip="Открыть схему" />
+        <PreviewButton onClick={onOpenRuntime} tooltip="Открыть просмотр" />
         <EyeButton onClick={onView} tooltip="Детали экрана" />
         <EditButton onClick={onEdit} tooltip="Изменить экран" />
         <DeleteButton onClick={onDelete} tooltip="Удалить экран" />
@@ -397,12 +333,16 @@ const Index = () => {
   const tagsList = Array.isArray(tagsRaw) ? tagsRaw : [];
 
   const tagMap = useMemo(
-    () => new Map(tagsList.map((tag) => [tag.id, tag.name || tag.id])),
+    () => new Map(tagsList.map((tag) => [tag.id, tag.name ? formatTagLabel(tag.name) : tag.id])),
     [tagsList],
   );
 
   const tagOptions = useMemo(
-    () => tagsList.map((tag) => ({ label: tag.name || tag.id, value: tag.id })),
+    () =>
+      tagsList.map((tag) => ({
+        label: tag.name ? formatTagLabel(tag.name) : tag.id,
+        value: tag.id,
+      })),
     [tagsList],
   );
 
@@ -435,7 +375,6 @@ const Index = () => {
     description: screen?.description || "",
     isActive: Boolean(screen?.isActive),
     tagIds: screen?.tagIds || [],
-    params: paramsToList(screen?.params),
   });
 
   const handleChangeCreateField = (field, value) => {
@@ -456,10 +395,15 @@ const Index = () => {
     return errors;
   };
 
-  const buildPayload = (form) => ({
+  // `params` isn't user-editable here — it holds the mnemonic editor's
+  // diagram data (params.mnemonic) and the legacy React Flow prototype
+  // (params.canvas), neither of which this modal should ever touch. Create
+  // starts with an empty bucket for the editor to fill in later; edit
+  // always passes the screen's existing params straight through unchanged.
+  const buildPayload = (form, existingParams = {}) => ({
     name: form.name.trim(),
     description: form.description?.trim() || "",
-    params: listToParams(form.params),
+    params: existingParams,
     isActive: Boolean(form.isActive),
     tagIds: form.tagIds,
   });
@@ -506,7 +450,7 @@ const Index = () => {
 
       await requestScreens.patch(
         `${URLS.screens}/${editingScreen.id}`,
-        buildPayload(editForm),
+        buildPayload(editForm, editingScreen.params || {}),
         { headers: authHeaders },
       );
 
@@ -553,6 +497,10 @@ const Index = () => {
 
   const openDiagram = (screen) => {
     router.push(`/dashboard/screens/${screen.id}`);
+  };
+
+  const openRuntime = (screen) => {
+    router.push(`/dashboard/screens/${screen.id}/runtime`);
   };
 
   const openViewModal = (screen) => {
@@ -633,18 +581,7 @@ const Index = () => {
       header: "Теги",
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1 max-w-[240px]">
-          {row.original.tagNames.length ? (
-            row.original.tagNames.map((name) => (
-              <span
-                key={name}
-                className="inline-flex rounded-md px-2 py-0.5 text-xs border border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
-              >
-                {name}
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-slate-600">—</span>
-          )}
+          <TagChipList names={row.original.tagNames} />
         </div>
       ),
     },
@@ -655,7 +592,7 @@ const Index = () => {
         <span
           className={`inline-flex rounded-md px-2.5 py-1 text-xs ${
             row.original.isActive
-              ? "bg-blue-500/15 text-blue-300 border border-blue-400/30"
+              ? "bg-green-500/15 text-green-300 border border-green-400/30"
               : "bg-slate-500/20 text-slate-300 border border-slate-400/30"
           }`}
         >
@@ -677,12 +614,14 @@ const Index = () => {
       header: "Действия",
       cell: ({ row }) => (
         <ActionButtonGroup>
-          <button
+          <DiagramButton
             onClick={() => openDiagram(row.original)}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
-          >
-            <AccountTree sx={{ fontSize: 14 }} /> Схема
-          </button>
+            tooltip="Открыть схему"
+          />
+          <PreviewButton
+            onClick={() => openRuntime(row.original)}
+            tooltip="Открыть просмотр"
+          />
           <EyeButton
             onClick={() => openViewModal(row.original)}
             tooltip="Детали экрана"
@@ -762,9 +701,9 @@ const Index = () => {
               {stats.total}
             </p>
           </div>
-          <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-4">
-            <p className="text-sm text-blue-300">Активных</p>
-            <p className="mt-1 text-2xl font-semibold text-blue-200">
+          <div className="rounded-xl border border-green-500/25 bg-green-500/10 p-4">
+            <p className="text-sm text-green-300">Активных</p>
+            <p className="mt-1 text-2xl font-semibold text-green-200">
               {stats.active}
             </p>
           </div>
@@ -851,6 +790,7 @@ const Index = () => {
                   key={item.id}
                   screen={item}
                   onOpen={() => openDiagram(item)}
+                  onOpenRuntime={() => openRuntime(item)}
                   onView={() => openViewModal(item)}
                   onEdit={() => openEditModal(item)}
                   onDelete={() => openDeleteModal(item)}
@@ -1029,11 +969,6 @@ const Index = () => {
             />
           </div>
 
-          <ParamsEditor
-            rows={createForm.params}
-            onChange={(value) => handleChangeCreateField("params", value)}
-          />
-
           <div className="pt-2 flex items-center justify-end gap-2">
             <Button
               onClick={() => setShowCreateModal(false)}
@@ -1109,11 +1044,6 @@ const Index = () => {
               onChange={(value) => handleChangeEditField("tagIds", value)}
             />
           </div>
-
-          <ParamsEditor
-            rows={editForm.params}
-            onChange={(value) => handleChangeEditField("params", value)}
-          />
 
           <div className="pt-2 flex items-center justify-end gap-2">
             <Button
@@ -1200,19 +1130,26 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
+          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 overflow-hidden">
             <p className="text-slate-400 mb-2">Параметры</p>
             {selectedScreen?.params &&
             Object.keys(selectedScreen.params).length ? (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {Object.entries(selectedScreen.params).map(([key, value]) => (
-                  <div key={key} className="flex justify-between text-xs">
-                    <span className="text-slate-500">{key}</span>
-                    <span className="text-slate-200">
-                      {typeof value === "string"
-                        ? value
-                        : JSON.stringify(value)}
-                    </span>
+                  <div key={key} className="text-xs min-w-0">
+                    <p className="text-slate-500 mb-1">{key}</p>
+                    {key === "canvas" && value && typeof value === "object" ? (
+                      <p className="text-slate-200">
+                        {(value.nodes || []).length} узлов,{" "}
+                        {(value.edges || []).length} связей
+                      </p>
+                    ) : (
+                      <pre className="text-slate-200 bg-slate-950/60 rounded-md p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
+                        {typeof value === "string"
+                          ? value
+                          : JSON.stringify(value, null, 2)}
+                      </pre>
+                    )}
                   </div>
                 ))}
               </div>

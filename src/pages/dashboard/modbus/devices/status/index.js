@@ -50,13 +50,13 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <div
               className={`w-10 h-10 rounded-lg ${
                 device.isPolling
-                  ? "bg-blue-500/20 border-blue-500/30"
-                  : "bg-red-500/20 border-red-500/30"
+                  ? "bg-green-500/20 border-green-500/30"
+                  : "bg-slate-500/20 border-slate-500/30"
               } border flex items-center justify-center`}
             >
               <div
                 className={`w-2.5 h-2.5 rounded-full ${
-                  device.isPolling ? "bg-blue-400" : "bg-red-400"
+                  device.isPolling ? "bg-green-400" : "bg-slate-400"
                 } ${device.isPolling ? "animate-pulse" : ""}`}
               ></div>
             </div>
@@ -72,8 +72,8 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <span
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 device.isPolling
-                  ? "bg-blue-500/20 text-blue-400"
-                  : "bg-red-500/20 text-red-400"
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-slate-500/20 text-slate-400"
               }`}
             >
               {device.isPolling ? "Активен" : "Неактивен"}

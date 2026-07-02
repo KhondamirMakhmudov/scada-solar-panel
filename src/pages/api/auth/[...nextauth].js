@@ -3,7 +3,6 @@ import { config } from "@/config";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// decode JWT token
 function decodeJWT(token) {
   try {
     const base64Url = token.split(".")[1];
@@ -21,7 +20,6 @@ function decodeJWT(token) {
   }
 }
 
-// Fetch user details including roles
 async function fetchUserDetails(accessToken) {
   try {
     const response = await fetch(
@@ -41,7 +39,7 @@ async function fetchUserDetails(accessToken) {
     }
 
     const result = await response.json();
-    return result.data; // Extract from nested data object
+    return result.data;
   } catch (error) {
     console.error("Error fetching user details:", error);
     return null;
@@ -53,9 +51,7 @@ const PERMISSION_SEPARATOR = "::";
 function buildPermissionKey(permission) {
   const resourceName = permission.resource?.name || "";
   const actionName = permission.action?.name || "";
-
   if (!resourceName && !actionName) return null;
-
   return `${resourceName}${PERMISSION_SEPARATOR}${actionName}`;
 }
 
@@ -63,20 +59,16 @@ function parsePermissionKey(permissionKey) {
   if (typeof permissionKey !== "string") {
     return { resource: null, action: null };
   }
-
   const [resourceName = "", actionName = ""] =
     permissionKey.split(PERMISSION_SEPARATOR);
-
   return {
     resource: resourceName ? { name: resourceName } : null,
     action: actionName ? { name: actionName } : null,
   };
 }
 
-// Keep only essential role/permission fields to minimize JWT size
 function sanitizeRoles(rolesArray) {
   if (!Array.isArray(rolesArray)) return [];
-
   return rolesArray.map((role) => ({
     name: role.name,
     permissions: Array.isArray(role.permissions)
@@ -87,7 +79,6 @@ function sanitizeRoles(rolesArray) {
 
 function expandRolesDetail(rolesArray) {
   if (!Array.isArray(rolesArray)) return [];
-
   return rolesArray.map((role) => ({
     name: role.name,
     permissions: Array.isArray(role.permissions)
@@ -103,7 +94,6 @@ function extractRoles(rolesArray) {
 
 function extractPermissions(rolesArray) {
   if (!Array.isArray(rolesArray)) return [];
-
   const allPermissions = [];
   rolesArray.forEach((role) => {
     if (Array.isArray(role.permissions)) {
@@ -116,7 +106,6 @@ function extractPermissions(rolesArray) {
       });
     }
   });
-
   return allPermissions;
 }
 
@@ -128,96 +117,110 @@ function isAdmin(rolesArray) {
   });
 }
 
-// Prevent race conditions on simultaneous refresh attempts
-const refreshPromises = new Map();
+const refreshLocks = new Map();
 
 async function refreshAccessToken(token) {
-  const refreshKey = token.refreshToken;
-  if (refreshPromises.has(refreshKey)) {
-    console.log("Refresh already in progress, waiting...");
-    return refreshPromises.get(refreshKey);
+  const lockKey = token.refreshToken;
+
+  if (refreshLocks.has(lockKey)) {
+    console.log("Refresh locked — waiting for existing refresh...");
+
+    return refreshLocks.get(lockKey);
   }
 
-  const refreshPromise = (async () => {
-    try {
-      console.log("=== STARTING TOKEN REFRESH ===");
+  let resolveLock;
+  const lockPromise = new Promise((res) => {
+    resolveLock = res;
+  });
+  refreshLocks.set(lockKey, lockPromise);
 
-      if (!token.refreshToken) {
-        throw new Error("No refresh token available");
-      }
+  try {
+    console.log("=== STARTING TOKEN REFRESH ===");
 
-      const response = await fetch(
-        `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:refresh`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token.refreshToken}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+    if (!token.refreshToken) throw new Error("No refresh token available");
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Refresh token failed:", response.status, errorText);
-        console.log("Full response:", response);
-        if (response.status === 401) throw new Error("RefreshTokenExpired");
-        throw new Error(`Refresh failed: ${response.status}`);
-      }
-
-      const refreshedTokens = await response.json();
-      console.log("=== REFRESH RESPONSE ===");
-      console.log(JSON.stringify(refreshedTokens, null, 2));
-
-      const tokens = refreshedTokens.data;
-      if (!tokens?.accessToken) {
-        throw new Error("No access token in refresh response");
-      }
-
-      const newDecoded = decodeJWT(tokens.accessToken);
-
-      if (!newDecoded || !newDecoded.exp) {
-        throw new Error("Invalid token received - no expiration");
-      }
-
-      const accessTokenExpires = newDecoded.exp * 1000;
-      console.log(
-        `New token expires in ${Math.floor((accessTokenExpires - Date.now()) / 1000)} seconds`,
-      );
-
-      const userDetails = await fetchUserDetails(tokens.accessToken);
-      const sanitizedRoles = sanitizeRoles(userDetails?.roles || []);
-
-      return {
-        ...token,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken || token.refreshToken,
-        tokenType: tokens.tokenType || token.tokenType || "Bearer",
-        accessTokenExpires,
-        userData: {
-          username: newDecoded.username,
-          employee_id: newDecoded.employeeId,
-          unit_code: newDecoded.unitCode,
-        },
-        rolesDetail: sanitizedRoles,
-        error: undefined,
-      };
-    } catch (error) {
-      console.error("=== TOKEN REFRESH FAILED ===", error.message);
-      return {
-        ...token,
-        error:
-          error.message === "RefreshTokenExpired"
-            ? "RefreshTokenExpired"
-            : "RefreshAccessTokenError",
-      };
-    } finally {
-      refreshPromises.delete(refreshKey);
+    const decodedRefresh = decodeJWT(token.refreshToken);
+    if (decodedRefresh?.exp && decodedRefresh.exp * 1000 < Date.now()) {
+      throw new Error("RefreshTokenExpired");
     }
-  })();
 
-  refreshPromises.set(refreshKey, refreshPromise);
-  return refreshPromise;
+    const response = await fetch(
+      `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:refresh`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.refreshToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Refresh token failed:", response.status, errorText);
+      if (response.status === 401) throw new Error("RefreshTokenExpired");
+      throw new Error(`Refresh failed: ${response.status}`);
+    }
+
+    const refreshedTokens = await response.json();
+    const tokens = refreshedTokens.data;
+
+    if (!tokens?.accessToken)
+      throw new Error("No access token in refresh response");
+
+    const newDecoded = decodeJWT(tokens.accessToken);
+    if (!newDecoded || !newDecoded.exp)
+      throw new Error("Invalid token received");
+
+    const accessTokenExpires = newDecoded.exp * 1000;
+    console.log(
+      `New token expires in ${Math.floor((accessTokenExpires - Date.now()) / 1000)} seconds`,
+    );
+
+    const userDetails = await fetchUserDetails(tokens.accessToken);
+    const sanitizedRoles = sanitizeRoles(userDetails?.roles || []);
+
+    const newDecodedRefresh = decodeJWT(
+      tokens.refreshToken ?? token.refreshToken,
+    );
+    const refreshTokenExpires = newDecodedRefresh?.exp
+      ? newDecodedRefresh.exp * 1000
+      : token.refreshTokenExpires;
+
+    const newToken = {
+      ...token,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken ?? token.refreshToken,
+      tokenType: tokens.tokenType || token.tokenType || "Bearer",
+      accessTokenExpires,
+      refreshTokenExpires,
+      userData: {
+        username: newDecoded.username,
+        employee_id: newDecoded.employeeId,
+        unit_code: newDecoded.unitCode,
+      },
+      rolesDetail: sanitizedRoles,
+      error: undefined,
+    };
+
+    // ✅ ҳамма ҳолатда resolve — reject йўқ
+    resolveLock(newToken);
+    return newToken;
+  } catch (error) {
+    console.error("=== TOKEN REFRESH FAILED ===", error.message);
+    const isExpired = error.message === "RefreshTokenExpired";
+
+    const errorToken = {
+      ...token,
+      error: isExpired ? "RefreshTokenExpired" : "RefreshAccessTokenError",
+    };
+
+    // ✅ reject эмас, resolve билан error token қайтарамиз
+    resolveLock(errorToken);
+    return errorToken;
+  } finally {
+    setTimeout(() => refreshLocks.delete(lockKey), 15000);
+  }
 }
 
 export const authOptions = {
@@ -233,7 +236,6 @@ export const authOptions = {
         try {
           const { username, password } = credentials;
           console.log("=== STARTING LOGIN PROCESS ===");
-          console.log("Attempting login for user:", username);
 
           const res = await fetch(
             `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions`,
@@ -244,37 +246,26 @@ export const authOptions = {
             },
           );
 
-          console.log("Login response status:", res.status);
-          console.log("login details", res);
-
           if (!res.ok) {
             console.error("Login failed:", res.status);
             return null;
           }
 
           const data = await res.json();
-
-          console.log("=== FULL RESPONSE DATA ===");
-          console.log(JSON.stringify(data, null, 2));
-
           const tokens = data.data;
+
           if (!tokens?.accessToken || !tokens?.refreshToken) {
             console.error("Missing tokens in login response");
             return null;
           }
 
           const decoded = decodeJWT(tokens.accessToken);
-
           if (!decoded || !decoded.exp) {
             console.error("Invalid token structure");
             return null;
           }
 
-          console.log("=== TOKEN DECODED ===");
-          console.log("Username:", decoded.username);
-
           const accessTokenExpires = decoded.exp * 1000;
-
           const userDetails = await fetchUserDetails(tokens.accessToken);
 
           if (!userDetails) {
@@ -284,16 +275,19 @@ export const authOptions = {
 
           const sanitizedRoles = sanitizeRoles(userDetails.roles || []);
 
-          console.log("=== LOGIN COMPLETE ===");
+          const decodedRefresh = decodeJWT(tokens.refreshToken);
+          const refreshTokenExpires = decodedRefresh?.exp
+            ? decodedRefresh.exp * 1000
+            : null;
+
           console.log(
-            "Token size (bytes):",
-            JSON.stringify({
-              id: decoded.sub,
-              accessToken: tokens.accessToken,
-              refreshToken: tokens.refreshToken,
-              rolesDetail: sanitizedRoles,
-            }).length,
+            `Access token expires in ${Math.floor((accessTokenExpires - Date.now()) / 1000)}s`,
           );
+          if (refreshTokenExpires) {
+            console.log(
+              `Refresh token expires in ${Math.floor((refreshTokenExpires - Date.now()) / 1000)}s`,
+            );
+          }
 
           return {
             id: decoded.sub,
@@ -302,7 +296,7 @@ export const authOptions = {
             refreshToken: tokens.refreshToken,
             tokenType: tokens.tokenType || "Bearer",
             accessTokenExpires,
-            // Only store minimal user data — recompute roles/permissions in session
+            refreshTokenExpires,
             userData: {
               username: decoded.username,
               employee_id: decoded.employeeId,
@@ -320,10 +314,8 @@ export const authOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // Initial sign in — store only essential fields
       if (user) {
-        console.log("=== INITIAL JWT CREATION ===");
-        console.log("User:", user.name);
+        console.log("=== INITIAL JWT CREATION ===", user.name);
         return {
           id: user.id,
           name: user.name,
@@ -331,6 +323,7 @@ export const authOptions = {
           refreshToken: user.refreshToken,
           tokenType: user.tokenType,
           accessTokenExpires: user.accessTokenExpires,
+          refreshTokenExpires: user.refreshTokenExpires,
           userData: user.userData,
           rolesDetail: user.rolesDetail,
         };
@@ -344,6 +337,11 @@ export const authOptions = {
         return token;
       }
 
+      if (token.refreshTokenExpires && token.refreshTokenExpires < Date.now()) {
+        console.log("Refresh token expired locally");
+        return { ...token, error: "RefreshTokenExpired" };
+      }
+
       const now = Date.now();
       const secondsUntilExpiry = Math.floor(
         (token.accessTokenExpires - now) / 1000,
@@ -352,7 +350,7 @@ export const authOptions = {
         `JWT callback: Token expires in ${secondsUntilExpiry} seconds`,
       );
 
-      if (secondsUntilExpiry >= 300) {
+      if (secondsUntilExpiry >= 60) {
         return token;
       }
 
@@ -376,7 +374,6 @@ export const authOptions = {
       session.tokenType = token.tokenType;
       session.accessTokenExpires = token.accessTokenExpires;
 
-      // Expand compact JWT roles into the original structure for the app
       const roles = expandRolesDetail(token.rolesDetail || []);
 
       session.user = {
@@ -404,12 +401,12 @@ export const authOptions = {
 
   cookies: {
     sessionToken: {
-      name: "next-auth.session-token.project2",
+      name: "next-auth.session-token.project4",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: false, // set to true only if you add HTTPS
+        secure: false,
       },
     },
   },
@@ -433,7 +430,7 @@ export const authOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 1 day
+    maxAge: 10 * 24 * 60 * 60,
   },
 
   pages: {
@@ -446,7 +443,3 @@ export const authOptions = {
 };
 
 export default NextAuth(authOptions);
-
-console.log("=== NEXTAUTH CONFIGURATION LOADED ===");
-console.log("NEXTAUTH_SECRET loaded:", !!process.env.NEXTAUTH_SECRET);
-console.log("Auth API URL:", config.GENERAL_AUTH_URL);

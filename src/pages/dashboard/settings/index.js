@@ -24,7 +24,7 @@ export default function SettingsPage() {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] border border-[#E7E7F4] bg-white rounded-lg bg-[--color-bg-light] text-[--color-text-light] my-[20px] manrope"
+        className="p-[15px] border border-[#E7E7F4] bg-white rounded-lg bg-[--color-bg-light] text-[--color-text-light] my-[20px] font-manrope"
       >
         <Typography variant="h6">Настройки панели управления</Typography>
 

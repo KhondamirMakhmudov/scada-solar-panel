@@ -4,8 +4,6 @@ import { URLS } from "@/constants/url";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import { signOut, useSession } from "next-auth/react";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import CustomTable from "@/components/table";
 import { get } from "lodash";
 import { Button } from "@mui/material";
@@ -22,6 +20,7 @@ import { useRouter } from "next/router";
 import { TableRows, GridView } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import UserCard from "@/components/card/UserCard";
+import { ActionButtonGroup, DeleteButton } from "@/components/button";
 const Index = () => {
   const router = useRouter();
   const { data: session } = useSession();
@@ -178,15 +177,15 @@ const Index = () => {
       accessorKey: "role",
       header: "Роль",
       cell: ({ row }) => (
-        <div
-          className={`${
+        <span
+          className={`inline-flex rounded-md px-2.5 py-1 text-xs ${
             row.original.role === "admin"
-              ? "bg-blue-100 text-blue-500 border border-blue-500"
-              : "bg-slate-100 text-slate-500 border border-slate-500"
-          } inline py-1 px-2 rounded-md`}
+              ? "bg-blue-500/15 text-blue-300 border border-blue-400/30"
+              : "bg-slate-500/20 text-slate-300 border border-slate-400/30"
+          }`}
         >
           {row.original.role === "admin" ? "Администратор" : "Пользователь"}
-        </div>
+        </span>
       ),
     },
 
@@ -194,23 +193,15 @@ const Index = () => {
       accessorKey: "actions",
       header: "Действия",
       cell: ({ row }) => (
-        <div className="flex justify-start items-center gap-2">
-          <Button
+        <ActionButtonGroup>
+          <DeleteButton
             onClick={() => {
               setSelectUser(row?.original.id);
               setDeleteModal(true);
             }}
-            sx={{
-              width: "32px",
-              height: "32px",
-              minWidth: "32px",
-              background: "#FCD8D3",
-              color: "#FF1E00",
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-          </Button>
-        </div>
+            tooltip="Удалить пользователя"
+          />
+        </ActionButtonGroup>
       ),
       enableSorting: false,
     },
@@ -234,27 +225,18 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Пользователи"}>
-      <div className="flex items-center justify-between my-[15px]">
-        {/* Tugma */}
+      <div className="font-manrope py-6 space-y-6">
+      <div className="flex items-center justify-between">
         <Button
           onClick={() => setCreateModal(true)}
           sx={{
-            textTransform: "initial",
-            backgroundColor: "#6E39CB",
-            boxShadow: "none",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            fontSize: "14px",
-            padding: "8px 16px",
+            textTransform: "none",
+            fontWeight: 700,
+            color: "#00111f",
+            background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
             borderRadius: "10px",
-            fontFamily: "Manrope",
-            "&:hover": {
-              backgroundColor: "#5b2bb3",
-              boxShadow: "none",
-            },
+            height: "44px",
+            "&:hover": { opacity: 0.9 },
           }}
           variant="contained"
         >
@@ -262,34 +244,33 @@ const Index = () => {
         </Button>
 
         {/* Tab switch */}
-        <div className="relative flex items-center bg-gradient-to-r from-[#5B2BB3]/80 to-[#6E39CB]/80 dark:from-[#4B1E97]/90 dark:to-[#5C2DBD]/90 p-[6px] rounded-2xl shadow-md backdrop-blur-md">
-          {/* Table button */}
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => setActiveTab("table")}
-            className={`z-10 flex items-center justify-center w-12 h-10 rounded-xl transition-all ${
+            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
               activeTab === "table"
-                ? "text-white scale-110 bg-white/20 backdrop-blur-sm rounded-xl shadow-sm"
-                : "text-white/60 hover:text-white/80"
+                ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
+                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
             }`}
           >
-            <TableRows fontSize="small" />
+            <TableRows fontSize="small" /> Таблица
           </button>
-
-          {/* Card button */}
           <button
+            type="button"
             onClick={() => setActiveTab("card")}
-            className={`z-10 flex items-center justify-center w-12 h-10 rounded-xl transition-all ${
+            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
               activeTab === "card"
-                ? "text-white scale-110 bg-white/20 backdrop-blur-sm rounded-xl shadow-sm"
-                : "text-white/60 hover:text-white/80"
+                ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
+                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
             }`}
           >
-            <GridView fontSize="small" />
+            <GridView fontSize="small" /> Карточки
           </button>
         </div>
       </div>
 
-      <div className="my-[15px]">
+      <div>
         {activeTab === "table" && (
           <CustomTable columns={columns} data={get(users, "data.data", [])} />
         )}
@@ -307,6 +288,7 @@ const Index = () => {
           </div>
         )}
       </div>
+      </div>
 
       {createModal && (
         <MethodModal
@@ -316,7 +298,7 @@ const Index = () => {
         >
           <h1 className="text-xl mb-[15px]">Создать пользователя</h1>
 
-          <div className="space-y-[20px] manrope">
+          <div className="space-y-[20px] font-manrope">
             <div className="flex gap-2">
               <Input
                 placeholder={"Имя"}
@@ -378,8 +360,8 @@ const Index = () => {
             <Button
               onClick={submitCreateUser}
               sx={{
-                backgroundColor: "#6E39CB",
-                color: "#FFFFFF",
+                color: "#00111f",
+                background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
                 height: "45px",
                 borderRadius: "8px",
                 textTransform: "none",
@@ -387,12 +369,9 @@ const Index = () => {
                 fontWeight: "600",
                 width: "100%",
                 fontFamily: "Manrope, sans-serif",
-                "&:hover": {
-                  backgroundColor: "#A877FD",
-                },
+                "&:hover": { opacity: 0.9 },
               }}
             >
-              {" "}
               Создать
             </Button>
           </div>

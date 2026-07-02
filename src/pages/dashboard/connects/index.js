@@ -29,6 +29,7 @@ import {
   ElectricBoltOutlined,
   Schedule,
 } from "@mui/icons-material";
+import { ActionButtonGroup, EyeButton, EditButton, DeleteButton } from "@/components/button";
 import { toast } from "react-hot-toast";
 import {
   CONNECTION_TYPE_OPTIONS,
@@ -550,62 +551,20 @@ const Index = () => {
       accessorKey: "actions",
       header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button
+        <ActionButtonGroup>
+          <EyeButton
             onClick={() => setSelectedConnection(row.original)}
-            sx={{
-              width: "36px",
-              height: "36px",
-              minWidth: "36px",
-              borderRadius: "10px",
-              border: "1px solid #385272",
-              background: "#1f2a37",
-              color: "#bfdbfe",
-              "&:hover": {
-                background: "#26364a",
-                borderColor: "#4f78a8",
-              },
-            }}
-          >
-            <VisibilityOutlined fontSize="small" />
-          </Button>
-          <Button
+            tooltip="Показать детали"
+          />
+          <EditButton
             onClick={() => handleOpenEditModal(row.original)}
-            sx={{
-              width: "36px",
-              height: "36px",
-              minWidth: "36px",
-              borderRadius: "10px",
-              border: "1px solid #7a5a2c",
-              background: "#2f2418",
-              color: "#fdba74",
-              "&:hover": {
-                background: "#3b2d1e",
-                borderColor: "#9a6d30",
-              },
-            }}
-          >
-            <EditOutlined fontSize="small" />
-          </Button>
-          <Button
+            tooltip="Изменить подключение"
+          />
+          <DeleteButton
             onClick={() => handleOpenDeleteModal(row.original)}
-            sx={{
-              width: "36px",
-              height: "36px",
-              minWidth: "36px",
-              borderRadius: "10px",
-              border: "1px solid #7f1d1d",
-              background: "#2a1717",
-              color: "#fca5a5",
-              "&:hover": {
-                background: "#351b1b",
-                borderColor: "#991b1b",
-              },
-            }}
-          >
-            <DeleteOutline fontSize="small" />
-          </Button>
-        </div>
+            tooltip="Удалить подключение"
+          />
+        </ActionButtonGroup>
       ),
     },
   ];
@@ -620,7 +579,7 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Подключения"}>
-      <div className="flex items-center justify-between my-[15px] gap-3 flex-wrap font-mono">
+      <div className="flex items-center justify-between my-[15px] gap-3 flex-wrap font-manrope">
         <div>
           <h2 className="text-lg font-semibold">Обзор подключений</h2>
           <p className="text-sm text-slate-400">
@@ -635,13 +594,13 @@ const Index = () => {
             variant="contained"
             sx={{
               textTransform: "none",
-              background: "#2563eb",
-              color: "#eff6ff",
+              fontWeight: 700,
+              background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
+              color: "#00111f",
               borderRadius: "10px",
+              height: "44px",
               px: 2,
-              "&:hover": {
-                background: "#1d4ed8",
-              },
+              "&:hover": { opacity: 0.9 },
             }}
           >
             Создать подключение
@@ -687,7 +646,7 @@ const Index = () => {
           )}
 
           {activeTab === "card" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 font-mono">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 font-manrope">
               {connections.map((connection) => {
                 const isTcp = connection?.type?.includes("TCP");
                 return (
@@ -820,7 +779,7 @@ const Index = () => {
         title={"Создать подключение"}
         width={780}
       >
-        <div className="space-y-4 font-mono">
+        <div className="space-y-4 font-manrope">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Название"
@@ -971,7 +930,7 @@ const Index = () => {
         title={"Изменить подключение"}
         width={780}
       >
-        <div className="space-y-4 font-mono">
+        <div className="space-y-4 font-manrope">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Название"

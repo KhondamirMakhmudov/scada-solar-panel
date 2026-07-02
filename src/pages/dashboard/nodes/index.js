@@ -15,11 +15,13 @@ import LinkIcon from "@mui/icons-material/Link";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LabelIcon from "@mui/icons-material/Label";
 import CircleIcon from "@mui/icons-material/Circle";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import ContentLoader from "@/components/loader";
 import usePostPythonQuery from "@/hooks/python/usePostQuery";
-import PrimaryButton from "@/components/button";
+import {
+  ActionButtonGroup,
+  EditButton,
+  DeleteButton,
+} from "@/components/button";
 import MethodModal from "@/components/modal/method-modal";
 import Input from "@/components/input";
 import { Button } from "@mui/material";
@@ -233,10 +235,22 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Узлы"}>
-      <div className="min-h-screen bg-[#1A132A] p-6 manrope my-[15px] rounded-md border border-[#555555]">
-        <PrimaryButton onClick={() => setShowCreateModal(true)}>
+      <div className="min-h-screen bg-[#1A132A] p-6 font-manrope my-[15px] rounded-md border border-[#555555]">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            fontWeight: 700,
+            color: "#00111f",
+            background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
+            borderRadius: "10px",
+            height: "44px",
+            "&:hover": { opacity: 0.9 },
+          }}
+        >
           Создать узел
-        </PrimaryButton>
+        </Button>
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -292,31 +306,17 @@ const Index = () => {
                   {/* Card Header */}
                   <div className="p-6 border-b border-[#6E39CB]/20 relative">
                     {/* Action Buttons - Top Right Corner */}
-                    <div className="absolute top-4 right-4 flex gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => openEditModal(node)}
-                        className="group relative p-2 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/10  hover:from-orange-500/20 hover:to-orange-600/20 border border-orange-500/30 hover:border-orange-400/50 transition-all duration-200"
-                        title="Редактировать"
-                      >
-                        <EditIcon
-                          className="text-orange-400 group-hover:text-orange-300 transition-colors"
-                          style={{ fontSize: 18 }}
+                    <div className="absolute top-4 right-4">
+                      <ActionButtonGroup>
+                        <EditButton
+                          onClick={() => openEditModal(node)}
+                          tooltip="Редактировать"
                         />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleDeleteNode(node.id)}
-                        className="group relative p-2 rounded-lg bg-gradient-to-br from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 border border-red-500/30 hover:border-red-400/50 transition-all duration-200"
-                        title="Удалить"
-                      >
-                        <DeleteIcon
-                          className="text-red-400 group-hover:text-red-300 transition-colors"
-                          style={{ fontSize: 18 }}
+                        <DeleteButton
+                          onClick={() => handleDeleteNode(node.id)}
+                          tooltip="Удалить"
                         />
-                      </motion.button>
+                      </ActionButtonGroup>
                     </div>
 
                     <div className="flex items-start justify-between mb-3 pr-24">
@@ -487,7 +487,7 @@ const Index = () => {
           }}
           title={"Добавить узел к коннекту"}
         >
-          <div className="space-y-[20px] manrope my-[10px]">
+          <div className="space-y-[20px] font-manrope my-[10px]">
             <Input
               placeholder={"Название"}
               name={"name"}
@@ -586,7 +586,7 @@ const Index = () => {
           }}
           title={"Редактировать узел"}
         >
-          <div className="space-y-[20px] manrope my-[10px]">
+          <div className="space-y-[20px] font-manrope my-[10px]">
             <Input
               placeholder={"Название"}
               name={"name"}

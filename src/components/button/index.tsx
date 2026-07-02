@@ -3,6 +3,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { ReactNode } from "react";
 
 interface ActionButtonProps {
@@ -216,6 +218,72 @@ export const PrimaryButton = ({
           }}
         >
           {label}
+        </Button>
+      </span>
+    </Tooltip>
+  );
+};
+
+// Diagram/Editor Button Component — "open the visual editor" for an item (currently: mnemonic screens)
+export const DiagramButton = ({
+  onClick,
+  tooltip = "Открыть схему",
+  disabled = false,
+}: ActionButtonProps) => {
+  return (
+    <Tooltip title={tooltip}>
+      <span>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          sx={{
+            width: "32px",
+            height: "32px",
+            minWidth: "32px",
+            background: disabled ? "#4a4a4a" : "#312e81",
+            color: disabled ? "#8a8a8a" : "#a5b4fc",
+            "&:hover": {
+              background: disabled ? "#4a4a4a" : "#3730a3",
+            },
+            "&:disabled": {
+              cursor: "not-allowed",
+            },
+          }}
+        >
+          <AccountTreeIcon fontSize="small" />
+        </Button>
+      </span>
+    </Tooltip>
+  );
+};
+
+// Preview/Runtime Button Component — "open the live/running view" for an item
+export const PreviewButton = ({
+  onClick,
+  tooltip = "Открыть",
+  disabled = false,
+}: ActionButtonProps) => {
+  return (
+    <Tooltip title={tooltip}>
+      <span>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          sx={{
+            width: "32px",
+            height: "32px",
+            minWidth: "32px",
+            background: disabled ? "#4a4a4a" : "#064e3b",
+            color: disabled ? "#8a8a8a" : "#34d399",
+            "&:hover": {
+              background: disabled ? "#4a4a4a" : "#065f46",
+            },
+            "&:disabled": {
+              cursor: "not-allowed",
+            },
+          }}
+        >
+          <PlayArrowIcon fontSize="small" />
         </Button>
       </span>
     </Tooltip>

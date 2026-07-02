@@ -298,7 +298,7 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
       >
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">

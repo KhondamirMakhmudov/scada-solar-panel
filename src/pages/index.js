@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Brand from "@/components/Brand";
+import storage from "@/services/storage";
+import {
+  SAVED_ACCOUNTS_KEY,
+  getSavedAccounts,
+  saveAccount,
+  removeSavedAccount,
+} from "@/lib/savedAccounts";
 
 export default function Home() {
   const router = useRouter();
@@ -15,15 +22,37 @@ export default function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [savedAccounts, setSavedAccounts] = useState([]);
+  const [showAccountList, setShowAccountList] = useState(false);
+  const usernameFieldRef = useRef(null);
+
+  useEffect(() => {
+    setSavedAccounts(getSavedAccounts());
+  }, []);
+
+  const handleSelectAccount = (account) => {
+    setUsername(account.username);
+    setPassword(account.password);
+    setShowAccountList(false);
+  };
+
+  const handleRemoveAccount = (event, usernameToRemove) => {
+    event.stopPropagation();
+    setSavedAccounts(removeSavedAccount(usernameToRemove));
+  };
 
   const handleEnter = () => {
     router.push("/dashboard/main");
   };
 
   const handleExit = async () => {
+    const preservedAccounts = storage.get(SAVED_ACCOUNTS_KEY);
     await signOut({ redirect: false });
     sessionStorage.clear();
     localStorage.clear();
+    if (preservedAccounts) {
+      storage.set(SAVED_ACCOUNTS_KEY, preservedAccounts);
+    }
     router.push("/");
   };
 
@@ -46,6 +75,7 @@ export default function Home() {
       }
 
       if (result?.ok) {
+        setSavedAccounts(saveAccount(username, password));
         router.push("/dashboard/main");
       }
     } catch (error) {
@@ -165,7 +195,7 @@ export default function Home() {
                 </div> */}
 
                 <div className="space-y-4">
-                  <div className="space-y-1.5">
+                  <div className="relative space-y-1.5">
                     <label className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#bfc7d4]">
                       <span className="material-symbols-outlined text-[14px]">
                         person
@@ -173,14 +203,51 @@ export default function Home() {
                       Логин / Имя пользователя
                     </label>
                     <input
+                      ref={usernameFieldRef}
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
+                      onFocus={() => setShowAccountList(true)}
+                      onBlur={() => setShowAccountList(false)}
                       placeholder="admin"
                       className="h-12 w-full border-none bg-[#0e0e0e] px-4 text-sm text-[#e5e2e1] transition-all focus:ring-1 focus:ring-[#9ecaff]"
                       disabled={isLoading}
                       required
                     />
+
+                    {showAccountList && savedAccounts.length > 0 && (
+                      <div
+                        onMouseDown={(e) => e.preventDefault()}
+                        className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto border border-[#2a2a2a] bg-[#0e0e0e] shadow-lg"
+                      >
+                        {savedAccounts.map((account) => (
+                          <div
+                            key={account.username}
+                            onClick={() => handleSelectAccount(account)}
+                            className="group flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 text-sm text-[#e5e2e1] transition-colors hover:bg-[#1c1b1b]"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px] text-[#9ecaff]">
+                                person
+                              </span>
+                              {account.username}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                handleRemoveAccount(e, account.username)
+                              }
+                              className="text-[#89919d] opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                              title="Удалить сохранённый вход"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">
+                                close
+                              </span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">

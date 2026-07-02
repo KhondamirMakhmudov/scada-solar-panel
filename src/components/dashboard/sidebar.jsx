@@ -22,6 +22,8 @@ import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { get } from "lodash";
 import Brand from "@/components/brand";
+import storage from "@/services/storage";
+import { SAVED_ACCOUNTS_KEY } from "@/lib/savedAccounts";
 
 const menuItems = [
   {
@@ -97,9 +99,13 @@ export default function Sidebar({ isOpen = true }) {
   };
 
   const handleLogout = async () => {
+    const preservedAccounts = storage.get(SAVED_ACCOUNTS_KEY);
     await signOut({ callbackUrl: "/" });
     localStorage.clear();
     sessionStorage.clear();
+    if (preservedAccounts) {
+      storage.set(SAVED_ACCOUNTS_KEY, preservedAccounts);
+    }
   };
 
   function stringToColor(string) {

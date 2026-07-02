@@ -1,0 +1,3 @@
+/* Minimal placeholder — the actual spinner styles (.circle-border/.circle-core)
+   used by ContentLoader already live in globals.css. This file exists so the
+   import in _app.js resolves; add page-load-specific styles here if needed. */

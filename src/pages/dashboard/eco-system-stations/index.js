@@ -85,7 +85,7 @@ const EcologyPage = () => {
 
   return (
     <DashboardLayout headerTitle="Экологические показатели станций">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 manrope">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 font-manrope">
         {stationNames.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {stationNames.map((stationName) => {
