@@ -40,12 +40,17 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
 
   const screen = get(screenResp, "data.data", get(screenResp, "data", null));
   const loadDocument = useDocumentStore((state) => state.loadDocument);
-  const hydrated = useRef(false);
+  // Гидратация привязана к id экрана: клик-переход между экранами в режиме
+  // просмотра — клиентская навигация в тот же компонент, документ нужно
+  // перезагрузить для нового id.
+  const hydratedFor = useRef<string | null>(null);
 
   useMnemonicWebSocket(screenId, accessToken);
 
   useEffect(() => {
-    if (screen && !hydrated.current) {
+    // Сверяем id из ответа: при клиентской навигации хук может ещё отдавать
+    // закэшированные данные предыдущего экрана (keepPreviousData)
+    if (screen && get(screen, "id") === screenId && hydratedFor.current !== screenId) {
       const raw = get(screen, "params.mnemonic");
       const parsed = raw ? parseMnemonicParams(raw) : null;
       const doc = parsed ? migrateMnemonicParams(parsed).document : createEmptyDocument();
@@ -53,9 +58,9 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
       useHistoryStore.getState().clear();
       useUiStore.getState().clearSelection();
       useRuntimeStore.getState().clear();
-      hydrated.current = true;
+      hydratedFor.current = screenId;
     }
-  }, [screen, loadDocument]);
+  }, [screen, screenId, loadDocument]);
 
   if (isLoadingScreen || !screen) {
     return (

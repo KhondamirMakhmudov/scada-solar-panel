@@ -37,6 +37,11 @@ const StyleSection = ({ element }: StyleSectionProps) => {
           value={Math.round(element.style.opacity * 100)}
           onChange={(v) => updateStyle({ opacity: Math.min(1, Math.max(0, v / 100)) })}
         />
+        <NumberField
+          label="Шрифт подписи"
+          value={element.style.labelFontSize ?? 11}
+          onChange={(v) => updateStyle({ labelFontSize: Math.min(48, Math.max(6, v)) })}
+        />
       </div>
     </div>
   );

@@ -73,10 +73,10 @@ export default function Index() {
               Регистрация
             </Typography>
 
-            <p className="text-sm text-gray-400 mb-5 manrope">
+            <p className="text-sm text-gray-400 mb-5 font-manrope">
               Добро пожаловать в систему мониторинга солнечных панелей
             </p>
-            <div className="space-y-[20px] manrope">
+            <div className="space-y-[20px] font-manrope">
               <div className="flex gap-2">
                 <Input
                   placeholder={"Имя"}

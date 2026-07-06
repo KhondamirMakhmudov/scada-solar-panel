@@ -55,7 +55,7 @@ const Battery = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps)
         {Math.round(charge * 100)}%
       </text>
       {label && (
-        <text x={width / 2} y={bodyY + bodyH + 28} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={width / 2} y={bodyY + bodyH + 28} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

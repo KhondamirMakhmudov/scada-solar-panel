@@ -50,12 +50,14 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const hydrated = useRef(false);
+  // Гидратация по id экрана (см. RuntimePage): клиентская навигация между
+  // редакторами разных экранов должна перезагружать документ
+  const hydratedFor = useRef<string | null>(null);
 
   useMnemonicWebSocket(screenId, accessToken);
 
   useEffect(() => {
-    if (screen && !hydrated.current) {
+    if (screen && get(screen, "id") === screenId && hydratedFor.current !== screenId) {
       const raw = get(screen, "params.mnemonic");
       const parsed = raw ? parseMnemonicParams(raw) : null;
       const doc = parsed
@@ -70,9 +72,9 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
       useHistoryStore.getState().clear();
       useUiStore.getState().clearSelection();
       useRuntimeStore.getState().clear();
-      hydrated.current = true;
+      hydratedFor.current = screenId;
     }
-  }, [screen, loadDocument]);
+  }, [screen, screenId, loadDocument]);
 
   const persistScreen = async () => {
     if (!screen) return false;
@@ -158,7 +160,10 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
         <div className="flex-1 min-w-0">
           <EditorCanvas />
         </div>
-        <PropertiesPanel />
+        <PropertiesPanel
+          screenTagIds={Array.isArray(screen.tagIds) ? screen.tagIds : []}
+          screenId={screenId}
+        />
       </div>
     </div>
   );

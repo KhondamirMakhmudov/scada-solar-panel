@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Brand from "@/components/Brand";
+import Brand from "@/components/brand";
 import storage from "@/services/storage";
 import {
   SAVED_ACCOUNTS_KEY,
@@ -86,7 +86,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#131313] px-6 py-12 text-[#e5e2e1] manrope">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#131313] px-6 py-12 text-[#e5e2e1] font-manrope">
       <div className="absolute left-6 top-6 z-20 max-w-[520px]">
         <Brand />
       </div>

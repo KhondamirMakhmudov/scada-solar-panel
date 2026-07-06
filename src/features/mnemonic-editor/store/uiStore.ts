@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { ConnectionHandle, MnemonicElement } from "../types";
 
-export type EditorTool = "select" | "pan";
+export type EditorTool = "select" | "pan" | "draw";
 
 export interface Viewport {
   zoom: number;
@@ -30,6 +30,8 @@ interface UiStoreState {
   clipboard: MnemonicElement | null;
   contextMenu: ContextMenuState | null;
   connecting: ConnectingState | null;
+  /** Точки текущего мазка кисти (в координатах документа), null — не рисуем */
+  drawingPoints: { x: number; y: number }[] | null;
 
   setActiveTool: (tool: EditorTool) => void;
   select: (id: string | null) => void;
@@ -43,6 +45,9 @@ interface UiStoreState {
   startConnecting: (elementId: string, handle: ConnectionHandle, previewPoint: { x: number; y: number }) => void;
   updateConnectingPreview: (previewPoint: { x: number; y: number }) => void;
   cancelConnecting: () => void;
+  startDrawing: (point: { x: number; y: number }) => void;
+  appendDrawingPoint: (point: { x: number; y: number }) => void;
+  clearDrawing: () => void;
 }
 
 /**
@@ -60,8 +65,9 @@ export const useUiStore = create<UiStoreState>((set) => ({
   clipboard: null,
   contextMenu: null,
   connecting: null,
+  drawingPoints: null,
 
-  setActiveTool: (tool) => set({ activeTool: tool }),
+  setActiveTool: (tool) => set({ activeTool: tool, drawingPoints: null }),
   select: (id) => set({ selectedElementIds: id ? [id] : [], selectedConnectionIds: [] }),
   clearSelection: () => set({ selectedElementIds: [], selectedConnectionIds: [] }),
   selectConnection: (id) => set({ selectedConnectionIds: id ? [id] : [], selectedElementIds: [] }),
@@ -76,4 +82,10 @@ export const useUiStore = create<UiStoreState>((set) => ({
   updateConnectingPreview: (previewPoint) =>
     set((state) => (state.connecting ? { connecting: { ...state.connecting, previewPoint } } : state)),
   cancelConnecting: () => set({ connecting: null }),
+  startDrawing: (point) => set({ drawingPoints: [point] }),
+  appendDrawingPoint: (point) =>
+    set((state) =>
+      state.drawingPoints ? { drawingPoints: [...state.drawingPoints, point] } : state,
+    ),
+  clearDrawing: () => set({ drawingPoints: null }),
 }));

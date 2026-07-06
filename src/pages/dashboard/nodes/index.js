@@ -123,15 +123,18 @@ const Index = () => {
 
   const handleEditNode = async () => {
     try {
-      const response = await fetch(`${URLS.nodes}/${editingNode.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
+      const response = await fetch(
+        `${config.PYTHON_API_URL}${URLS.nodes}${editingNode.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(formDataNode),
         },
-        body: JSON.stringify(formDataNode),
-      });
+      );
 
       if (response.ok) {
         setShowEditModal(false);
@@ -165,6 +168,10 @@ const Index = () => {
           },
         },
       );
+
+      if (response.ok) {
+        refetchNodes();
+      }
     } catch (error) {
       console.error("Error deleting node:", error);
     }

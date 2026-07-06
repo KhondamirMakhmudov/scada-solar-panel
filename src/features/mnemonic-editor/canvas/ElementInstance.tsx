@@ -46,8 +46,31 @@ const ElementInstance = memo(
           onPointerDown={onElementPointerDown(elementId)}
           onContextMenu={onElementContextMenu(elementId)}
         />
-        <LiveValueLabel element={element} live={live} />
+        <LiveValueLabel element={element} />
         <ConnectionAnchors element={element} onAnchorPointerDown={onAnchorPointerDown} />
+        {/* Значок «переход по клику»: показывает, что у элемента настроена
+            ссылка на другой экран; клик по значку открывает целевой экран
+            в отдельной вкладке просмотра */}
+        {element.navigateToScreenId && (
+          <g
+            transform={`translate(${element.x + element.width - 2}, ${element.y - 8})`}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              window.open(
+                `/dashboard/screens/${element.navigateToScreenId}/runtime`,
+                "scada_runtime_preview",
+              );
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <title>Переход по клику настроен — открыть целевой экран</title>
+            <circle cx={0} cy={0} r={9} fill="#1d4ed8" stroke="#93c5fd" strokeWidth={1} />
+            <text x={0} y={3.5} textAnchor="middle" fontSize={10} fill="#e0f2fe">
+              ↗
+            </text>
+          </g>
+        )}
       </>
     );
   },

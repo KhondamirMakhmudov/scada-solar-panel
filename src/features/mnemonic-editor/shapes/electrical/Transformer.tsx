@@ -25,7 +25,7 @@ const Transformer = ({ element, onPointerDown, onContextMenu }: ShapeComponentPr
       <circle cx={leftCx} cy={cy} r={r} fill="none" stroke={windingColor} strokeWidth={style.strokeWidth} />
       <circle cx={rightCx} cy={cy} r={r} fill="none" stroke={windingColor} strokeWidth={style.strokeWidth} />
       {label && (
-        <text x={width / 2} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={width / 2} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

@@ -242,10 +242,15 @@ const Index = () => {
     {
       accessorKey: "pollInterval",
       header: "Интервал опроса",
-
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-300">
+          {row.original.pollInterval ?? "-"}
+        </span>
+      ),
+    },
+    {
       accessorKey: "username",
-      header: "Имя пользователья",
-
+      header: "Имя пользователя",
       cell: ({ row }) => (
         <span className="text-sm text-gray-300">
           {row.original.username || "-"}

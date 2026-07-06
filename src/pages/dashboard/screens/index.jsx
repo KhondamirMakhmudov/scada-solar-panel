@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
 import { formatTagLabel } from "@/lib/tagNameTranslation";
@@ -16,6 +16,8 @@ import {
   Circle,
   KeyboardArrowDown,
   Sell,
+  Cable,
+  Memory,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
@@ -103,109 +105,233 @@ const TagChipList = ({ names, max = 3 }) => {
   );
 };
 
-const TagMultiSelect = ({
-  label,
-  options = [],
-  value = [],
-  onChange,
-  placeholder = "Выберите теги",
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Дерево выбора тегов: Подключение → Устройство → Тег.
+// Встроенная панель (не выпадающий список): поиск сверху, дерево всегда
+// видно, выбранные теги — снимаемые чипы над деревом. Чекбокс на
+// устройстве выбирает/снимает все его теги разом.
+const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
   const [query, setQuery] = useState("");
-  const ref = useRef(null);
+  const [expanded, setExpanded] = useState(() => new Set());
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const labelById = useMemo(() => {
+    const map = new Map();
+    tree.forEach((conn) =>
+      conn.devices.forEach((dev) =>
+        dev.tags.forEach((tag) => map.set(tag.id, tag.label)),
+      ),
+    );
+    return map;
+  }, [tree]);
 
-  const filtered = options.filter((opt) =>
-    opt.label.toLowerCase().includes(query.toLowerCase()),
-  );
+  const normalizedQuery = query.trim().toLowerCase();
 
-  const toggle = (optValue) => {
-    if (value.includes(optValue)) {
-      onChange(value.filter((v) => v !== optValue));
+  // При поиске оставляем только ветки с совпадениями (по тегу,
+  // устройству или подключению) и раскрываем их автоматически
+  const visibleTree = useMemo(() => {
+    if (!normalizedQuery) return tree;
+    return tree
+      .map((conn) => {
+        const connMatch = conn.label.toLowerCase().includes(normalizedQuery);
+        const devices = conn.devices
+          .map((dev) => {
+            const devMatch = dev.label.toLowerCase().includes(normalizedQuery);
+            const tags =
+              connMatch || devMatch
+                ? dev.tags
+                : dev.tags.filter((tag) =>
+                    tag.label.toLowerCase().includes(normalizedQuery),
+                  );
+            return { ...dev, tags };
+          })
+          .filter((dev) => dev.tags.length);
+        return { ...conn, devices };
+      })
+      .filter((conn) => conn.devices.length);
+  }, [tree, normalizedQuery]);
+
+  const isExpanded = (id) => Boolean(normalizedQuery) || expanded.has(id);
+
+  const toggleExpand = (id) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleTag = (tagId) => {
+    if (value.includes(tagId)) {
+      onChange(value.filter((v) => v !== tagId));
     } else {
-      onChange([...value, optValue]);
+      onChange([...value, tagId]);
     }
   };
 
-  const selectedLabels = options
-    .filter((opt) => value.includes(opt.value))
-    .map((opt) => opt.label);
+  const toggleDevice = (dev) => {
+    const ids = dev.tags.map((tag) => tag.id);
+    const allSelected = ids.every((id) => value.includes(id));
+    if (allSelected) {
+      onChange(value.filter((v) => !ids.includes(v)));
+    } else {
+      onChange([...new Set([...value, ...ids])]);
+    }
+  };
+
+  const countSelected = (tags) =>
+    tags.reduce((acc, tag) => acc + (value.includes(tag.id) ? 1 : 0), 0);
 
   return (
-    <div className="relative w-full" ref={ref}>
-      {label && (
-        <label className="block mb-[4px] text-sm text-gray-200">{label}</label>
-      )}
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full min-h-[45px] border text-sm border-primary/30 rounded-md p-2 text-left bg-surface-dark text-gray-100 flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-      >
-        <span className="flex flex-wrap gap-1 flex-1">
-          {selectedLabels.length ? (
-            selectedLabels.map((l) => (
-              <span
-                key={l}
-                className="inline-flex items-center rounded-md bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
-              >
-                {l}
-              </span>
-            ))
-          ) : (
-            <span className="text-text-secondary">{placeholder}</span>
+    <div className="w-full">
+      <div className="mb-[4px] flex items-center justify-between">
+        {label && <label className="text-sm text-gray-200">{label}</label>}
+        <span className="text-xs text-slate-500">
+          Выбрано: {value.length}
+          {value.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="ml-2 text-red-300/80 hover:text-red-300 transition-colors"
+            >
+              Очистить
+            </button>
           )}
         </span>
-        <KeyboardArrowDown
-          className={`transition-transform duration-200 text-primary flex-shrink-0 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+      </div>
 
-      {isOpen && (
-        <div className="absolute z-[9999] mt-2 w-full bg-surface-dark text-gray-100 border border-primary/30 rounded-md shadow-lg">
-          <div className="p-2 border-b border-slate-700/60">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Поиск тега..."
-              className="w-full h-9 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
-            />
-          </div>
-          <ul className="max-h-52 overflow-auto">
-            {filtered.length === 0 && (
-              <li className="px-4 py-2 text-sm text-slate-500">
-                Теги не найдены
-              </li>
-            )}
-            {filtered.map((opt) => (
-              <li
-                key={opt.value}
-                onClick={() => toggle(opt.value)}
-                className="px-3 py-2 hover:bg-background-dark cursor-pointer transition-colors flex items-center gap-2 text-sm"
+      {/* Выбранные теги — снимаемые чипы */}
+      {value.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {value.map((id) => (
+            <span
+              key={id}
+              className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
+            >
+              {labelById.get(id) || id}
+              <button
+                type="button"
+                onClick={() => toggleTag(id)}
+                className="text-blue-300/60 hover:text-red-300 transition-colors leading-none"
+                title="Убрать тег"
               >
-                <input
-                  type="checkbox"
-                  readOnly
-                  checked={value.includes(opt.value)}
-                  className="pointer-events-none"
-                />
-                {opt.label}
-              </li>
-            ))}
-          </ul>
+                ×
+              </button>
+            </span>
+          ))}
         </div>
       )}
+
+      <div className="rounded-md border border-primary/30 bg-surface-dark text-gray-100">
+        <div className="p-2 border-b border-slate-700/60">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск: подключение, устройство или тег..."
+            className="w-full h-9 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="h-56 overflow-auto py-1">
+          {visibleTree.length === 0 && (
+            <p className="px-4 py-2 text-sm text-slate-500">
+              {tree.length === 0 ? "Теги загружаются..." : "Ничего не найдено"}
+            </p>
+          )}
+          {visibleTree.map((conn) => (
+            <div key={conn.id}>
+              {/* Уровень 1: подключение */}
+              <button
+                type="button"
+                onClick={() => toggleExpand(conn.id)}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-background-dark transition-colors"
+              >
+                <KeyboardArrowDown
+                  sx={{ fontSize: 18 }}
+                  className={`text-slate-500 transition-transform ${
+                    isExpanded(conn.id) ? "" : "-rotate-90"
+                  }`}
+                />
+                <Cable sx={{ fontSize: 15 }} className="text-blue-300" />
+                <span className="flex-1 text-left font-medium text-slate-200 truncate">
+                  {conn.label}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {conn.devices.reduce(
+                    (acc, dev) => acc + countSelected(dev.tags),
+                    0,
+                  )}
+                  /{conn.devices.reduce((acc, dev) => acc + dev.tags.length, 0)}
+                </span>
+              </button>
+
+              {isExpanded(conn.id) &&
+                conn.devices.map((dev) => {
+                  const selectedCount = countSelected(dev.tags);
+                  const allSelected =
+                    dev.tags.length > 0 && selectedCount === dev.tags.length;
+                  const someSelected = selectedCount > 0 && !allSelected;
+                  return (
+                    <div key={dev.id}>
+                      {/* Уровень 2: устройство — вся строка раскрывает,
+                          чекбокс выбирает все теги устройства */}
+                      <div
+                        onClick={() => toggleExpand(dev.id)}
+                        className="flex items-center gap-2 pl-7 pr-3 py-1.5 text-sm hover:bg-background-dark cursor-pointer transition-colors"
+                      >
+                        <KeyboardArrowDown
+                          sx={{ fontSize: 18 }}
+                          className={`text-slate-500 transition-transform ${
+                            isExpanded(dev.id) ? "" : "-rotate-90"
+                          }`}
+                        />
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          ref={(el) => {
+                            if (el) el.indeterminate = someSelected;
+                          }}
+                          onChange={() => toggleDevice(dev)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="cursor-pointer"
+                        />
+                        <Memory
+                          sx={{ fontSize: 15 }}
+                          className="text-emerald-300"
+                        />
+                        <span className="flex-1 text-left text-slate-300 truncate">
+                          {dev.label}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {selectedCount}/{dev.tags.length}
+                        </span>
+                      </div>
+
+                      {/* Уровень 3: теги */}
+                      {isExpanded(dev.id) &&
+                        dev.tags.map((tag) => (
+                          <label
+                            key={tag.id}
+                            className="flex items-center gap-2 pl-[60px] pr-3 py-1.5 text-sm hover:bg-background-dark cursor-pointer transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={value.includes(tag.id)}
+                              onChange={() => toggleTag(tag.id)}
+                              className="cursor-pointer"
+                            />
+                            <Sell
+                              sx={{ fontSize: 13 }}
+                              className="text-cyan-300"
+                            />
+                            <span className="truncate">{tag.label}</span>
+                          </label>
+                        ))}
+                    </div>
+                  );
+                })}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -312,6 +438,27 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
+  // Устройства и подключения нужны для дерева выбора тегов в модалках
+  const { data: devicesResp } = useGetQuery({
+    key: [KEYS.devices, "screens-tree"],
+    url: URLS.devices,
+    apiClient: requestPython,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+    },
+    enabled: !!session?.accessToken,
+  });
+
+  const { data: connectsResp } = useGetQuery({
+    key: [KEYS.connects, "screens-tree"],
+    url: URLS.connects,
+    apiClient: requestPython,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+    },
+    enabled: !!session?.accessToken,
+  });
+
   const { mutate: createScreen, isLoading: isCreatingScreen } = usePostQuery({
     apiClient: requestScreens,
     listKeyId: KEYS.screens,
@@ -337,14 +484,66 @@ const Index = () => {
     [tagsList],
   );
 
-  const tagOptions = useMemo(
-    () =>
-      tagsList.map((tag) => ({
-        label: tag.name ? formatTagLabel(tag.name) : tag.id,
-        value: tag.id,
-      })),
-    [tagsList],
+  const devicesRaw = get(devicesResp, "data.data", get(devicesResp, "data", []));
+  const devicesList = Array.isArray(devicesRaw) ? devicesRaw : [];
+
+  const connectsRaw = get(
+    connectsResp,
+    "data.data",
+    get(connectsResp, "data", []),
   );
+  const connectsList = Array.isArray(connectsRaw) ? connectsRaw : [];
+
+  // Дерево «Подключение → Устройство → Тег». Теги без устройства и
+  // устройства без подключения попадают в служебные ветки, чтобы ни один
+  // тег не потерялся из списка выбора.
+  const tagTree = useMemo(() => {
+    const deviceById = new Map(devicesList.map((dev) => [dev.id, dev]));
+    const connNameById = new Map(
+      connectsList.map((conn) => [conn.id, conn.name || conn.id]),
+    );
+
+    const groups = new Map();
+
+    for (const tag of tagsList) {
+      const tagNode = {
+        id: tag.id,
+        label: tag.name ? formatTagLabel(tag.name) : tag.id,
+      };
+
+      const deviceId = tag.deviceId || get(tag, "device.id", "") || null;
+      const device = deviceId ? deviceById.get(deviceId) : null;
+      const connId = device?.connectionId || null;
+
+      const connKey = connId || "__no_connection__";
+      if (!groups.has(connKey)) {
+        groups.set(connKey, {
+          id: connKey,
+          label: connId
+            ? connNameById.get(connId) || connId
+            : "Без подключения",
+          devices: new Map(),
+        });
+      }
+
+      const group = groups.get(connKey);
+      const devKey = deviceId || "__no_device__";
+      if (!group.devices.has(devKey)) {
+        group.devices.set(devKey, {
+          id: `${connKey}/${devKey}`,
+          label: device?.name || (deviceId ? deviceId : "Без устройства"),
+          tags: [],
+        });
+      }
+
+      group.devices.get(devKey).tags.push(tagNode);
+    }
+
+    return [...groups.values()].map((group) => ({
+      ...group,
+      devices: [...group.devices.values()],
+    }));
+  }, [tagsList, devicesList, connectsList]);
 
   const list = useMemo(
     () =>
@@ -961,13 +1160,14 @@ const Index = () => {
               placeholder="Выберите статус"
               sortOptions={false}
             />
-            <TagMultiSelect
-              label="Теги"
-              options={tagOptions}
-              value={createForm.tagIds}
-              onChange={(value) => handleChangeCreateField("tagIds", value)}
-            />
           </div>
+
+          <TagTreeSelect
+            label="Теги"
+            tree={tagTree}
+            value={createForm.tagIds}
+            onChange={(value) => handleChangeCreateField("tagIds", value)}
+          />
 
           <div className="pt-2 flex items-center justify-end gap-2">
             <Button
@@ -1037,13 +1237,14 @@ const Index = () => {
               placeholder="Выберите статус"
               sortOptions={false}
             />
-            <TagMultiSelect
-              label="Теги"
-              options={tagOptions}
-              value={editForm.tagIds}
-              onChange={(value) => handleChangeEditField("tagIds", value)}
-            />
           </div>
+
+          <TagTreeSelect
+            label="Теги"
+            tree={tagTree}
+            value={editForm.tagIds}
+            onChange={(value) => handleChangeEditField("tagIds", value)}
+          />
 
           <div className="pt-2 flex items-center justify-end gap-2">
             <Button

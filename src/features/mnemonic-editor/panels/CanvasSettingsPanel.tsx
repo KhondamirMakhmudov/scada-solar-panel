@@ -37,11 +37,72 @@ const CanvasSettingsPanel = () => {
       </p>
 
       <div className="space-y-2">
-        <ColorField
-          label="Цвет фона"
-          value={background.color}
-          onChange={(v) => updateDocumentMeta({ background: { ...background, color: v } })}
-        />
+        <p className="text-[11px] text-slate-500">Фон</p>
+        {/* Режим фона: сплошной цвет или изображение. Изображение рисуется
+            поверх цвета, поэтому выбор цвета при активном изображении не
+            виден — переключение на «Цвет» убирает изображение. */}
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            type="button"
+            onClick={handleRemoveBackgroundImage}
+            className={`h-8 rounded-md text-xs transition-colors ${
+              !background.imageUrl
+                ? "bg-blue-500/20 text-blue-300 border border-blue-500/50"
+                : "bg-slate-800/60 text-slate-300 border border-slate-700 hover:border-slate-500"
+            }`}
+          >
+            Цвет
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className={`h-8 rounded-md text-xs transition-colors ${
+              background.imageUrl
+                ? "bg-blue-500/20 text-blue-300 border border-blue-500/50"
+                : "bg-slate-800/60 text-slate-300 border border-slate-700 hover:border-slate-500"
+            }`}
+          >
+            Изображение
+          </button>
+        </div>
+
+        {!background.imageUrl && (
+          <>
+            {/* Быстрые цвета */}
+            <div className="grid grid-cols-8 gap-1">
+              {[
+                "#0e0e0e",
+                "#020617",
+                "#0f172a",
+                "#111827",
+                "#1e293b",
+                "#052e16",
+                "#ffffff",
+                "#e2e8f0",
+              ].map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  title={color}
+                  onClick={() =>
+                    updateDocumentMeta({ background: { ...background, color } })
+                  }
+                  className={`h-6 rounded border transition-transform hover:scale-110 ${
+                    background.color === color
+                      ? "border-blue-400 ring-1 ring-blue-400"
+                      : "border-slate-600"
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+            <ColorField
+              label="Свой цвет"
+              value={background.color}
+              onChange={(v) => updateDocumentMeta({ background: { ...background, color: v } })}
+            />
+          </>
+        )}
 
         <input
           ref={fileInputRef}
@@ -50,21 +111,23 @@ const CanvasSettingsPanel = () => {
           className="hidden"
           onChange={handleBackgroundImageChange}
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center justify-center px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/60 text-sm text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors"
-        >
-          {background.imageUrl ? "Заменить фоновое изображение" : "Загрузить фоновое изображение"}
-        </button>
         {background.imageUrl && (
-          <button
-            type="button"
-            onClick={handleRemoveBackgroundImage}
-            className="w-full text-xs text-rose-400 hover:text-rose-300"
-          >
-            Убрать фоновое изображение
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/60 text-sm text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors"
+            >
+              Заменить фоновое изображение
+            </button>
+            <button
+              type="button"
+              onClick={handleRemoveBackgroundImage}
+              className="w-full text-xs text-rose-400 hover:text-rose-300"
+            >
+              Убрать изображение (показать цвет)
+            </button>
+          </>
         )}
       </div>
 

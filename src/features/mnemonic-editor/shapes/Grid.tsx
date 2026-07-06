@@ -25,7 +25,7 @@ const Grid = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =>
       <circle cx={width * 0.15} cy={height * 0.25} r={2} fill={color} />
       <circle cx={width * 0.85} cy={height * 0.25} r={2} fill={color} />
       {label && (
-        <text x={cx} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={cx} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

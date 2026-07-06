@@ -26,6 +26,8 @@ const EditorCanvas = () => {
   const viewport = useUiStore((state) => state.viewport);
   const isSpaceDown = useUiStore((state) => state.isSpaceDown);
   const setSpaceDown = useUiStore((state) => state.setSpaceDown);
+  const activeTool = useUiStore((state) => state.activeTool);
+  const drawingPoints = useUiStore((state) => state.drawingPoints);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   const {
@@ -119,7 +121,11 @@ const EditorCanvas = () => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          cursor: isSpaceDown ? "grab" : "default",
+          cursor: isSpaceDown
+            ? "grab"
+            : activeTool === "draw"
+              ? "crosshair"
+              : "default",
           touchAction: "none",
           background: "#020617",
         }}
@@ -151,6 +157,18 @@ const EditorCanvas = () => {
             onResizeHandlePointerDown={handleResizeHandlePointerDown}
             onRotateHandlePointerDown={handleRotateHandlePointerDown}
           />
+          {/* Живой предпросмотр мазка кисти */}
+          {drawingPoints && drawingPoints.length >= 2 && (
+            <polyline
+              points={drawingPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+              fill="none"
+              stroke="#38bdf8"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
+          )}
         </g>
       </svg>
       {isDraggingFile && (

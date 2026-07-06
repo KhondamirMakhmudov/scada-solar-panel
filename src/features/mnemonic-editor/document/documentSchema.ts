@@ -19,6 +19,9 @@ const SHAPE_KINDS = [
   "meter",
   "image",
   "text",
+  "building",
+  "freehand",
+  "basicShape",
 ] as const;
 
 const elementStyleSchema = z.object({
@@ -26,6 +29,7 @@ const elementStyleSchema = z.object({
   stroke: z.string(),
   strokeWidth: z.number(),
   opacity: z.number(),
+  labelFontSize: z.number().optional(),
 });
 
 const dataBindingSchema = z.object({
@@ -56,7 +60,9 @@ const elementSchema = z.object({
   state: z.record(z.string(), z.unknown()),
   label: z.string().optional(),
   dataBinding: dataBindingSchema.nullable().optional(),
+  extraBindings: z.array(dataBindingSchema).nullable().optional(),
   animationRules: z.array(animationRuleSchema).optional(),
+  navigateToScreenId: z.string().nullable().optional(),
 });
 
 const connectionAnchorSchema = z.object({

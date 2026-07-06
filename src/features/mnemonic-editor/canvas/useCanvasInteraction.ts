@@ -10,6 +10,8 @@ import { clampZoom, getElementAnchorPoint, nearestHandleFacing, screenToDocument
 import { findElementAtPoint } from "../lib/hitTest";
 import { commitImmediate, commitSnapshotDiff, snapshotDocumentArrays } from "../store/history/historyActions";
 import { generateId } from "../lib/idGen";
+import { SHAPE_REGISTRY } from "../shapes/registry";
+import { DEFAULT_LAYER_ID } from "../document/defaults";
 import type { ConnectionHandle } from "../types";
 
 export type ResizeHandle = "nw" | "ne" | "sw" | "se";
@@ -17,7 +19,7 @@ export type ResizeHandle = "nw" | "ne" | "sw" | "se";
 const MIN_SIZE = 12;
 
 interface DragState {
-  mode: "pan" | "move" | "resize" | "rotate" | "connect";
+  mode: "pan" | "move" | "resize" | "rotate" | "connect" | "draw";
   startClientX: number;
   startClientY: number;
   startPanX: number;
@@ -50,6 +52,28 @@ export function useCanvasInteraction() {
 
   const updateElement = useDocumentStore((state) => state.updateElement);
 
+  const activeTool = useUiStore((state) => state.activeTool);
+  const startDrawing = useUiStore((state) => state.startDrawing);
+  const appendDrawingPoint = useUiStore((state) => state.appendDrawingPoint);
+  const clearDrawing = useUiStore((state) => state.clearDrawing);
+
+  const beginDrawStroke = useCallback(
+    (clientX: number, clientY: number, svg: SVGSVGElement) => {
+      const rect = svg.getBoundingClientRect();
+      const currentViewport = useUiStore.getState().viewport;
+      const point = screenToDocumentPoint(clientX, clientY, rect, currentViewport);
+      startDrawing(point);
+      dragRef.current = {
+        mode: "draw",
+        startClientX: clientX,
+        startClientY: clientY,
+        startPanX: currentViewport.panX,
+        startPanY: currentViewport.panY,
+      };
+    },
+    [startDrawing],
+  );
+
   const handleBackgroundPointerDown = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>) => {
       closeContextMenu();
@@ -61,17 +85,27 @@ export function useCanvasInteraction() {
           startPanX: viewport.panX,
           startPanY: viewport.panY,
         };
+      } else if (activeTool === "draw" && event.button === 0) {
+        clearSelection();
+        beginDrawStroke(event.clientX, event.clientY, event.currentTarget);
       } else {
         clearSelection();
       }
     },
-    [isSpaceDown, viewport.panX, viewport.panY, clearSelection, closeContextMenu],
+    [isSpaceDown, viewport.panX, viewport.panY, clearSelection, closeContextMenu, activeTool, beginDrawStroke],
   );
 
   const handleElementPointerDown = useCallback(
     (id: string) => (event: ReactPointerEvent<SVGGElement>) => {
       event.stopPropagation();
       closeContextMenu();
+      // В режиме кисти клик по существующему элементу начинает новый мазок
+      // поверх него, а не перетаскивание
+      if (useUiStore.getState().activeTool === "draw" && event.button === 0) {
+        const svg = event.currentTarget.ownerSVGElement;
+        if (svg) beginDrawStroke(event.clientX, event.clientY, svg);
+        return;
+      }
       select(id);
       const element = useDocumentStore.getState().document.elements.find((el) => el.id === id);
       if (!element) return;
@@ -87,7 +121,7 @@ export function useCanvasInteraction() {
         historyBefore: snapshotDocumentArrays(),
       };
     },
-    [select, viewport.panX, viewport.panY, closeContextMenu],
+    [select, viewport.panX, viewport.panY, closeContextMenu, beginDrawStroke],
   );
 
   const handleElementContextMenu = useCallback(
@@ -227,14 +261,66 @@ export function useCanvasInteraction() {
         const currentViewport = useUiStore.getState().viewport;
         const pointerDoc = screenToDocumentPoint(event.clientX, event.clientY, rect, currentViewport);
         updateConnectingPreview(pointerDoc);
+      } else if (drag.mode === "draw") {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const currentViewport = useUiStore.getState().viewport;
+        const pointerDoc = screenToDocumentPoint(event.clientX, event.clientY, rect, currentViewport);
+        const points = useUiStore.getState().drawingPoints;
+        const last = points?.[points.length - 1];
+        // Прореживаем точки: ближе 2px (в координатах документа) не добавляем
+        if (!last || Math.hypot(pointerDoc.x - last.x, pointerDoc.y - last.y) >= 2) {
+          appendDrawingPoint(pointerDoc);
+        }
       }
     },
-    [setViewport, updateElement, updateConnectingPreview],
+    [setViewport, updateElement, updateConnectingPreview, appendDrawingPoint],
   );
 
   const handlePointerUp = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>) => {
       const drag = dragRef.current;
+
+      if (drag?.mode === "draw") {
+        const points = useUiStore.getState().drawingPoints;
+        clearDrawing();
+        dragRef.current = null;
+
+        if (points && points.length >= 2) {
+          const xs = points.map((p) => p.x);
+          const ys = points.map((p) => p.y);
+          const minX = Math.min(...xs);
+          const minY = Math.min(...ys);
+          const width = Math.max(4, Math.max(...xs) - minX);
+          const height = Math.max(4, Math.max(...ys) - minY);
+
+          // Нормализуем точки в 0..1 относительно рамки — фигура затем
+          // масштабируется/вращается как обычный элемент
+          const normalized = points.map((p) => [
+            (p.x - minX) / width,
+            (p.y - minY) / height,
+          ]);
+
+          const definition = SHAPE_REGISTRY.freehand!;
+          const id = generateId("freehand");
+          commitImmediate(() =>
+            useDocumentStore.getState().addElement({
+              id,
+              type: "freehand",
+              layerId: DEFAULT_LAYER_ID,
+              x: minX,
+              y: minY,
+              width,
+              height,
+              rotation: 0,
+              zIndex: useDocumentStore.getState().document.elements.length,
+              style: { ...definition.defaultStyle },
+              state: { points: normalized },
+            }),
+          );
+          select(id);
+        }
+        return;
+      }
 
       if (drag?.mode === "connect" && drag.elementId && drag.connectHandle) {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -273,7 +359,7 @@ export function useCanvasInteraction() {
       }
       dragRef.current = null;
     },
-    [cancelConnecting],
+    [cancelConnecting, clearDrawing, select],
   );
 
   const handleWheel = useCallback(

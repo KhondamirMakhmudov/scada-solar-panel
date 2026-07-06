@@ -12,8 +12,7 @@ import {
   LocalOffer,
   Settings,
   CheckCircle,
-  ErrorCircle,
-  WarningCircle,
+  WarningAmber,
 } from "@mui/icons-material";
 
 const MetricCard = ({ icon: Icon, label, value, status, delay }) => (
@@ -263,7 +262,7 @@ const Index = () => {
                 tags.disabled > 0 ? "text-yellow-400" : "text-green-400"
               }
               statusText={tags.disabled > 0 ? "Деградированы" : "Нормально"}
-              statusIcon={tags.disabled > 0 ? WarningCircle : CheckCircle}
+              statusIcon={tags.disabled > 0 ? WarningAmber : CheckCircle}
               delay={0.9}
             />
           </div>

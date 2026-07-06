@@ -1,9 +1,11 @@
-import type { MnemonicElement } from "../types";
+import { shallow } from "zustand/shallow";
+import { formatTagLabel } from "@/lib/tagNameTranslation";
+import type { MnemonicElement, DataBinding } from "../types";
 import type { TagValue } from "../store/runtimeStore";
+import { useRuntimeStore } from "../store/runtimeStore";
 
 interface LiveValueLabelProps {
   element: MnemonicElement;
-  live: TagValue | undefined;
 }
 
 const MAX_CHARS = 28;
@@ -13,37 +15,73 @@ function truncate(text: string, max = MAX_CHARS): string {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
-/** Small readout under a bound shape: raw tag value + unit, "ожидание..." while no frame has arrived yet, or the error message if the tag is in an error state. */
-const LiveValueLabel = ({ element, live }: LiveValueLabelProps) => {
-  if (!element.dataBinding?.tagId) return null;
-
-  const x = element.x + element.width / 2;
-  const y = element.y + element.height + 26;
-
-  if (!live) {
-    return (
-      <text x={x} y={y} textAnchor="middle" fontSize={10} fill="#64748b">
-        ожидание...
-      </text>
-    );
-  }
-
+function formatRow(live: TagValue | undefined): { text: string; fill: string; mono: boolean } {
+  if (!live) return { text: "ожидание...", fill: "#64748b", mono: false };
   if (live.isError) {
-    const fullMessage = live.errorMessage || "ошибка";
-    return (
-      <text x={x} y={y} textAnchor="middle" fontSize={10} fill="#f87171">
-        <title>{fullMessage}</title>
-        {truncate(fullMessage)}
-      </text>
-    );
+    return { text: live.errorMessage || "ошибка", fill: "#f87171", mono: false };
   }
+  return {
+    text: `${live.value ?? "—"}${live.unit ? ` ${live.unit}` : ""}`,
+    fill: "#e2e8f0",
+    mono: true,
+  };
+}
 
-  const valueText = `${live.value ?? "—"}${live.unit ? ` ${live.unit}` : ""}`;
+/** Краткое имя тега для префикса строки, когда тегов несколько */
+function shortTagName(binding: DataBinding): string {
+  if (!binding.tagName) return "";
+  const label = formatTagLabel(binding.tagName);
+  // formatTagLabel даёт «Перевод (raw_name)» — префиксом берём только перевод
+  return label.replace(/\s*\(.*\)\s*$/, "");
+}
+
+/**
+ * Живые значения под фигурой: одна строка на каждый привязанный тег
+ * (основной + дополнительные). Подписывается ровно на значения своих тегов
+ * (кортеж + shallow), поэтому тик чужого тега не вызывает ре-рендер.
+ */
+const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
+  const bindings: DataBinding[] = [
+    ...(element.dataBinding?.tagId ? [element.dataBinding] : []),
+    ...(element.extraBindings ?? []).filter((binding) => binding?.tagId),
+  ];
+
+  const values = useRuntimeStore(
+    (state) => bindings.map((binding) => state.values[binding.tagId]),
+    shallow,
+  );
+
+  if (!bindings.length) return null;
+
+  const labelFontSize = element.style?.labelFontSize ?? 11;
+  const fontSize = Math.max(8, labelFontSize - 1);
+  const lineHeight = fontSize + 5;
+  const x = element.x + element.width / 2;
+  const baseY = element.y + element.height + 15 + labelFontSize;
+  const multi = bindings.length > 1;
+
   return (
-    <text x={x} y={y} textAnchor="middle" fontSize={10} fontFamily="monospace" fill="#e2e8f0">
-      <title>{valueText}</title>
-      {truncate(valueText)}
-    </text>
+    <>
+      {bindings.map((binding, index) => {
+        const row = formatRow(values[index]);
+        const prefix = multi ? shortTagName(binding) : "";
+        const text = prefix ? `${prefix}: ${row.text}` : row.text;
+        return (
+          <text
+            key={binding.tagId}
+            x={x}
+            y={baseY + index * lineHeight}
+            textAnchor="middle"
+            fontSize={fontSize}
+            fontFamily={row.mono ? "monospace" : undefined}
+            fill={row.fill}
+          >
+            <title>{text}</title>
+            {truncate(text)}
+          </text>
+        );
+      })}
+    </>
   );
 };
 

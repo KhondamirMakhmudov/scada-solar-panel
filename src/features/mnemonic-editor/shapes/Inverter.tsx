@@ -54,7 +54,7 @@ const Inverter = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps
         INV
       </text>
       {label && (
-        <text x={width / 2} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={width / 2} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

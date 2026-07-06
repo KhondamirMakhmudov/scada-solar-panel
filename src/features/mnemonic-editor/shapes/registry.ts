@@ -19,6 +19,9 @@ import Grid from "./Grid";
 import Meter from "./Meter";
 import ImageElement from "./ImageElement";
 import TextLabel from "./TextLabel";
+import Building from "./Building";
+import Freehand from "./Freehand";
+import BasicShape from "./BasicShape";
 
 export interface ShapeDefinition {
   kind: ShapeKind;
@@ -182,6 +185,34 @@ export const SHAPE_REGISTRY: Partial<Record<ShapeKind, ShapeDefinition>> = {
     defaultStyle: { fill: "none", stroke: "#e5e2e1", strokeWidth: 0, opacity: 1 },
     defaultState: { text: "Текст", fontSize: 16 },
   },
+  building: {
+    kind: "building",
+    label: "Здание",
+    Component: Building,
+    defaultSize: { width: 150, height: 100 },
+    defaultStyle: { ...BASE_STYLE, fill: "#1e293b", stroke: "#94a3b8" },
+    defaultState: {},
+  },
+  freehand: {
+    kind: "freehand",
+    label: "Рисунок",
+    Component: Freehand,
+    defaultSize: { width: 100, height: 100 },
+    defaultStyle: { fill: "none", stroke: "#38bdf8", strokeWidth: 2.5, opacity: 1 },
+    defaultState: { points: [] },
+  },
+  basicShape: {
+    kind: "basicShape",
+    label: "Фигура",
+    Component: BasicShape,
+    defaultSize: { width: 100, height: 80 },
+    defaultStyle: { fill: "none", stroke: "#38bdf8", strokeWidth: 2, opacity: 1 },
+    defaultState: { variant: "rectangle" },
+  },
 };
 
-export const AVAILABLE_SHAPE_KINDS = Object.keys(SHAPE_REGISTRY) as ShapeKind[];
+// «Рисунок» создаётся инструментом «Кисть», «Фигура» — из сетки «Фигуры»
+// в палитре; кнопками списка оборудования они не добавляются.
+export const AVAILABLE_SHAPE_KINDS = (
+  Object.keys(SHAPE_REGISTRY) as ShapeKind[]
+).filter((kind) => kind !== "freehand" && kind !== "basicShape");

@@ -4,7 +4,10 @@ function deriveBoundTagIds(document: MnemonicDocument): string[] {
   return Array.from(
     new Set(
       document.elements
-        .map((el) => el.dataBinding?.tagId)
+        .flatMap((el) => [
+          el.dataBinding?.tagId,
+          ...(el.extraBindings ?? []).map((binding) => binding.tagId),
+        ])
         .filter((id): id is string => Boolean(id)),
     ),
   );

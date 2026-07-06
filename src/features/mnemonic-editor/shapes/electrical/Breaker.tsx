@@ -66,7 +66,7 @@ const Breaker = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps)
         strokeWidth={1}
       />
       {label && (
-        <text x={midX} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={midX} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

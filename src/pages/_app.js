@@ -5,6 +5,7 @@ import ClientOnlyToaster from "@/components/toast";
 import { SessionProvider, useSession, signOut } from "next-auth/react";
 import reactQueryClient from "@/config/react-query";
 import { AuthProvider } from "@/context/AuthContext";
+import { getAppSettings, applyAppSettings } from "@/lib/appSettings";
 
 import CssBaseline from "@mui/material/CssBaseline";
 import "@/styles/globals.css";
@@ -104,6 +105,12 @@ export default function App({
 }) {
   const [queryClient] = useState(() => reactQueryClient);
   const router = useRouter();
+
+  // Применяем сохранённые настройки (автообновление данных и т.д.)
+  // к QueryClient при старте приложения
+  useEffect(() => {
+    applyAppSettings(queryClient, getAppSettings());
+  }, [queryClient]);
 
   const isHomePage = router.pathname === "/";
 

@@ -5,11 +5,17 @@ import GeometrySection from "./sections/GeometrySection";
 import StyleSection from "./sections/StyleSection";
 import ShapeStateSection from "./sections/ShapeStateSection";
 import BindingSection from "./sections/BindingSection";
+import NavigationSection from "./sections/NavigationSection";
 import TextField from "./fields/TextField";
 import CanvasSettingsPanel from "./CanvasSettingsPanel";
 
+interface PropertiesPanelProps {
+  screenTagIds?: string[];
+  screenId?: string;
+}
+
 /** Shown for a single selection — multi-select property editing is deferred alongside marquee-select. Falls back to document-level canvas settings when nothing is selected. */
-const PropertiesPanel = () => {
+const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) => {
   const selectedElementIds = useUiStore((state) => state.selectedElementIds);
   const clearSelection = useUiStore((state) => state.clearSelection);
   const elements = useDocumentStore((state) => state.document.elements);
@@ -49,7 +55,8 @@ const PropertiesPanel = () => {
 
       <GeometrySection element={element} />
       <StyleSection element={element} />
-      <BindingSection element={element} />
+      <BindingSection element={element} screenTagIds={screenTagIds} />
+      <NavigationSection element={element} currentScreenId={screenId} />
       <ShapeStateSection element={element} />
 
       <button

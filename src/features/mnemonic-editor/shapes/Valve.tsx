@@ -44,7 +44,7 @@ const Valve = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
         transform={`rotate(${open ? 90 : 0} ${cx} ${cy - half - 4})`}
       />
       {label && (
-        <text x={cx} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={cx} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}

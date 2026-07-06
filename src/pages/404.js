@@ -7,7 +7,7 @@ const Index = () => {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#131313] text-[#e5e2e1] manrope selection:bg-[#9ecaff] selection:text-[#003258]">
+    <div className="min-h-screen bg-[#131313] text-[#e5e2e1] font-manrope selection:bg-[#9ecaff] selection:text-[#003258]">
       <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-[#131313] px-6 shadow-[0_4px_20px_rgba(33,150,243,0.08)]">
         <Brand />
         <div className="flex items-center gap-2">

@@ -16,13 +16,18 @@ export type ShapeKind =
   | "grid"
   | "meter"
   | "image"
-  | "text";
+  | "text"
+  | "building"
+  | "freehand"
+  | "basicShape";
 
 export interface ElementStyle {
   fill: string;
   stroke: string;
   strokeWidth: number;
   opacity: number;
+  /** Размер шрифта подписи под фигурой (и живого значения тега). По умолчанию 11. */
+  labelFontSize?: number;
 }
 
 export interface DataBinding {
@@ -57,6 +62,11 @@ export interface MnemonicElement {
   style: ElementStyle;
   state: ShapeState;
   label?: string;
+  /** Основной тег: управляет состоянием/анимацией фигуры и показывается первой строкой */
   dataBinding?: DataBinding | null;
+  /** Дополнительные теги: каждый выводится отдельной строкой живого значения под фигурой */
+  extraBindings?: DataBinding[] | null;
   animationRules?: AnimationRule[];
+  /** Переход по клику в режиме просмотра: id экрана, который откроется */
+  navigateToScreenId?: string | null;
 }

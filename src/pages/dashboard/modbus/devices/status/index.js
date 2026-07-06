@@ -317,14 +317,10 @@ const Index = () => {
   const inActiveDevices = get(analiticsModbus, "data.inactiveTasks", []);
   const filteredDevices =
     filter === "inactive"
-      ? inActiveDevices.filter((device) => {
-          device.isPolling;
-          return true;
-        })
-      : devices.filter((device) => {
-          device.isPolling;
-          return true;
-        });
+      ? inActiveDevices
+      : filter === "active"
+        ? devices
+        : [...devices, ...inActiveDevices];
 
   const totalSuccessful = devices.reduce(
     (acc, device) => acc + device.successfulPolls,

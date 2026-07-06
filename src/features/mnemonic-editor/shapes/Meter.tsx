@@ -38,7 +38,7 @@ const Meter = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
         kWh
       </text>
       {label && (
-        <text x={cx} y={height + 14} textAnchor="middle" fontSize={11} fill="#e5e2e1">
+        <text x={cx} y={height + 14} textAnchor="middle" fontSize={style.labelFontSize ?? 11} fill="#e5e2e1">
           {label}
         </text>
       )}
