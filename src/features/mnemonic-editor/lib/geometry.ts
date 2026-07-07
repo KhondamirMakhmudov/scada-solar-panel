@@ -103,10 +103,29 @@ export function computeContentViewBox(
   let maxY = -Infinity;
 
   elements.forEach((el) => {
-    minX = Math.min(minX, el.x);
+    // Панель показаний (LiveValueLabel) рисуется ПОД фигурой — по строке на
+    // каждый привязанный тег. Учитываем её высоту и выступ по ширине, иначе
+    // нижние панели обрезаются краем вьюпорта киоска.
+    const bindingCount =
+      (el.dataBinding?.tagId ? 1 : 0) + (el.extraBindings?.length ?? 0);
+    const labelFontSize = el.style?.labelFontSize ?? 11;
+    const rowFontSize = Math.max(8, labelFontSize - 1);
+
+    let bottomAllowance = LABEL_ALLOWANCE;
+    let sideOverhang = 0;
+    if (bindingCount > 0) {
+      const panelHeight = bindingCount * (rowFontSize + 7) + 12;
+      bottomAllowance = labelFontSize + 8 + panelHeight + 6;
+      // Панель самоподстраивается по контенту (до 420px) и центрируется —
+      // берём стабильную оценку ширины, не зависящую от живых данных
+      const estimatedPanelWidth = Math.min(420, Math.max(el.width, rowFontSize * 24));
+      sideOverhang = Math.max(0, (estimatedPanelWidth - el.width) / 2);
+    }
+
+    minX = Math.min(minX, el.x - sideOverhang);
     minY = Math.min(minY, el.y);
-    maxX = Math.max(maxX, el.x + el.width);
-    maxY = Math.max(maxY, el.y + el.height + LABEL_ALLOWANCE);
+    maxX = Math.max(maxX, el.x + el.width + sideOverhang);
+    maxY = Math.max(maxY, el.y + el.height + bottomAllowance);
   });
 
   return {
