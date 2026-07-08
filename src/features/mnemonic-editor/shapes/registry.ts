@@ -22,6 +22,7 @@ import TextLabel from "./TextLabel";
 import Building from "./Building";
 import Freehand from "./Freehand";
 import BasicShape from "./BasicShape";
+import Chart from "./Chart";
 
 export interface ShapeDefinition {
   kind: ShapeKind;
@@ -208,6 +209,14 @@ export const SHAPE_REGISTRY: Partial<Record<ShapeKind, ShapeDefinition>> = {
     defaultSize: { width: 100, height: 80 },
     defaultStyle: { fill: "none", stroke: "#38bdf8", strokeWidth: 2, opacity: 1 },
     defaultState: { variant: "rectangle" },
+  },
+  chart: {
+    kind: "chart",
+    label: "График (тренд)",
+    Component: Chart,
+    defaultSize: { width: 220, height: 120 },
+    defaultStyle: { fill: "#0c1118", stroke: "#334155", strokeWidth: 1, opacity: 1 },
+    defaultState: { range: "1h" },
   },
 };
 

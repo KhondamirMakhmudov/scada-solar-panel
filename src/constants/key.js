@@ -21,4 +21,10 @@ export const KEYS = {
   readingsByNodeId: "readingsByNodeId",
   systemOverview: "systemOverview",
   screens: "screens",
+  health: "health",
+  ready: "ready",
+  tagValues: "tagValues",
+  tagValuesLatest: "tagValuesLatest",
+  tagValuesAggregates: "tagValuesAggregates",
+  tagValuesStatistics: "tagValuesStatistics",
 };

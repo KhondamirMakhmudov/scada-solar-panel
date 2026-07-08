@@ -4,6 +4,7 @@ import { useDocumentStore } from "../../store/documentStore";
 import { commitImmediate } from "../../store/history/historyActions";
 import { readImageFile } from "../../lib/imageFile";
 import type { MnemonicElement, ShapeKind } from "../../types";
+import { TREND_RANGE_META, type TrendRange } from "../../hooks/useTagTrend";
 import RangeField from "../fields/RangeField";
 import NumberField from "../fields/NumberField";
 import TextField from "../fields/TextField";
@@ -111,6 +112,30 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <SectionHeading />
         <TextField label="Содержимое" value={text} onChange={(v) => setState({ text: v })} />
         <NumberField label="Размер шрифта" value={fontSize} onChange={(v) => setState({ fontSize: Math.max(8, v) })} />
+      </div>
+    );
+  }
+
+  if (element.type === "chart") {
+    const range = (element.state?.range as TrendRange) ?? "1h";
+    return (
+      <div className="space-y-2">
+        <SectionHeading />
+        <select
+          value={range}
+          onChange={(event) => commitImmediate(() => setState({ range: event.target.value }))}
+          className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+        >
+          {Object.entries(TREND_RANGE_META).map(([value, meta]) => (
+            <option key={value} value={value}>
+              {meta.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-[10px] text-slate-600">
+          Теги для графика выбираются ниже, в разделе «Привязка к тегу»
+          (основной тег + доп. теги) — каждый рисуется отдельной линией.
+        </p>
       </div>
     );
   }

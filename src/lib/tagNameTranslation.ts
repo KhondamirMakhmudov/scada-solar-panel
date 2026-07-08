@@ -95,3 +95,8 @@ export function formatTagLabel(name: string): string {
   const translated = translateTagName(name);
   return translated ? `${translated} (${name})` : name;
 }
+
+/** Same translation, without the "(english)" suffix — for tight spaces (chart legends, panel rows) where the parenthetical doesn't fit. */
+export function formatTagLabelShort(name: string): string {
+  return formatTagLabel(name).replace(/\s*\(.*\)\s*$/, "");
+}

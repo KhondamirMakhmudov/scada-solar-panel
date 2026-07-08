@@ -12,6 +12,7 @@ import { DEFAULT_LAYER_ID } from "../document/defaults";
 import { commitImmediate } from "../store/history/historyActions";
 import CanvasLayer from "./CanvasLayer";
 import ConnectionLayer from "./ConnectionLayer";
+import PanelLayer from "./PanelLayer";
 import SelectionOverlay from "./SelectionOverlay";
 import GridBackground from "./GridBackground";
 import ContextMenu from "./ContextMenu";
@@ -153,6 +154,7 @@ const EditorCanvas = () => {
               onAnchorPointerDown={handleAnchorPointerDown}
             />
           ))}
+          <PanelLayer />
           <SelectionOverlay
             onResizeHandlePointerDown={handleResizeHandlePointerDown}
             onRotateHandlePointerDown={handleRotateHandlePointerDown}

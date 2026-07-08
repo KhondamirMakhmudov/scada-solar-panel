@@ -82,6 +82,38 @@ const CONTENT_PADDING = 60;
 const LABEL_ALLOWANCE = 34; // room for the label/live-value text rendered below each shape
 const MIN_VIEWBOX_SIZE = 320;
 
+export interface PanelSizeEstimate {
+  width: number;
+  height: number;
+}
+
+/**
+ * Fixed-formula (non-live-data) estimate of a binding panel's box size, given
+ * how many tag rows it has and the element's own width/label font size. Used
+ * both to reserve room in computeContentViewBox and to lay out
+ * non-overlapping panel slots (panelLayout.ts) — deliberately does NOT depend
+ * on live tag values, or overlap resolution/viewbox framing would shift
+ * frame-to-frame as data ticks in.
+ */
+export function estimatePanelSize(
+  bindingCount: number,
+  elementWidth: number,
+  labelFontSize: number,
+): PanelSizeEstimate {
+  if (bindingCount <= 0) return { width: 0, height: 0 };
+  const rowFontSize = Math.max(8, labelFontSize - 1);
+  const height = bindingCount * (rowFontSize + 7) + 12;
+  // Панель самоподстраивается по контенту (до 420px) и центрируется — берём
+  // стабильную оценку ширины, не зависящую от живых данных
+  const width = Math.min(420, Math.max(elementWidth, rowFontSize * 24));
+  return { width, height };
+}
+
+/** Vertical gap between an element's bottom edge and its panel's top edge (room for the label text between them). */
+export function panelTopOffset(labelFontSize: number): number {
+  return labelFontSize + 8;
+}
+
 /**
  * Runtime mode has no pan/zoom controls, so it must frame the diagram
  * itself rather than the full declared canvas (default 1920x1080) — a
@@ -89,9 +121,17 @@ const MIN_VIEWBOX_SIZE = 320;
  * render tiny, surrounded by mostly empty canvas, once scaled to fit any
  * viewport. Falls back to the full canvas size for an empty screen.
  */
+export interface PanelSlotLike {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export function computeContentViewBox(
   elements: MnemonicElement[],
   canvasSize: { width: number; height: number },
+  panelSlots?: Map<string, PanelSlotLike>,
 ): ViewBox {
   if (!elements.length) {
     return { x: 0, y: 0, width: canvasSize.width, height: canvasSize.height };
@@ -103,29 +143,42 @@ export function computeContentViewBox(
   let maxY = -Infinity;
 
   elements.forEach((el) => {
-    // Панель показаний (LiveValueLabel) рисуется ПОД фигурой — по строке на
-    // каждый привязанный тег. Учитываем её высоту и выступ по ширине, иначе
-    // нижние панели обрезаются краем вьюпорта киоска.
+    minX = Math.min(minX, el.x);
+    minY = Math.min(minY, el.y);
+    maxX = Math.max(maxX, el.x + el.width);
+    maxY = Math.max(maxY, el.y + el.height);
+
+    // Панель показаний рисуется ПОД фигурой — по строке на каждый
+    // привязанный тег. Учитываем её фактический прямоугольник (если он уже
+    // посчитан через computePanelSlots — включая любой сдвиг вниз от
+    // разрешения перекрытий), иначе — ту же оценку по фиксированной формуле,
+    // что и раньше, чтобы нижние панели не обрезались краем вьюпорта киоска.
+    const slot = panelSlots?.get(el.id);
+    if (slot) {
+      minX = Math.min(minX, slot.x);
+      maxX = Math.max(maxX, slot.x + slot.width);
+      maxY = Math.max(maxY, slot.y + slot.height);
+      return;
+    }
+
     const bindingCount =
       (el.dataBinding?.tagId ? 1 : 0) + (el.extraBindings?.length ?? 0);
     const labelFontSize = el.style?.labelFontSize ?? 11;
-    const rowFontSize = Math.max(8, labelFontSize - 1);
 
-    let bottomAllowance = LABEL_ALLOWANCE;
-    let sideOverhang = 0;
-    if (bindingCount > 0) {
-      const panelHeight = bindingCount * (rowFontSize + 7) + 12;
-      bottomAllowance = labelFontSize + 8 + panelHeight + 6;
-      // Панель самоподстраивается по контенту (до 420px) и центрируется —
-      // берём стабильную оценку ширины, не зависящую от живых данных
-      const estimatedPanelWidth = Math.min(420, Math.max(el.width, rowFontSize * 24));
-      sideOverhang = Math.max(0, (estimatedPanelWidth - el.width) / 2);
+    if (bindingCount > 0 && el.type !== "chart") {
+      const { width: panelWidth, height: panelHeight } = estimatePanelSize(
+        bindingCount,
+        el.width,
+        labelFontSize,
+      );
+      const bottomAllowance = panelTopOffset(labelFontSize) + panelHeight + 6;
+      const sideOverhang = Math.max(0, (panelWidth - el.width) / 2);
+      minX = Math.min(minX, el.x - sideOverhang);
+      maxX = Math.max(maxX, el.x + el.width + sideOverhang);
+      maxY = Math.max(maxY, el.y + el.height + bottomAllowance);
+    } else {
+      maxY = Math.max(maxY, el.y + el.height + LABEL_ALLOWANCE);
     }
-
-    minX = Math.min(minX, el.x - sideOverhang);
-    minY = Math.min(minY, el.y);
-    maxX = Math.max(maxX, el.x + el.width + sideOverhang);
-    maxY = Math.max(maxY, el.y + el.height + bottomAllowance);
   });
 
   return {

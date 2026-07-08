@@ -19,7 +19,8 @@ export type ShapeKind =
   | "text"
   | "building"
   | "freehand"
-  | "basicShape";
+  | "basicShape"
+  | "chart";
 
 export interface ElementStyle {
   fill: string;

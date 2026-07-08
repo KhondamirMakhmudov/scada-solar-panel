@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { useDocumentStore } from "../store/documentStore";
 import RuntimeElement from "./RuntimeElement";
 import ConnectionLayer from "../canvas/ConnectionLayer";
+import PanelLayer from "../canvas/PanelLayer";
 import { computeContentViewBox } from "../lib/geometry";
+import { computePanelSlots } from "../lib/panelLayout";
 
 /** Frames the actual content's bounding box (not the full declared canvas — see computeContentViewBox) so the same diagram fits any kiosk monitor size at a readable scale — read-only, no viewport UI needed. */
 const RuntimeCanvas = () => {
@@ -11,9 +13,14 @@ const RuntimeCanvas = () => {
   const layers = useDocumentStore((state) => state.document.layers);
   const elements = useDocumentStore((state) => state.document.elements);
 
+  // Computed once here and passed into computeContentViewBox so the kiosk
+  // viewBox accounts for panels' *actual* rects — including any downward
+  // shift from overlap resolution — instead of a pre-collision estimate.
+  const panelSlots = useMemo(() => computePanelSlots(elements), [elements]);
+
   const viewBox = useMemo(
-    () => computeContentViewBox(elements, canvasSize),
-    [elements, canvasSize],
+    () => computeContentViewBox(elements, canvasSize, panelSlots),
+    [elements, canvasSize, panelSlots],
   );
 
   return (
@@ -46,6 +53,7 @@ const RuntimeCanvas = () => {
           </g>
         );
       })}
+      <PanelLayer />
     </svg>
   );
 };

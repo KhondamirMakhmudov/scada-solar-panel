@@ -26,4 +26,10 @@ export const URLS = {
   readingsByNodeId: "api/opc-readings/node/",
   systemOverview: "overview",
   screens: "screens",
+  health: "health",
+  ready: "ready",
+  tagValues: "tag-values",
+  tagValuesLatest: "tag-values/latest",
+  tagValuesAggregates: "tag-values/aggregates",
+  tagValuesStatistics: "tag-values/statistics",
 };

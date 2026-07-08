@@ -1,11 +1,14 @@
 import { shallow } from "zustand/shallow";
-import { formatTagLabel } from "@/lib/tagNameTranslation";
+import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 import type { MnemonicElement, DataBinding } from "../types";
 import type { TagValue } from "../store/runtimeStore";
 import { useRuntimeStore } from "../store/runtimeStore";
+import type { PanelSlot } from "../lib/panelLayout";
 
-interface LiveValueLabelProps {
+interface PanelInstanceProps {
   element: MnemonicElement;
+  /** Pre-computed, non-overlapping rect from computePanelSlots — undefined means "no slot for this element" (e.g. chart elements, which render their own in-box legend instead). */
+  slot: PanelSlot | undefined;
 }
 
 const MAX_CHARS = 30;
@@ -36,9 +39,7 @@ interface Row {
 }
 
 function buildRow(binding: DataBinding, live: TagValue | undefined): Row {
-  const name = binding.tagName
-    ? formatTagLabel(binding.tagName).replace(/\s*\(.*\)\s*$/, "")
-    : binding.tagId.slice(0, 8);
+  const name = binding.tagName ? formatTagLabelShort(binding.tagName) : binding.tagId.slice(0, 8);
 
   if (!live) return { name, value: "—", fill: "#64748b", isError: false };
   if (live.isError) {
@@ -57,8 +58,13 @@ function buildRow(binding: DataBinding, live: TagValue | undefined): Row {
  * имя тега слева, значение справа зелёным моноширинным. Подписывается ровно
  * на значения своих тегов (кортеж + shallow) — тик чужого тега не вызывает
  * ре-рендер.
+ *
+ * Position/size come from the `slot` prop (computePanelSlots), not
+ * self-computed — a single top-level layer (PanelLayer) lays out every
+ * element's panel together so none overlap. The border tints to the node's
+ * own stroke color so panel and node visually read as one group.
  */
-const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
+const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
   const bindings: DataBinding[] = [
     ...(element.dataBinding?.tagId ? [element.dataBinding] : []),
     ...(element.extraBindings ?? []).filter((binding) => binding?.tagId),
@@ -69,18 +75,13 @@ const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
     shallow,
   );
 
-  if (!bindings.length) return null;
+  if (!bindings.length || !slot) return null;
 
   const labelFontSize = element.style?.labelFontSize ?? 11;
   const fontSize = Math.max(8, labelFontSize - 1);
-  const rowHeight = fontSize + 7;
   const paddingX = 8;
   const paddingY = 6;
   const columnGap = 16;
-
-  // SVG не умеет layout — оцениваем ширину текста по числу символов.
-  // Кириллица в Manrope шире латиницы, берём с запасом.
-  const nameCharW = fontSize * 0.62;
   const monoCharW = fontSize * 0.64;
 
   const rows = bindings.map((binding, index) => {
@@ -88,21 +89,8 @@ const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
     return { ...row, value: truncate(row.value, row.isError ? 24 : 16) };
   });
 
-  // Ширина панели — по самой длинной строке «имя + зазор + значение»
-  const contentWidth = Math.max(
-    ...rows.map(
-      (row) => row.name.length * nameCharW + columnGap + row.value.length * monoCharW,
-    ),
-  );
-  const panelWidth = Math.min(
-    Math.max(element.width, contentWidth + paddingX * 2),
-    420,
-  );
-
-  const panelHeight = rows.length * rowHeight + paddingY * 2;
-  const panelX = element.x + element.width / 2 - panelWidth / 2;
-  // Панель начинается под подписью фигуры (label на height + 3 + labelFontSize)
-  const panelY = element.y + element.height + labelFontSize + 8;
+  const { x: panelX, y: panelY, width: panelWidth, height: panelHeight } = slot;
+  const rowHeight = (panelHeight - paddingY * 2) / Math.max(1, rows.length);
 
   return (
     <g>
@@ -114,7 +102,8 @@ const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
         rx={6}
         fill="#0b1220"
         fillOpacity={0.92}
-        stroke="#1e293b"
+        stroke={element.style?.stroke || "#1e293b"}
+        strokeOpacity={0.6}
         strokeWidth={1}
       />
       {rows.map((row, index) => {
@@ -122,7 +111,7 @@ const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
         // Имя обрезаем только если оно реально не помещается рядом со значением
         const nameSpace =
           panelWidth - paddingX * 2 - columnGap - row.value.length * monoCharW;
-        const nameMaxChars = Math.max(6, Math.floor(nameSpace / nameCharW));
+        const nameMaxChars = Math.max(6, Math.floor(nameSpace / (fontSize * 0.62)));
         return (
           <g key={bindings[index].tagId}>
             <title>{`${row.name}: ${row.value}`}</title>
@@ -152,4 +141,4 @@ const LiveValueLabel = ({ element }: LiveValueLabelProps) => {
   );
 };
 
-export default LiveValueLabel;
+export default PanelInstance;

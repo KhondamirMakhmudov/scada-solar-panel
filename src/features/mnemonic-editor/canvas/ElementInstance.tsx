@@ -1,10 +1,11 @@
 import { memo, useMemo } from "react";
 import type { MouseEventHandler, PointerEventHandler } from "react";
 import ShapeRenderer from "../shapes/ShapeRenderer";
+import StatusDot from "../shapes/base/StatusDot";
 import { useDocumentStore } from "../store/documentStore";
+import { useRuntimeStore } from "../store/runtimeStore";
 import { useElementLiveValue } from "../runtime/useElementLiveValue";
-import { applyLiveValueToElement } from "../runtime/resolveVisual";
-import LiveValueLabel from "../runtime/LiveValueLabel";
+import { applyLiveValueToElement, deriveLiveStatus } from "../runtime/resolveVisual";
 import ConnectionAnchors from "./ConnectionAnchors";
 import type { ConnectionHandle } from "../types";
 
@@ -31,10 +32,15 @@ const ElementInstance = memo(
       state.document.elements.find((el) => el.id === elementId),
     );
     const live = useElementLiveValue(element?.dataBinding?.tagId);
+    const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
 
     const displayElement = useMemo(
       () => (element ? applyLiveValueToElement(element, live) : element),
       [element, live],
+    );
+    const liveStatus = useMemo(
+      () => (element ? deriveLiveStatus(element, live, connectionStatus) : null),
+      [element, live, connectionStatus],
     );
 
     if (!element || !displayElement) return null;
@@ -46,7 +52,7 @@ const ElementInstance = memo(
           onPointerDown={onElementPointerDown(elementId)}
           onContextMenu={onElementContextMenu(elementId)}
         />
-        <LiveValueLabel element={element} />
+        {liveStatus && <StatusDot cx={element.x + 8} cy={element.y - 2} status={liveStatus} />}
         <ConnectionAnchors element={element} onAnchorPointerDown={onAnchorPointerDown} />
         {/* Значок «переход по клику»: показывает, что у элемента настроена
             ссылка на другой экран; клик по значку открывает целевой экран

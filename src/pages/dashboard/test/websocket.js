@@ -52,6 +52,13 @@ function colorFor(seed) {
   return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
 }
 
+const RANGE_META = {
+  "15m": { label: "15 мин", windowMs: 15 * 60 * 1000, interval: "PT5S" },
+  "1h": { label: "1 час", windowMs: 60 * 60 * 1000, interval: "PT30S" },
+  "6h": { label: "6 часов", windowMs: 6 * 60 * 60 * 1000, interval: "PT5M" },
+  "24h": { label: "24 часа", windowMs: 24 * 60 * 60 * 1000, interval: "PT15M" },
+};
+
 const CHANNEL_META = {
   devices: {
     label: "Устройства",
@@ -92,6 +99,12 @@ function formatTimeMs(t) {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}.${String(
     d.getMilliseconds(),
   ).padStart(3, "0")}`;
+}
+
+function formatAxisTime(ms) {
+  if (!Number.isFinite(ms)) return "";
+  const d = new Date(ms);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 function formatUptime(sec) {
@@ -289,6 +302,92 @@ export default function WebSocketTestPage() {
     () => Object.values(tagState).slice(0, 8),
     [tagState],
   );
+
+  /* Historical trend, backed by GET /tag-values/aggregates (see
+     FRONTEND_INTEGRATION.md: "не тяните сырые точки для графика — используйте
+     этот endpoint"). Re-fetched every ~30s (nowTick) so the window slides
+     forward; live WS points newer than the last bucket are appended on top. */
+  const [range, setRange] = useState("1h");
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  const tagIdsKey = useMemo(
+    () =>
+      activeTags
+        .map((t) => t.last?.tag_id)
+        .filter(Boolean)
+        .sort()
+        .join(","),
+    [activeTags],
+  );
+
+  const { windowMs, interval } = RANGE_META[range];
+  const { timeFrom, timeTo } = useMemo(
+    () => ({
+      timeFrom: new Date(nowTick - windowMs).toISOString(),
+      timeTo: new Date(nowTick).toISOString(),
+    }),
+    [nowTick, windowMs],
+  );
+
+  const { data: aggregatesData, isFetching: isLoadingAggregates } =
+    useGetQuery({
+      key: KEYS.tagValuesAggregates,
+      url: URLS.tagValuesAggregates,
+      apiClient: requestScreens,
+      params: { tagIds: tagIdsKey, timeFrom, timeTo, interval, fill: "locf" },
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+        Accept: "application/json",
+      },
+      enabled: Boolean(tagIdsKey) && !!session?.accessToken,
+    });
+
+  const trendTagNames = useMemo(
+    () => activeTags.map((t) => t.last?.tag_name || t.last?.tag_id),
+    [activeTags],
+  );
+
+  const trendSeries = useMemo(() => {
+    const rows = new Map();
+    const tagNameById = {};
+    activeTags.forEach((t) => {
+      if (t.last?.tag_id) {
+        tagNameById[t.last.tag_id] = t.last.tag_name || t.last.tag_id;
+      }
+    });
+
+    const series = get(aggregatesData, "data.data", []);
+    let lastHistoricalMs = 0;
+    series.forEach((s) => {
+      const name = s.tagName || tagNameById[s.tagId] || s.tagId;
+      (s.buckets || []).forEach((b) => {
+        const ms = new Date(b.time).getTime();
+        if (!Number.isFinite(ms) || b.avg == null) return;
+        lastHistoricalMs = Math.max(lastHistoricalMs, ms);
+        const row = rows.get(ms) || { ms };
+        row[name] = b.avg;
+        rows.set(ms, row);
+      });
+    });
+
+    activeTags.forEach((t) => {
+      const name = t.last?.tag_name || t.last?.tag_id;
+      if (!name) return;
+      t.history.forEach((pt) => {
+        const ms = new Date(pt.t).getTime();
+        if (!Number.isFinite(ms) || ms <= lastHistoricalMs) return;
+        const row = rows.get(ms) || { ms };
+        row[name] = pt.v;
+        rows.set(ms, row);
+      });
+    });
+
+    return Array.from(rows.values()).sort((a, b) => a.ms - b.ms);
+  }, [aggregatesData, activeTags]);
 
   /* Uptime: counts seconds since connection opened. */
   const [uptime, setUptime] = useState(0);
@@ -620,12 +719,35 @@ export default function WebSocketTestPage() {
                     ))}
                   </div>
 
-                  {/* Chart - Real-time line graph */}
+                  {/* Chart - historical trend from /tag-values/aggregates,
+                      with the live WS tail appended on top */}
                   <div className="mt-6 pt-4 border-t border-white/10">
-                    <div className="mb-3">
-                      <SectionLabel>ТРЕНД ЗНАЧЕНИЙ</SectionLabel>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <SectionLabel>ТРЕНД ЗНАЧЕНИЙ</SectionLabel>
+                        {isLoadingAggregates && (
+                          <span className="text-[10px] text-slate-500 font-mono">
+                            загрузка истории…
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-0.5">
+                        {Object.entries(RANGE_META).map(([key, meta]) => (
+                          <button
+                            key={key}
+                            onClick={() => setRange(key)}
+                            className={`px-2.5 py-1 rounded font-mono font-semibold tracking-wide text-[10px] border transition ${
+                              range === key
+                                ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
+                                : "border-white/10 text-slate-500 hover:text-slate-300"
+                            }`}
+                          >
+                            {meta.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <RealTimeChart activeTags={activeTags} />
+                    <TrendChart series={trendSeries} tagNames={trendTagNames} />
                   </div>
                 </>
               )}
@@ -714,35 +836,17 @@ export default function WebSocketTestPage() {
 }
 
 /* ---------- Sub-components ----------------------------------------------- */
-function RealTimeChart({ activeTags }) {
-  const chartData = useMemo(() => {
-    if (!activeTags || activeTags.length === 0) return [];
+function TrendChart({ series, tagNames }) {
+  const chartData = useMemo(
+    () =>
+      series.map((row) => ({
+        ...row,
+        time: formatAxisTime(row.ms),
+      })),
+    [series],
+  );
 
-    const maxLen = Math.max(
-      ...activeTags.map((t) => t.history?.length || 0),
-      0,
-    );
-    if (maxLen === 0) return [];
-
-    const data = [];
-    for (let i = 0; i < maxLen; i++) {
-      const point = { time: i };
-      activeTags.forEach((tag) => {
-        const hist = tag.history;
-        const item = hist?.[i];
-        if (item) {
-          const key = tag.last?.tag_name || tag.last?.tag_id;
-          if (key) {
-            point[key] = item.v;
-          }
-        }
-      });
-      data.push(point);
-    }
-    return data;
-  }, [activeTags]);
-
-  if (!activeTags || activeTags.length === 0) {
+  if (!tagNames || tagNames.length === 0) {
     return null;
   }
 
@@ -771,20 +875,17 @@ function RealTimeChart({ activeTags }) {
             labelStyle={{ color: "#94a3b8" }}
           />
           <Legend />
-          {activeTags.map((tag) => {
-            const key = tag.last?.tag_name || tag.last?.tag_id;
-            if (!key) return null;
-            return (
-              <Line
-                key={key}
-                dataKey={key}
-                stroke={colorFor(key)}
-                dot={false}
-                strokeWidth={2}
-                isAnimationActive={false}
-              />
-            );
-          })}
+          {tagNames.map((key) => (
+            <Line
+              key={key}
+              dataKey={key}
+              stroke={colorFor(key)}
+              dot={false}
+              strokeWidth={2}
+              connectNulls
+              isAnimationActive={false}
+            />
+          ))}
         </LineChart>
       </ResponsiveContainer>
     </div>

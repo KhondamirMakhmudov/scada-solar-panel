@@ -38,6 +38,11 @@ interface BindingSectionProps {
   screenTagIds?: string[];
 }
 
+/** Same device resolution used everywhere a Tag needs to be traced to its owning device. */
+function resolveTagDeviceId(tag: Tag): string | null {
+  return tag.deviceId || get(tag, "device.id", "") || null;
+}
+
 /** Tag picker: binds this shape to a real SCADA tag so it reflects live WebSocket data (see ElementInstance/resolveVisual). Shows only the tags attached to THIS screen (chosen in the create/edit modal), grouped by "connection → device" so identically-named tags from different devices are distinguishable. */
 const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => {
   const { data: session } = useSession();
@@ -100,17 +105,21 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
     return allTags.filter((tag) => allowed.has(tag.id));
   }, [allTags, screenTagIds, screenHasTags, element.dataBinding?.tagId]);
 
+  const deviceById = useMemo(
+    () => new Map(devices.map((dev) => [dev.id, dev])),
+    [devices],
+  );
+  const connNameById = useMemo(
+    () => new Map(connections.map((conn) => [conn.id, conn.name || conn.id])),
+    [connections],
+  );
+
   // Группировка «Подключение → Устройство» для <optgroup>
   const groups: TagGroup[] = useMemo(() => {
-    const deviceById = new Map(devices.map((dev) => [dev.id, dev]));
-    const connNameById = new Map(
-      connections.map((conn) => [conn.id, conn.name || conn.id]),
-    );
-
     const byGroup = new Map<string, TagGroup>();
 
     for (const tag of availableTags) {
-      const deviceId = tag.deviceId || get(tag, "device.id", "") || null;
+      const deviceId = resolveTagDeviceId(tag);
       const device = deviceId ? deviceById.get(deviceId) : null;
       const connId = device?.connectionId || null;
 
@@ -127,7 +136,28 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
     }
 
     return [...byGroup.values()];
-  }, [availableTags, devices, connections]);
+  }, [availableTags, deviceById, connNameById]);
+
+  // Устройство основного тега — доп. теги ограничены им же (см. handleChange:
+  // при смене основного тега доп. теги другого устройства больше не выбрать
+  // заново, но уже сохранённые в документе остаются, пока их не уберут явно
+  // кнопкой ниже).
+  const primaryTag = element.dataBinding?.tagId
+    ? allTags.find((t) => t.id === element.dataBinding!.tagId)
+    : undefined;
+  const primaryDeviceId = primaryTag ? resolveTagDeviceId(primaryTag) : null;
+  const primaryDeviceLabel = primaryDeviceId
+    ? deviceById.get(primaryDeviceId)?.name || primaryDeviceId
+    : null;
+
+  // Если устройство основного тега не определить, не сужаем список —
+  // иначе доп. теги стало бы вообще нечем привязать.
+  const extraGroups = useMemo(() => {
+    if (!primaryDeviceId) return groups;
+    return groups.filter(
+      (group) => resolveTagDeviceId(group.tags[0]) === primaryDeviceId,
+    );
+  }, [groups, primaryDeviceId]);
 
   const handleChange = (tagId: string) => {
     if (!tagId) {
@@ -157,6 +187,29 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
       : [...extraBindings, { tagId: tag.id, tagName: tag.name ?? null }];
     commitImmediate(() =>
       updateElement(element.id, { extraBindings: next.length ? next : null }),
+    );
+  };
+
+  // Уже сохранённые доп. теги могли быть привязаны до того, как выбор
+  // ограничили устройством основного тега (или основной тег с тех пор
+  // сменился) — находим их, чтобы предложить явную очистку, а не тихо
+  // скрывать проблему.
+  const mismatchedExtraIds = primaryDeviceId
+    ? extraBindings
+        .filter((binding) => {
+          const tag = allTags.find((t) => t.id === binding.tagId);
+          const deviceId = tag ? resolveTagDeviceId(tag) : null;
+          return deviceId !== null && deviceId !== primaryDeviceId;
+        })
+        .map((binding) => binding.tagId)
+    : [];
+
+  const handleRemoveCrossDeviceExtras = () => {
+    const cleaned = extraBindings.filter(
+      (binding) => !mismatchedExtraIds.includes(binding.tagId),
+    );
+    commitImmediate(() =>
+      updateElement(element.id, { extraBindings: cleaned.length ? cleaned : null }),
     );
   };
 
@@ -200,8 +253,29 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
           <p className="text-[11px] uppercase tracking-wide text-slate-500 pt-1">
             Доп. теги ({extraBindings.length})
           </p>
+          {primaryDeviceLabel && (
+            <p className="text-[10px] text-slate-600">
+              Показаны только теги устройства «{primaryDeviceLabel}»
+            </p>
+          )}
+          {mismatchedExtraIds.length > 0 && (
+            <div className="rounded-md border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
+              <p className="text-[10px] text-amber-400">
+                ⚠ {mismatchedExtraIds.length} доп.{" "}
+                {mismatchedExtraIds.length === 1 ? "тег принадлежит" : "тега принадлежат"}{" "}
+                другому устройству
+              </p>
+              <button
+                type="button"
+                onClick={handleRemoveCrossDeviceExtras}
+                className="text-[10px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 transition-colors"
+              >
+                Убрать теги других устройств
+              </button>
+            </div>
+          )}
           <div className="max-h-40 overflow-y-auto rounded-md border border-slate-700/60 bg-slate-800/40">
-            {groups.map((group) => {
+            {extraGroups.map((group) => {
               const selectable = group.tags.filter(
                 (tag) => tag.id !== element.dataBinding?.tagId,
               );

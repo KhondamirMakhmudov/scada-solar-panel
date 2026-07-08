@@ -1,5 +1,5 @@
 import type { MnemonicElement, ShapeKind } from "../types";
-import type { TagValue } from "../store/runtimeStore";
+import type { ConnectionStatus, TagValue } from "../store/runtimeStore";
 
 function toBoolean(value: TagValue["value"]): boolean {
   if (typeof value === "boolean") return value;
@@ -39,7 +39,7 @@ const BOOLEAN_STATE_KEY: Partial<Record<ShapeKind, string>> = {
  * value" from the data-binding spec, minus the full no-code threshold/color
  * rule builder (deferred). Kinds without a mapping (sensor, transformer,
  * meter) are returned unchanged; the raw value still shows via
- * LiveValueLabel regardless.
+ * PanelInstance regardless.
  */
 export function applyLiveValueToElement(
   element: MnemonicElement,
@@ -75,4 +75,61 @@ export function applyLiveValueToElement(
   }
 
   return element;
+}
+
+export type LiveStatus = "ok" | "fault" | "stopped" | "unknown";
+
+export const LIVE_STATUS_COLORS: Record<LiveStatus, string> = {
+  ok: "#4ade80",
+  fault: "#f87171",
+  stopped: "#94a3b8",
+  unknown: "#94a3b8",
+};
+
+/**
+ * Kinds where a standardized status dot doesn't add anything: lamp already
+ * *is* a status light, gauge already shows a live numeric readout, and the
+ * rest have no on/off notion at all (text/image/building/freehand/basicShape/
+ * chart).
+ */
+const STATUS_DOT_EXCLUDED_KINDS = new Set<ShapeKind>([
+  "text",
+  "image",
+  "building",
+  "freehand",
+  "basicShape",
+  "chart",
+  "lamp",
+  "gauge",
+]);
+
+/**
+ * Standardized WinCC-style status dot color for a bound element — separate
+ * from applyLiveValueToElement's per-kind state merge (which drives shape
+ * geometry/animation), this only decides the small header LED. Unbound
+ * elements return null (no dot) so a screen mid-design doesn't get cluttered
+ * with meaningless indicators.
+ */
+export function deriveLiveStatus(
+  element: MnemonicElement,
+  live: TagValue | undefined,
+  wsStatus: ConnectionStatus,
+): LiveStatus | null {
+  if (STATUS_DOT_EXCLUDED_KINDS.has(element.type)) return null;
+  if (!element.dataBinding?.tagId) return null;
+
+  if (wsStatus !== "online") return "stopped";
+  if (!live) return "unknown";
+  if (live.isError) return "fault";
+
+  if (element.type === "inverter") {
+    return toBoolean(live.value) ? "ok" : "stopped";
+  }
+
+  const key = BOOLEAN_STATE_KEY[element.type];
+  if (key) {
+    return toBoolean(live.value) ? "ok" : "stopped";
+  }
+
+  return "ok";
 }

@@ -1,10 +1,11 @@
 import { memo, useMemo } from "react";
 import { useRouter } from "next/router";
 import ShapeRenderer from "../shapes/ShapeRenderer";
+import StatusDot from "../shapes/base/StatusDot";
 import { useDocumentStore } from "../store/documentStore";
+import { useRuntimeStore } from "../store/runtimeStore";
 import { useElementLiveValue } from "./useElementLiveValue";
-import { applyLiveValueToElement } from "./resolveVisual";
-import LiveValueLabel from "./LiveValueLabel";
+import { applyLiveValueToElement, deriveLiveStatus } from "./resolveVisual";
 
 interface RuntimeElementProps {
   elementId: string;
@@ -22,10 +23,15 @@ const RuntimeElement = memo(({ elementId }: RuntimeElementProps) => {
     state.document.elements.find((el) => el.id === elementId),
   );
   const live = useElementLiveValue(element?.dataBinding?.tagId);
+  const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
 
   const displayElement = useMemo(
     () => (element ? applyLiveValueToElement(element, live) : element),
     [element, live],
+  );
+  const liveStatus = useMemo(
+    () => (element ? deriveLiveStatus(element, live, connectionStatus) : null),
+    [element, live, connectionStatus],
   );
 
   if (!element || !displayElement) return null;
@@ -47,7 +53,7 @@ const RuntimeElement = memo(({ elementId }: RuntimeElementProps) => {
       ) : (
         shape
       )}
-      <LiveValueLabel element={element} />
+      {liveStatus && <StatusDot cx={element.x + 8} cy={element.y - 2} status={liveStatus} />}
     </>
   );
 });

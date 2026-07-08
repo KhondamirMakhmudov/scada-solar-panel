@@ -22,6 +22,7 @@ const SHAPE_KINDS = [
   "building",
   "freehand",
   "basicShape",
+  "chart",
 ] as const;
 
 const elementStyleSchema = z.object({
