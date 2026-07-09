@@ -2,7 +2,6 @@ import { Typography, IconButton } from "@mui/material";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import MenuOpenRoundedIcon from "@mui/icons-material/MenuOpenRounded";
 import { useState, useEffect } from "react";
-import BackendStatusIndicator from "@/components/dashboard/backendStatus";
 
 const MainContentHeader = ({ children, toggleSidebar, isSidebarOpen }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -62,8 +61,6 @@ const MainContentHeader = ({ children, toggleSidebar, isSidebarOpen }) => {
           {children}
         </Typography>
       </div>
-
-      <BackendStatusIndicator />
     </div>
   );
 };

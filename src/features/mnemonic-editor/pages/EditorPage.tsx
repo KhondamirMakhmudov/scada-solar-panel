@@ -8,6 +8,7 @@ import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import { requestScreens } from "@/services/api";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 
 import { useDocumentStore } from "../store/documentStore";
 import { useUiStore } from "../store/uiStore";
@@ -102,7 +103,8 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
       return true;
     } catch (error) {
       toast.error(
-        get(error, "response.data.message", "Ошибка сохранения схемы") as string,
+        (translateApiError(get(error, "response.data.message")) as string) ||
+          "Ошибка сохранения схемы",
       );
       return false;
     }

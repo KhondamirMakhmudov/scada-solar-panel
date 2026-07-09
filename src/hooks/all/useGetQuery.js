@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { requestPython } from "@/services/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 
 const useGetQuery = ({
   key = "get-all",
@@ -49,7 +50,7 @@ const useGetQuery = ({
     else if (status >= 500 && redirectOn500) {
       router.replace("/500");
     } else if (showErrorMsg) {
-      toast.error(error?.response?.data?.message || "Ошибка запроса");
+      toast.error(translateApiError(error?.response?.data?.message) || "Ошибка запроса");
     }
   }
 

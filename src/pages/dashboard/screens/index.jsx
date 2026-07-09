@@ -38,6 +38,8 @@ import {
 } from "@/components/button";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
+import { hasPermission } from "@/constants/permissions";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
@@ -336,7 +338,17 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
   );
 };
 
-const ScreenCard = ({ screen, onOpen, onOpenRuntime, onView, onEdit, onDelete }) => (
+const ScreenCard = ({
+  screen,
+  onOpen,
+  onOpenRuntime,
+  onView,
+  onEdit,
+  onDelete,
+  canRead,
+  canUpdate,
+  canDelete,
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -374,11 +386,11 @@ const ScreenCard = ({ screen, onOpen, onOpenRuntime, onView, onEdit, onDelete })
 
     <div className="mt-4 pt-4 border-t border-slate-700/60">
       <ActionButtonGroup>
-        <DiagramButton onClick={onOpen} tooltip="Открыть схему" />
-        <PreviewButton onClick={onOpenRuntime} tooltip="Открыть просмотр" />
-        <EyeButton onClick={onView} tooltip="Детали экрана" />
-        <EditButton onClick={onEdit} tooltip="Изменить экран" />
-        <DeleteButton onClick={onDelete} tooltip="Удалить экран" />
+        {canUpdate && <DiagramButton onClick={onOpen} tooltip="Открыть схему" />}
+        {canRead && <PreviewButton onClick={onOpenRuntime} tooltip="Открыть просмотр" />}
+        {canRead && <EyeButton onClick={onView} tooltip="Детали экрана" />}
+        {canUpdate && <EditButton onClick={onEdit} tooltip="Изменить экран" />}
+        {canDelete && <DeleteButton onClick={onDelete} tooltip="Удалить экран" />}
       </ActionButtonGroup>
     </div>
   </motion.div>
@@ -413,6 +425,15 @@ const Index = () => {
   const authHeaders = session?.accessToken
     ? { Authorization: `Bearer ${session.accessToken}` }
     : {};
+
+  // Мелкогранулярный доступ к действиям на этой странице (см.
+  // constants/permissions.js) — отдельно от доступа к самой странице
+  // (тот проверяется по ролям в Layout через routeAccess.js).
+  const permissions = session?.user?.permissions || [];
+  const canCreateScreen = hasPermission(permissions, "scada_storage", "create");
+  const canUpdateScreen = hasPermission(permissions, "scada_storage", "update");
+  const canDeleteScreen = hasPermission(permissions, "scada_storage", "delete");
+  const canReadScreen = hasPermission(permissions, "scada_storage", ["read", "all-read"]);
 
   const {
     data: screensResp,
@@ -628,7 +649,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(error, "response.data.message", "Ошибка создания экрана"),
+            translateApiError(get(error, "response.data.message")) ||
+              "Ошибка создания экрана",
           );
         },
       },
@@ -660,7 +682,8 @@ const Index = () => {
       setEditErrors({});
     } catch (error) {
       toast.error(
-        get(error, "response.data.message", "Ошибка обновления экрана"),
+        translateApiError(get(error, "response.data.message")) ||
+          "Ошибка обновления экрана",
       );
     } finally {
       setIsUpdating(false);
@@ -687,7 +710,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(error, "response.data.message", "Ошибка удаления экрана"),
+            translateApiError(get(error, "response.data.message")) ||
+              "Ошибка удаления экрана",
           );
         },
       },
@@ -813,26 +837,36 @@ const Index = () => {
       header: "Действия",
       cell: ({ row }) => (
         <ActionButtonGroup>
-          <DiagramButton
-            onClick={() => openDiagram(row.original)}
-            tooltip="Открыть схему"
-          />
-          <PreviewButton
-            onClick={() => openRuntime(row.original)}
-            tooltip="Открыть просмотр"
-          />
-          <EyeButton
-            onClick={() => openViewModal(row.original)}
-            tooltip="Детали экрана"
-          />
-          <EditButton
-            onClick={() => openEditModal(row.original)}
-            tooltip="Изменить экран"
-          />
-          <DeleteButton
-            onClick={() => openDeleteModal(row.original)}
-            tooltip="Удалить экран"
-          />
+          {canUpdateScreen && (
+            <DiagramButton
+              onClick={() => openDiagram(row.original)}
+              tooltip="Открыть схему"
+            />
+          )}
+          {canReadScreen && (
+            <PreviewButton
+              onClick={() => openRuntime(row.original)}
+              tooltip="Открыть просмотр"
+            />
+          )}
+          {canReadScreen && (
+            <EyeButton
+              onClick={() => openViewModal(row.original)}
+              tooltip="Детали экрана"
+            />
+          )}
+          {canUpdateScreen && (
+            <EditButton
+              onClick={() => openEditModal(row.original)}
+              tooltip="Изменить экран"
+            />
+          )}
+          {canDeleteScreen && (
+            <DeleteButton
+              onClick={() => openDeleteModal(row.original)}
+              tooltip="Удалить экран"
+            />
+          )}
         </ActionButtonGroup>
       ),
       enableSorting: false,
@@ -870,26 +904,28 @@ const Index = () => {
               </p>
             </div>
 
-            <Button
-              onClick={() => {
-                resetCreateForm();
-                setShowCreateModal(true);
-              }}
-              startIcon={<Add />}
-              sx={{
-                height: "44px",
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 700,
-                color: "#00111f",
-                background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
-                "&:hover": {
-                  opacity: 0.9,
-                },
-              }}
-            >
-              Новый экран
-            </Button>
+            {canCreateScreen && (
+              <Button
+                onClick={() => {
+                  resetCreateForm();
+                  setShowCreateModal(true);
+                }}
+                startIcon={<Add />}
+                sx={{
+                  height: "44px",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: "#00111f",
+                  background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
+                  "&:hover": {
+                    opacity: 0.9,
+                  },
+                }}
+              >
+                Новый экран
+              </Button>
+            )}
           </div>
         </motion.div>
 
@@ -993,6 +1029,9 @@ const Index = () => {
                   onView={() => openViewModal(item)}
                   onEdit={() => openEditModal(item)}
                   onDelete={() => openDeleteModal(item)}
+                  canRead={canReadScreen}
+                  canUpdate={canUpdateScreen}
+                  canDelete={canDeleteScreen}
                 />
               ))}
             </div>

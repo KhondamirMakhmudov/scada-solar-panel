@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { requestPython } from "@/services/api";
 import { toast } from "react-hot-toast";
 import { isArray, get, forEach, isObject, values } from "lodash";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 
 const usePostQuery = ({
   hideSuccessToast = false,
@@ -42,7 +43,7 @@ const usePostQuery = ({
     onError: (data) => {
       if (isArray(get(data, "response.data"))) {
         forEach(get(data, "response.data"), (val) => {
-          toast.error(get(val, "message", "ERROR"));
+          toast.error(translateApiError(get(val, "message")) || "ERROR");
         });
       } else if (isObject(get(data, "response.data"))) {
         // Uncomment if needed
@@ -51,7 +52,7 @@ const usePostQuery = ({
         // });
       } else {
         if (!hideErrorToast) {
-          toast.error(data?.response?.data?.message || "ERROR");
+          toast.error(translateApiError(data?.response?.data?.message) || "ERROR");
         }
       }
     },

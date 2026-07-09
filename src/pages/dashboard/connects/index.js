@@ -8,6 +8,7 @@ import useGetQuery from "@/hooks/all/useGetQuery";
 import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
 import { requestPython } from "@/services/api";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
 import NoData from "@/components/no-data";
@@ -368,11 +369,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(
-              error,
-              "response.data.message",
+            translateApiError(get(error, "response.data.message")) ||
               "Ошибка при создании подключения",
-            ),
             DARK_TOAST_OPTIONS,
           );
         },
@@ -457,7 +455,7 @@ const Index = () => {
       handleCloseEditModal();
     } catch (error) {
       toast.error(
-        get(error, "response.data.message", "Ошибка обновления"),
+        translateApiError(get(error, "response.data.message")) || "Ошибка обновления",
         DARK_TOAST_OPTIONS,
       );
     } finally {
@@ -489,11 +487,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(
-              error,
-              "response.data.message",
+            translateApiError(get(error, "response.data.message")) ||
               "Ошибка при удалении подключения",
-            ),
             DARK_TOAST_OPTIONS,
           );
         },

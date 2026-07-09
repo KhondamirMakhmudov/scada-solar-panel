@@ -1,6 +1,7 @@
 import { toast } from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { requestPython } from "../../services/api"; // kerakli path bo'yicha moslashtir
+import { translateApiError } from "@/lib/apiErrorTranslation";
 
 // PUT so‘rovni yuboruvchi funksiya
 const putRequest = (url, attributes, config = {}) =>
@@ -33,7 +34,7 @@ const usePutQuery = ({
       },
       onError: (data) => {
         if (!hideErrorToast) {
-          toast.error(data?.response?.data?.message || "ERROR");
+          toast.error(translateApiError(data?.response?.data?.message) || "ERROR");
         }
       },
     }

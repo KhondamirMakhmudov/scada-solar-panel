@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { translateApiError } from "@/lib/apiErrorTranslation";
 import {
   Add,
   ElectricBolt,
@@ -508,7 +509,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(error, "response.data.message", "Ошибка создания тега"),
+            translateApiError(get(error, "response.data.message")) ||
+              "Ошибка создания тега",
           );
         },
       },
@@ -546,7 +548,8 @@ const Index = () => {
       setEditErrors({});
     } catch (error) {
       toast.error(
-        get(error, "response.data.message", "Ошибка обновления тега"),
+        translateApiError(get(error, "response.data.message")) ||
+          "Ошибка обновления тега",
       );
     } finally {
       setIsUpdating(false);
@@ -579,7 +582,8 @@ const Index = () => {
         },
         onError: (error) => {
           toast.error(
-            get(error, "response.data.message", "Ошибка удаления тега"),
+            translateApiError(get(error, "response.data.message")) ||
+              "Ошибка удаления тега",
           );
         },
       },
