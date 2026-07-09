@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Brand from "@/components/brand";
@@ -12,6 +12,7 @@ import {
   saveAccount,
   removeSavedAccount,
 } from "@/lib/savedAccounts";
+import { getFirstAccessiblePath } from "@/constants/routeAccess";
 
 export default function Home() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function Home() {
   };
 
   const handleEnter = () => {
-    router.push("/dashboard/main");
+    router.push(getFirstAccessiblePath(session?.user?.roles));
   };
 
   const handleExit = async () => {
@@ -76,7 +77,10 @@ export default function Home() {
 
       if (result?.ok) {
         setSavedAccounts(saveAccount(username, password));
-        router.push("/dashboard/main");
+        // Роли появляются только в свежей сессии — берём её и ведём
+        // пользователя на первую доступную ему страницу
+        const freshSession = await getSession();
+        router.push(getFirstAccessiblePath(freshSession?.user?.roles));
       }
     } catch (error) {
       console.error("Ошибка входа:", error);

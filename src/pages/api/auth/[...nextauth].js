@@ -117,72 +117,17 @@ function isAdmin(rolesArray) {
   });
 }
 
-// ==== Настройки повторных попыток обновления токена ====
-// Бэкенд (app.tpp.uz) глобально инвалидирует refresh-токен во всех
-// проектах при параллельном логине одного аккаунта (ies-dashboard,
-// secure-monitor, secure-monitor-fer, employee-permission и т.д.).
-// Поэтому первая неудача — не всегда "токен реально умер": часто это
-// временная коллизия с обновлением в другом проекте. Даём бэкенду
-// несколько попыток, прежде чем окончательно считать сессию мёртвой.
-const REFRESH_MAX_ATTEMPTS = 3; // 1 обычная попытка + 2 повторные
-const REFRESH_RETRY_DELAY_MS = 2500; // пауза между попытками, мс
-
-// Короткий TTL блокировки: она нужна только чтобы схлопнуть несколько
-// ПАРАЛЛЕЛЬНЫХ вызовов jwt-колбэка в один запрос к бэкенду, а не чтобы
-// кэшировать результат надолго — иначе повторная попытка через
-// useSession().update() на клиенте (см. _app.js) просто получит старую
-// закэшированную ошибку без реального нового обращения к бэкенду.
-const REFRESH_LOCK_TTL_MS = 2000;
+// Короткий TTL блокировки — схлопывает несколько ПАРАЛЛЕЛЬНЫХ вызовов
+// jwt-колбэка в один запрос к бэкенду.
+const REFRESH_LOCK_TTL_MS = 15000;
 
 const refreshLocks = new Map();
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Один HTTP-запрос на обновление токена к app.tpp.uz
-async function requestTokenRefresh(refreshToken) {
-  const response = await fetch(
-    `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:refresh`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-        "Content-Type": "application/json",
-      },
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    return { ok: false, status: response.status, errorText };
-  }
-
-  const body = await response.json();
-  return { ok: true, data: body.data };
-}
-
-// Классифицируем причину неудачи, чтобы отличить "реально истёк по
-// времени" (>10 дней, signOut оправдан) от "инвалидирован параллельным
-// логином в другом проекте" (стоит попробовать ещё раз позже).
-//
-// ВАЖНО: это эвристика по HTTP-статусу и тексту ответа. Если бэкенд
-// начнёт отдавать явный код/поле для "инвалидирован другим логином" —
-// замените проверку text.includes(...) на разбор этого поля.
-function classifyRefreshFailure({ status, errorText }) {
-  const text = (errorText || "").toLowerCase();
-
-  if (text.includes("expired")) {
-    return "RefreshTokenExpired";
-  }
-
-  if (status === 401 || text.includes("invalid") || text.includes("revoked")) {
-    return "RefreshTokenInvalidated";
-  }
-
-  return "RefreshAccessTokenError";
-}
-
+// Один HTTP-запрос на обновление токена к app.tpp.uz — без внутренних
+// повторов: если бэкенд отказал, jwt-колбэк просто помечает токен ошибкой
+// и не пробует снова, пока пользователь не залогинится заново (см. guard
+// `if (token.error) return token;` ниже — это то, что реально останавливает
+// цикл, а не количество попыток здесь).
 async function refreshAccessToken(token) {
   const lockKey = token.refreshToken;
 
@@ -200,132 +145,77 @@ async function refreshAccessToken(token) {
   try {
     console.log("=== НАЧАЛО ОБНОВЛЕНИЯ ТОКЕНА ===");
 
-    if (!token.refreshToken) {
-      throw Object.assign(new Error("Отсутствует refresh-токен"), {
-        classification: "RefreshTokenExpired",
-      });
-    }
+    if (!token.refreshToken) throw new Error("Отсутствует refresh-токен");
 
-    // Локальная проверка по exp — если refresh-токен реально истёк по
-    // времени, повторные попытки к бэкенду бессмысленны, фейлимся сразу.
     const decodedRefresh = decodeJWT(token.refreshToken);
     if (decodedRefresh?.exp && decodedRefresh.exp * 1000 < Date.now()) {
-      throw Object.assign(new Error("Refresh-токен истёк по времени (exp в прошлом)"), {
-        classification: "RefreshTokenExpired",
-      });
+      throw new Error("RefreshTokenExpired");
     }
 
-    let lastFailure = null;
-
-    for (let attempt = 1; attempt <= REFRESH_MAX_ATTEMPTS; attempt += 1) {
-      console.log(`Попытка обновления токена ${attempt}/${REFRESH_MAX_ATTEMPTS}...`);
-
-      let result;
-      try {
-        result = await requestTokenRefresh(token.refreshToken);
-      } catch (networkError) {
-        result = { ok: false, status: null, errorText: networkError.message };
-      }
-
-      if (result.ok) {
-        const tokens = result.data;
-
-        if (!tokens?.accessToken) {
-          lastFailure = { status: null, errorText: "В ответе нет accessToken" };
-          console.error(`Попытка ${attempt}: ответ без accessToken`);
-        } else {
-          const newDecoded = decodeJWT(tokens.accessToken);
-
-          if (!newDecoded || !newDecoded.exp) {
-            lastFailure = { status: null, errorText: "Некорректный accessToken в ответе" };
-            console.error(`Попытка ${attempt}: некорректный accessToken`);
-          } else {
-            const accessTokenExpires = newDecoded.exp * 1000;
-            console.log(
-              `Новый токен истекает через ${Math.floor((accessTokenExpires - Date.now()) / 1000)} сек`,
-            );
-
-            const userDetails = await fetchUserDetails(tokens.accessToken);
-            const sanitizedRoles = sanitizeRoles(userDetails?.roles || []);
-
-            const newDecodedRefresh = decodeJWT(
-              tokens.refreshToken ?? token.refreshToken,
-            );
-            const refreshTokenExpires = newDecodedRefresh?.exp
-              ? newDecodedRefresh.exp * 1000
-              : token.refreshTokenExpires;
-
-            const newToken = {
-              ...token,
-              accessToken: tokens.accessToken,
-              refreshToken: tokens.refreshToken ?? token.refreshToken,
-              tokenType: tokens.tokenType || token.tokenType || "Bearer",
-              accessTokenExpires,
-              refreshTokenExpires,
-              userData: {
-                username: newDecoded.username,
-                employee_id: newDecoded.employeeId,
-                unit_code: newDecoded.unitCode,
-              },
-              rolesDetail: sanitizedRoles,
-              error: undefined,
-            };
-
-            console.log(
-              `=== ТОКЕН УСПЕШНО ОБНОВЛЁН ===${attempt > 1 ? ` (с попытки ${attempt})` : ""}`,
-            );
-
-            // Успех — на все случаи error нет
-            resolveLock(newToken);
-            return newToken;
-          }
-        }
-      } else {
-        lastFailure = result;
-        console.error(
-          `Попытка ${attempt}/${REFRESH_MAX_ATTEMPTS} не удалась: статус=${result.status}, ответ=${result.errorText}`,
-        );
-      }
-
-      if (attempt < REFRESH_MAX_ATTEMPTS) {
-        console.log(`Пауза ${REFRESH_RETRY_DELAY_MS}мс перед повторной попыткой...`);
-        await wait(REFRESH_RETRY_DELAY_MS);
-      }
-    }
-
-    // Все попытки исчерпаны — классифицируем финальную ошибку
-    const classification = classifyRefreshFailure({
-      status: lastFailure?.status,
-      errorText: lastFailure?.errorText,
-    });
-
-    throw Object.assign(
-      new Error(`Обновление токена не удалось после ${REFRESH_MAX_ATTEMPTS} попыток`),
-      { classification },
+    const response = await fetch(
+      `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:refresh`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.refreshToken}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
-  } catch (error) {
-    const classification = error.classification || "RefreshAccessTokenError";
 
-    if (classification === "RefreshTokenExpired") {
-      console.error(
-        "=== ОБНОВЛЕНИЕ НЕ УДАЛОСЬ: refresh-токен истёк по времени (>10 дней) — выход из системы оправдан ===",
-      );
-    } else if (classification === "RefreshTokenInvalidated") {
-      console.error(
-        "=== ОБНОВЛЕНИЕ НЕ УДАЛОСЬ: похоже, токен инвалидирован параллельным логином в другом проекте (ies-dashboard / secure-monitor / secure-monitor-fer / employee-permission) ===",
-      );
-    } else {
-      console.error(
-        "=== ОБНОВЛЕНИЕ НЕ УДАЛОСЬ: техническая ошибка ===",
-        error.message,
-      );
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Обновление токена не удалось:", response.status, errorText);
+      if (response.status === 401) throw new Error("RefreshTokenExpired");
+      throw new Error(`Обновление не удалось: ${response.status}`);
     }
 
-    const errorToken = {
+    const refreshedTokens = await response.json();
+    const tokens = refreshedTokens.data;
+
+    if (!tokens?.accessToken) throw new Error("В ответе нет accessToken");
+
+    const newDecoded = decodeJWT(tokens.accessToken);
+    if (!newDecoded || !newDecoded.exp) throw new Error("Некорректный accessToken в ответе");
+
+    const accessTokenExpires = newDecoded.exp * 1000;
+    console.log(
+      `Новый токен истекает через ${Math.floor((accessTokenExpires - Date.now()) / 1000)} сек`,
+    );
+
+    const userDetails = await fetchUserDetails(tokens.accessToken);
+    const sanitizedRoles = sanitizeRoles(userDetails?.roles || []);
+
+    const newDecodedRefresh = decodeJWT(tokens.refreshToken ?? token.refreshToken);
+    const refreshTokenExpires = newDecodedRefresh?.exp
+      ? newDecodedRefresh.exp * 1000
+      : token.refreshTokenExpires;
+
+    const newToken = {
       ...token,
-      error: classification,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken ?? token.refreshToken,
+      tokenType: tokens.tokenType || token.tokenType || "Bearer",
+      accessTokenExpires,
+      refreshTokenExpires,
+      userData: {
+        username: newDecoded.username,
+        employee_id: newDecoded.employeeId,
+        unit_code: newDecoded.unitCode,
+      },
+      rolesDetail: sanitizedRoles,
+      error: undefined,
     };
 
+    resolveLock(newToken);
+    return newToken;
+  } catch (error) {
+    console.error("=== ОБНОВЛЕНИЕ ТОКЕНА НЕ УДАЛОСЬ ===", error.message);
+    const isExpired = error.message === "RefreshTokenExpired";
+    const errorToken = {
+      ...token,
+      error: isExpired ? "RefreshTokenExpired" : "RefreshAccessTokenError",
+    };
     resolveLock(errorToken);
     return errorToken;
   } finally {
@@ -423,7 +313,7 @@ export const authOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user }) {
       // Начальное создание токена сразу после логина
       if (user) {
         console.log("=== СОЗДАНИЕ НАЧАЛЬНОГО JWT ===", user.name);
@@ -444,26 +334,14 @@ export const authOptions = {
         return { ...token, error: "NoAccessToken" };
       }
 
-      // trigger === "update" — это явный ручной повтор, который делает
-      // SessionErrorHandler через useSession().update() в _app.js после
-      // "мягкой" ошибки. В этом случае разрешаем повторную попытку даже
-      // если формально ещё рано или уже была ошибка.
-      const isManualRetry = trigger === "update";
-
-      // Токен истёк по времени окончательно — бэкенд тут не поможет,
-      // просто отдаём как есть. Разлогин делает SessionErrorHandler.
-      if (token.error === "RefreshTokenExpired") {
-        return token;
-      }
-
-      // Уже была "мягкая" ошибка (коллизия с другим проектом / временный
-      // сбой сети). Не долбим бэкенд на каждый ре-рендер/поллинг сессии —
-      // ждём явного запроса на обновление через update().
-      const hasSoftError =
-        token.error === "RefreshTokenInvalidated" ||
-        token.error === "RefreshAccessTokenError";
-
-      if (hasSoftError && !isManualRetry) {
+      // Уже есть незакрытая ошибка от предыдущей попытки обновления — не
+      // повторяем обновление на каждой проверке сессии. Это и есть фикс
+      // бесконечного цикла: без этой проверки каждый /api/auth/session
+      // снова пытался бы обновить токен, снова получал ошибку и снова
+      // разлогинивал через SessionErrorHandler — цикл без остановки.
+      // SessionErrorHandler на клиенте разлогинит пользователя на
+      // следующем рендере; новую попытку обновления даст только новый вход.
+      if (token.error) {
         return token;
       }
 
@@ -476,18 +354,13 @@ export const authOptions = {
       const secondsUntilExpiry = Math.floor(
         (token.accessTokenExpires - now) / 1000,
       );
+      console.log(`JWT callback: токен истекает через ${secondsUntilExpiry} сек`);
 
-      if (secondsUntilExpiry >= 60 && !isManualRetry) {
-        console.log(`JWT callback: токен ещё жив ${secondsUntilExpiry} сек, обновление не требуется`);
+      if (secondsUntilExpiry >= 60) {
         return token;
       }
 
-      console.log(
-        isManualRetry
-          ? "=== ПОВТОРНАЯ ПОПЫТКА ОБНОВЛЕНИЯ (запрошена вручную через update()) ==="
-          : "=== ТРЕБУЕТСЯ ПЛАНОВОЕ ОБНОВЛЕНИЕ ТОКЕНА ===",
-      );
-
+      console.log("=== ТРЕБУЕТСЯ ОБНОВЛЕНИЕ ТОКЕНА ===");
       return await refreshAccessToken(token);
     },
 
@@ -499,10 +372,9 @@ export const authOptions = {
         return { ...session, error: "RefreshTokenExpired", user: null };
       }
 
-      // "Мягкие" ошибки (RefreshTokenInvalidated / RefreshAccessTokenError)
-      // не обнуляем пользователя сразу — оставляем последние известные
-      // данные сессии, чтобы интерфейс не мигал пустым состоянием, пока
-      // SessionErrorHandler тихо пробует восстановить сессию через update().
+      // RefreshAccessTokenError — не обнуляем пользователя сразу, оставляем
+      // последние известные данные сессии, чтобы интерфейс не мигал пустым
+      // состоянием на тот единственный рендер до signOut() в SessionErrorHandler.
       if (token.error) {
         session.error = token.error;
       }

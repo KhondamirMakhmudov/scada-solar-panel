@@ -47,26 +47,46 @@ export const ROUTE_ACCESS_RULES = [
     prefix: "/dashboard/test",
     roles: ["admin", "super_admin"],
   },
-  // --- Операторские страницы: просмотр разрешён и роли user ---
+  // --- Операторские страницы: просмотр разрешён и операторским ролям ---
   {
     prefix: "/dashboard/screens",
-    roles: ["admin", "super_admin", "user"],
+    roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
     prefix: "/dashboard/solar",
-    roles: ["admin", "super_admin", "user"],
+    roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
     prefix: "/dashboard/eco-system-stations",
-    roles: ["admin", "super_admin", "user"],
+    roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
     prefix: "/dashboard/settings",
-    roles: ["admin", "super_admin", "user"],
+    roles: ["admin", "super_admin", "user", "scada-user"],
   },
-  // "/dashboard/main" намеренно без правила — это цель редиректа при отказе
-  // в доступе, ограничивать её нельзя (получится цикл).
+  // "/dashboard/main" намеренно без правила — это последний запасной адрес
+  // редиректа, ограничивать его нельзя (получится цикл).
 ];
+
+// Упорядоченный список разделов для выбора «первой доступной страницы»
+// после входа (и при отказе в доступе). Роли должны совпадать с пунктами
+// меню в sidebar.jsx.
+export const NAVIGATION_PRIORITY = [
+  { path: "/dashboard/main", roles: ["admin", "super_admin", "user"] },
+  { path: "/dashboard/screens", roles: ["admin", "super_admin", "user", "scada-user"] },
+  { path: "/dashboard/connects", roles: ["admin", "super_admin"] },
+  { path: "/dashboard/devices", roles: ["admin", "super_admin"] },
+  { path: "/dashboard/tags", roles: ["admin", "super_admin"] },
+];
+
+/** Первая страница, доступная пользователю с данными ролями — сюда ведём
+ * после логина и при отказе в доступе к разделу. */
+export function getFirstAccessiblePath(userRoles) {
+  const entry = NAVIGATION_PRIORITY.find((item) =>
+    hasRequiredRole(item.roles, userRoles),
+  );
+  return entry ? entry.path : "/dashboard/main";
+}
 
 /** Роль подходит, если список правила пуст/отсутствует или есть пересечение (без учёта регистра) */
 export function hasRequiredRole(requiredRoles, userRoles) {

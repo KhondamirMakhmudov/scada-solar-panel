@@ -13,88 +13,31 @@ import "@/styles/loader.css";
 
 import Layout from "@/components/layout";
 
-// Обработчик ошибок сессии next-auth.
+// Обработчик ошибок сессии next-auth: если jwt-колбэк на сервере не смог
+// обновить access-токен (см. [...nextauth].js), сессия приходит с
+// session.error — разлогиниваем сразу.
 //
-// Бэкенд (app.tpp.uz) глобально инвалидирует refresh-токен во всех
-// проектах при параллельном логине одного и того же аккаунта
-// (ies-dashboard, secure-monitor, secure-monitor-fer, employee-permission).
-// Это backend-ограничение, которое в ближайшее время не починят, поэтому
-// на фронте различаем два случая:
-//
-// 1. token.error === "RefreshTokenExpired" — refresh-токен реально истёк
-//    по времени (>10 дней). Тут выход из системы оправдан, делаем его
-//    сразу.
-// 2. token.error === "RefreshTokenInvalidated" / "RefreshAccessTokenError"
-//    — "мягкая" ошибка, вероятно коллизия с другим проектом или временный
-//    сбой сети. Не выкидываем пользователя сразу: один раз тихо пробуем
-//    обновить сессию через useSession().update() (это ещё раз прогоняет
-//    jwt-колбэк на сервере с несколькими внутренними retry-попытками) и
-//    только если ошибка сохранилась — выходим из системы.
+// isSigningOutRef — не косметика, а фикс реального бага: без него, если
+// signOut() не успевает довести до конца свой редирект/размонтирование
+// раньше, чем эффект перезапустится (сессия/провайдер могут переотрисовать
+// несколько раз подряд), signOut() вызывается повторно — это и была причина
+// "бесконечного цикла" в логине (пачки session/csrf запросов без остановки).
 function SessionErrorHandler() {
-  const { data: session, update } = useSession();
-
-  // Защита от одновременных/повторных вызовов signOut()
+  const { data: session } = useSession();
   const isSigningOutRef = useRef(false);
-  // Защита от повторного запуска update(), пока предыдущая попытка не завершилась
-  const isRetryingRef = useRef(false);
 
   useEffect(() => {
-    const error = session?.error;
+    if (isSigningOutRef.current) return;
 
-    if (!error || isSigningOutRef.current) {
-      return undefined;
-    }
-
-    const doSignOut = (reason) => {
-      if (isSigningOutRef.current) return;
+    if (
+      session?.error === "RefreshAccessTokenError" ||
+      session?.error === "RefreshTokenExpired"
+    ) {
       isSigningOutRef.current = true;
-      console.error(`[Auth] Выход из системы: ${reason}`);
+      console.error(`[Auth] Выход из системы: ${session.error}`);
       signOut({ callbackUrl: "/" });
-    };
-
-    // Случай 1: токен истёк по времени — мягкость тут неуместна
-    if (error === "RefreshTokenExpired") {
-      doSignOut("refresh-токен истёк по времени (>10 дней)");
-      return undefined;
     }
-
-    // Случай 2: "мягкая" ошибка — пробуем один раз тихо восстановиться
-    if (isRetryingRef.current) {
-      return undefined;
-    }
-    isRetryingRef.current = true;
-
-    console.warn(
-      `[Auth] Мягкая ошибка сессии (${error}) — вероятно, коллизия с логином в другом проекте. Пробуем тихое восстановление...`,
-    );
-
-    let cancelled = false;
-
-    update()
-      .then((refreshed) => {
-        if (cancelled) return;
-
-        if (refreshed?.error) {
-          doSignOut(
-            `тихое восстановление не помогло, ошибка сохранилась (${refreshed.error})`,
-          );
-        } else {
-          console.log("[Auth] Сессия восстановлена без выхода из системы");
-        }
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error("[Auth] Исключение при тихом обновлении сессии:", err);
-        doSignOut("исключение при попытке тихого обновления сессии");
-      })
-      .finally(() => {
-        isRetryingRef.current = false;
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session?.error, update]);
+  }, [session]);
 
   return null;
 }
