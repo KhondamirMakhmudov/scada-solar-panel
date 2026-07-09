@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import { List, ListItemButton, ListItemIcon, Typography } from "@mui/material";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
@@ -24,37 +24,47 @@ import { get } from "lodash";
 import Brand from "@/components/brand";
 import storage from "@/services/storage";
 import { SAVED_ACCOUNTS_KEY } from "@/lib/savedAccounts";
+import { hasRequiredRole } from "@/constants/routeAccess";
 
+// Роли каждого пункта заданы статически. Держите в согласии с
+// ROUTE_ACCESS_RULES (src/constants/routeAccess.js): скрытие пункта — только
+// косметика, реальный доступ к URL закрывает Layout по тем же правилам.
 const menuItems = [
   {
     text: "Главная",
     icon: <HomeRoundedIcon fontSize="medium" />,
     path: "/dashboard/main",
+    roles: ["admin", "super_admin", "user"],
   },
   {
     text: "Подключения",
     icon: <HubRoundedIcon fontSize="medium" />,
     path: "/dashboard/connects",
+    roles: ["admin", "super_admin"],
   },
   {
     text: "Устройства",
     icon: <MemoryRoundedIcon fontSize="medium" />,
     path: "/dashboard/devices",
+    roles: ["admin", "super_admin"],
   },
   {
     text: "Теги",
     icon: <WbSunnyRoundedIcon fontSize="medium" />,
     path: "/dashboard/tags",
+    roles: ["admin", "super_admin"],
   },
   {
     text: "Экраны",
     icon: <HubRoundedIcon fontSize="medium" />,
     path: "/dashboard/screens",
+    roles: ["admin", "super_admin", "scada-user"],
   },
   {
     text: "Тест WebSocket",
     icon: <HubRoundedIcon fontSize="medium" />,
     path: "/dashboard/test/websocket",
+    roles: ["admin", "super_admin"],
   },
 ];
 
@@ -79,9 +89,32 @@ export default function Sidebar({ isOpen = true }) {
     enabled: !!session?.accessToken,
   });
 
+  // Filter the static menu by the session's roles — an item/submenu entry
+  // with no `roles` array is visible to any authenticated role; a parent
+  // with a submenu is only kept if at least one child survives filtering.
+  const filteredMenuItems = useMemo(() => {
+    const userRoles = session?.user?.roles || [];
+    if (!Array.isArray(userRoles) || userRoles.length === 0) return [];
+
+    return menuItems
+      .filter((item) => hasRequiredRole(item.roles, userRoles))
+      .map((item) => {
+        if (item.submenu) {
+          const filteredSubmenu = item.submenu.filter((sub) =>
+            hasRequiredRole(sub.roles, userRoles),
+          );
+          return filteredSubmenu.length > 0
+            ? { ...item, submenu: filteredSubmenu }
+            : null;
+        }
+        return item;
+      })
+      .filter(Boolean);
+  }, [session?.user?.roles]);
+
   // active submenu bo'lsa parentni ochiq qilib qo'yish
   useEffect(() => {
-    menuItems.forEach((item, index) => {
+    filteredMenuItems.forEach((item, index) => {
       if (item.submenu?.some((sub) => router.pathname === sub.path)) {
         setOpenSubmenus((prev) => ({
           ...prev,
@@ -89,7 +122,7 @@ export default function Sidebar({ isOpen = true }) {
         }));
       }
     });
-  }, [router.pathname]);
+  }, [filteredMenuItems, router.pathname]);
 
   const handleToggleSubmenu = (index) => {
     setOpenSubmenus((prev) => ({
@@ -166,7 +199,7 @@ export default function Sidebar({ isOpen = true }) {
 
         {/* MENU */}
         <List className="space-y-1">
-          {menuItems.map((item, index) => {
+          {filteredMenuItems.map((item, index) => {
             const isActive = router.pathname === item.path;
             const isAnySubmenuActive =
               item.submenu?.some((sub) => router.pathname === sub.path) ||
@@ -326,6 +359,12 @@ export default function Sidebar({ isOpen = true }) {
             );
           })}
         </List>
+
+        {filteredMenuItems.length === 0 && isOpen && (
+          <p className="text-center text-sm text-[#6b7280] italic py-6">
+            Нет доступных пунктов меню
+          </p>
+        )}
       </div>
 
       {/* USER PROFILE & LOGOUT */}
