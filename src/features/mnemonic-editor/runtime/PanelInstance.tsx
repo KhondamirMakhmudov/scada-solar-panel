@@ -4,6 +4,7 @@ import type { MnemonicElement, DataBinding } from "../types";
 import type { TagValue } from "../store/runtimeStore";
 import { useRuntimeStore } from "../store/runtimeStore";
 import type { PanelSlot } from "../lib/panelLayout";
+import { useTagValueMaps } from "../hooks/useTagValueMaps";
 
 interface PanelInstanceProps {
   element: MnemonicElement;
@@ -38,13 +39,22 @@ interface Row {
   isError: boolean;
 }
 
-function buildRow(binding: DataBinding, live: TagValue | undefined): Row {
+function buildRow(binding: DataBinding, live: TagValue | undefined, valueMap: Record<string, string> | undefined): Row {
   const name = binding.tagName ? formatTagLabelShort(binding.tagName) : binding.tagId.slice(0, 8);
 
   if (!live) return { name, value: "—", fill: "#64748b", isError: false };
   if (live.isError) {
     return { name, value: live.errorMessage || "ошибка", fill: "#f87171", isError: true };
   }
+
+  // Enum-style tags (e.g. status codes) get a backend-configured value_map —
+  // show the label ("Fault") instead of the raw code ("3") when the current
+  // value has a mapped entry.
+  const mappedLabel = valueMap ? valueMap[String(live.value)] : undefined;
+  if (mappedLabel !== undefined) {
+    return { name, value: mappedLabel, fill: "#4ade80", isError: false };
+  }
+
   return {
     name,
     value: `${formatValue(live.value)}${live.unit ? ` ${live.unit}` : ""}`,
@@ -74,6 +84,7 @@ const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
     (state) => bindings.map((binding) => state.values[binding.tagId]),
     shallow,
   );
+  const valueMaps = useTagValueMaps();
 
   if (!bindings.length || !slot) return null;
 
@@ -85,7 +96,7 @@ const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
   const monoCharW = fontSize * 0.64;
 
   const rows = bindings.map((binding, index) => {
-    const row = buildRow(binding, values[index]);
+    const row = buildRow(binding, values[index], valueMaps.get(binding.tagId));
     return { ...row, value: truncate(row.value, row.isError ? 24 : 16) };
   });
 

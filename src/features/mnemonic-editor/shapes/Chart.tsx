@@ -3,25 +3,25 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import ParametrizedShape from "./base/ParametrizedShape";
 import type { ShapeComponentProps } from "./base/shapeProps";
 import { useTagTrend, TREND_RANGE_META, type TrendRange } from "../hooks/useTagTrend";
+import { useDeviceNameForTag } from "../hooks/useDeviceNameForTag";
 import type { DataBinding } from "../types";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 
-const LINE_COLORS = ["#38bdf8", "#4ade80", "#f59e0b", "#f472b6"];
-const LEFT_PADDING = 34; // room for Y-axis value labels
-const RIGHT_PADDING = 6;
-const BOTTOM_PADDING = 14; // room for X-axis time labels
-const HEADER_HEIGHT = 18;
-const LEGEND_HEIGHT = 16;
-const PLOT_TOP_PADDING = HEADER_HEIGHT + LEGEND_HEIGHT;
-const Y_TICK_FRACTIONS = [0, 0.5, 1];
-const X_TICK_FRACTIONS = [0, 0.5, 1];
+const ROW_COLORS = ["#38bdf8", "#4ade80", "#f59e0b", "#f472b6"];
 
-function truncateLegend(text: string, maxChars: number): string {
+const HEADER_HEIGHT = 22; // device name only — each row names its own parameter
+const ROW_HEADER_HEIGHT = 20; // "name ........ current value" line
+const ROW_GAP = 8;
+const LEFT_PADDING = 42; // room for larger min/max Y labels
+const RIGHT_PADDING = 6;
+const TIME_AXIS_HEIGHT = 16; // shown once, under the last row (shared X window)
+
+function truncate(text: string, maxChars: number): string {
   return text.length > maxChars ? `${text.slice(0, Math.max(1, maxChars - 1))}…` : text;
 }
 
-function formatAxisValue(v: number): string {
-  if (!Number.isFinite(v)) return "";
+function formatValue(v: number | undefined): string {
+  if (v === undefined || !Number.isFinite(v)) return "—";
   const abs = Math.abs(v);
   const decimals = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
   return v.toFixed(decimals);
@@ -43,20 +43,27 @@ function formatClockTime(ms: number): string {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
+interface RowDatum {
+  name: string;
+  color: string;
+  pathD: string;
+  minV: number;
+  maxV: number;
+  lastValue: number | undefined;
+}
+
 /**
  * Historical trend, drawn as plain SVG (the whole canvas is one <svg>, so no
- * chart library with its own DOM container applies here — see Sparkline in
- * the WebSocket test console for the same constraint). Plots the element's
- * primary + extra tag bindings (already wired via BindingSection) over the
- * window picked in ShapeStateSection.
- *
- * Self-labeled: an in-box title strip + tag-color legend (Russian names via
- * formatTagLabelShort, same translation dictionary as the data panels) plus
- * Y/X axis value and time labels — a bare unlabeled line is not readable as
- * a real SCADA trend, per WinCC/PCS7 convention.
+ * chart library with its own DOM container applies here). Every bound tag
+ * gets its own compact row — small multiples, each with its own scale — so
+ * an operator glancing at (or a kiosk display showing) the whole screen sees
+ * every parameter at once with no click/interaction required, and one
+ * parameter's range never squashes another's onto an unreadable shared axis.
+ * The header auto-composes the device name (via useDeviceNameForTag) so
+ * it's unambiguous which node this trend belongs to.
  */
 const Chart = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) => {
-  const { x, y, width, height, rotation, style, label } = element;
+  const { x, y, width, height, rotation, style } = element;
   const range = (element.state?.range as TrendRange) ?? "1h";
 
   const tags: DataBinding[] = useMemo(() => {
@@ -69,68 +76,68 @@ const Chart = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
   }, [element.dataBinding, element.extraBindings]);
 
   const { series, tagNames, isLoading } = useTagTrend(tags, range);
+  const deviceName = useDeviceNameForTag(tags[0]?.tagId);
 
-  const innerW = Math.max(1, width - LEFT_PADDING - RIGHT_PADDING);
-  const innerH = Math.max(1, height - PLOT_TOP_PADDING - BOTTOM_PADDING);
+  const rowCount = Math.max(1, tagNames.length);
+  const plotLeft = LEFT_PADDING;
+  const plotWidth = Math.max(1, width - LEFT_PADDING - RIGHT_PADDING);
+  const rowsAreaHeight = Math.max(rowCount * 30, height - HEADER_HEIGHT - TIME_AXIS_HEIGHT);
+  const rowHeight = rowsAreaHeight / rowCount;
+  const sparkHeight = Math.max(14, rowHeight - ROW_HEADER_HEIGHT - ROW_GAP);
+  const xStep = plotWidth / Math.max(1, series.length - 1);
 
-  const { paths, minV, maxV } = useMemo(() => {
-    if (series.length < 2 || tagNames.length === 0) {
-      return { paths: [] as { name: string; d: string; color: string }[], minV: 0, maxV: 1 };
-    }
+  const rows: RowDatum[] = useMemo(() => {
+    return tagNames.map((name, i) => {
+      if (series.length < 2) {
+        return { name, color: ROW_COLORS[i % ROW_COLORS.length], pathD: "", minV: 0, maxV: 1, lastValue: undefined };
+      }
 
-    let min = Infinity;
-    let max = -Infinity;
-    tagNames.forEach((name) => {
-      series.forEach((row) => {
-        const v = row[name];
+      let min = Infinity;
+      let max = -Infinity;
+      let lastValue: number | undefined;
+      series.forEach((point) => {
+        const v = point[name];
         if (typeof v === "number") {
           if (v < min) min = v;
           if (v > max) max = v;
+          lastValue = v;
         }
       });
-    });
-    if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      return { paths: [] as { name: string; d: string; color: string }[], minV: 0, maxV: 1 };
-    }
-    if (min === max) {
-      min -= 1;
-      max += 1;
-    }
 
-    const xStep = innerW / (series.length - 1);
-    const scaleY = (v: number) => innerH - ((v - min) / (max - min)) * innerH;
+      if (!Number.isFinite(min) || !Number.isFinite(max)) {
+        return { name, color: ROW_COLORS[i % ROW_COLORS.length], pathD: "", minV: 0, maxV: 1, lastValue: undefined };
+      }
+      if (min === max) {
+        min -= 1;
+        max += 1;
+      }
 
-    const builtPaths = tagNames.map((name, i) => {
+      const scaleY = (v: number) => sparkHeight - ((v - min) / (max - min)) * sparkHeight;
       let d = "";
       let started = false;
-      series.forEach((row, idx) => {
-        const v = row[name];
+      series.forEach((point, idx) => {
+        const v = point[name];
         if (typeof v !== "number") return;
         const px = idx * xStep;
         const py = scaleY(v);
         d += started ? ` L${px},${py}` : `M${px},${py}`;
         started = true;
       });
-      return { name, d, color: LINE_COLORS[i % LINE_COLORS.length] };
-    });
 
-    return { paths: builtPaths, minV: min, maxV: max };
-  }, [series, tagNames, innerW, innerH]);
+      return { name, color: ROW_COLORS[i % ROW_COLORS.length], pathD: d, minV: min, maxV: max, lastValue };
+    });
+  }, [series, tagNames, sparkHeight, xStep]);
 
   const boxFill = style.fill === "none" ? "#0c1118" : style.fill;
-  const hasPlot = paths.length > 0;
-  const plotCenterX = LEFT_PADDING + innerW / 2;
-  const plotCenterY = PLOT_TOP_PADDING + innerH / 2;
-  const xStep = innerW / Math.max(1, series.length - 1);
+  const titleText = deviceName || "Тренд";
 
-  // Hover crosshair + tooltip — SVG has no built-in hit-testing/tooltip, so
-  // this converts the pointer's screen position into the plot group's own
-  // local coordinate space via getScreenCTM (works regardless of the
-  // canvas's pan/zoom or this shape's own rotation) and finds the nearest
-  // bucket index.
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  // Hover crosshair + tooltip, scoped per row — converts the pointer's
+  // screen position into that row's own local coordinate space via
+  // getScreenCTM (works regardless of the canvas's pan/zoom or this shape's
+  // own rotation).
+  const [hover, setHover] = useState<{ row: number; idx: number } | null>(null);
 
-  const handlePlotPointerMove = (event: ReactPointerEvent<SVGRectElement>) => {
+  const handleRowPointerMove = (rowIndex: number) => (event: ReactPointerEvent<SVGRectElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
     const ctm = event.currentTarget.getScreenCTM();
     if (!svg || !ctm) return;
@@ -139,19 +146,8 @@ const Chart = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
     point.y = event.clientY;
     const local = point.matrixTransform(ctm.inverse());
     const idx = Math.min(series.length - 1, Math.max(0, Math.round(local.x / xStep)));
-    setHoverIndex(idx);
+    setHover({ row: rowIndex, idx });
   };
-
-  const hoverPoint = hoverIndex !== null ? series[hoverIndex] : undefined;
-  const hoverRows = hoverPoint
-    ? tagNames
-        .map((name, i) => ({
-          name: formatTagLabelShort(name),
-          color: LINE_COLORS[i % LINE_COLORS.length],
-          value: hoverPoint[name],
-        }))
-        .filter((row): row is { name: string; color: string; value: number } => typeof row.value === "number")
-    : [];
 
   return (
     <ParametrizedShape
@@ -173,158 +169,138 @@ const Chart = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
         opacity={style.opacity}
       />
 
-      {/* Title strip */}
-      <rect x={0} y={0} width={width} height={HEADER_HEIGHT} fill="#0f172a" opacity={0.6} />
-      <text x={8} y={13} textAnchor="start" fontSize={10} fontWeight={600} fill="#e5e2e1">
-        {label || "Тренд"}
+      {/* Header: device name only — each row below names its own parameter */}
+      <rect x={0} y={0} width={width} height={HEADER_HEIGHT} fill="#0f172a" opacity={0.7} />
+      <text x={10} y={16} textAnchor="start" fontSize={13} fontWeight={700} fill="#f1f5f9">
+        <title>{titleText}</title>
+        {truncate(titleText, Math.floor((width - 16) / 7))}
       </text>
 
-      {/* Per-tag color legend, Russian names */}
-      {tagNames.length > 0 && (
-        <g transform={`translate(0, ${HEADER_HEIGHT})`}>
-          {tagNames.map((name, i) => {
-            const displayName = formatTagLabelShort(name);
-            const itemWidth = width / tagNames.length;
-            const cx = i * itemWidth + 8;
-            const cy = LEGEND_HEIGHT / 2;
-            const maxChars = Math.max(3, Math.floor((itemWidth - 16) / 5.5));
-            return (
-              <g key={name}>
-                <title>{displayName}</title>
-                <circle cx={cx} cy={cy} r={3} fill={LINE_COLORS[i % LINE_COLORS.length]} />
-                <text x={cx + 6} y={cy + 3} fontSize={8} fill="#94a3b8">
-                  {truncateLegend(displayName, maxChars)}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-      )}
-
       {tags.length === 0 ? (
-        <text x={plotCenterX} y={plotCenterY} textAnchor="middle" fontSize={10} fill="#64748b">
+        <text x={width / 2} y={height / 2} textAnchor="middle" fontSize={11} fill="#64748b">
           Нет привязки
         </text>
-      ) : !hasPlot ? (
-        <text x={plotCenterX} y={plotCenterY} textAnchor="middle" fontSize={10} fill="#64748b">
-          {isLoading ? "Загрузка…" : "Нет данных"}
+      ) : isLoading && rows.every((r) => !r.pathD) ? (
+        <text x={width / 2} y={height / 2} textAnchor="middle" fontSize={11} fill="#64748b">
+          Загрузка…
         </text>
       ) : (
-        <>
-          {/* Y-axis: gridlines + value labels */}
-          {Y_TICK_FRACTIONS.map((f) => {
-            const plotY = PLOT_TOP_PADDING + innerH * f;
-            const value = maxV - f * (maxV - minV);
-            return (
-              <g key={f}>
-                <line
-                  x1={LEFT_PADDING}
-                  x2={LEFT_PADDING + innerW}
-                  y1={plotY}
-                  y2={plotY}
-                  stroke="#1e293b"
-                  strokeWidth={1}
-                />
-                <text
-                  x={LEFT_PADDING - 4}
-                  y={plotY + 3}
-                  textAnchor="end"
-                  fontSize={7}
-                  fill="#64748b"
-                >
-                  {formatAxisValue(value)}
-                </text>
-              </g>
-            );
-          })}
+        rows.map((row, i) => {
+          const rowTop = HEADER_HEIGHT + i * rowHeight;
+          const sparkTop = rowTop + ROW_HEADER_HEIGHT;
+          const displayName = formatTagLabelShort(row.name);
+          const isLastRow = i === rows.length - 1;
+          const rowHover = hover?.row === i ? hover : null;
+          const hoverPoint = rowHover ? series[rowHover.idx] : undefined;
+          const hoverValue = hoverPoint ? hoverPoint[row.name] : undefined;
 
-          {/* X-axis: time labels at start/middle/end of the plotted window */}
-          {X_TICK_FRACTIONS.map((f) => {
-            const idx = Math.round(f * (series.length - 1));
-            const point = series[idx];
-            if (!point) return null;
-            const px = LEFT_PADDING + f * innerW;
-            const anchor = f === 0 ? "start" : f === 1 ? "end" : "middle";
-            return (
-              <text
-                key={f}
-                x={px}
-                y={PLOT_TOP_PADDING + innerH + 11}
-                textAnchor={anchor}
-                fontSize={7}
-                fill="#64748b"
-              >
-                {formatAxisTime(point.ms)}
+          return (
+            <g key={row.name}>
+              {/* Row header: colored dot + parameter name + current value */}
+              <circle cx={plotLeft} cy={rowTop + 9} r={3.5} fill={row.color} />
+              <text x={plotLeft + 9} y={rowTop + 13} fontSize={12} fill="#cbd5e1">
+                {truncate(displayName, Math.floor((plotWidth - 90) / 6.5))}
               </text>
-            );
-          })}
+              <text
+                x={plotLeft + plotWidth}
+                y={rowTop + 14}
+                textAnchor="end"
+                fontSize={16}
+                fontWeight={700}
+                fontFamily="monospace"
+                fill={row.color}
+              >
+                {formatValue(row.lastValue)}
+              </text>
 
-          <g transform={`translate(${LEFT_PADDING}, ${PLOT_TOP_PADDING})`}>
-            {paths.map((p) => (
-              <path
-                key={p.name}
-                d={p.d}
-                fill="none"
-                stroke={p.color}
-                strokeWidth={1.5}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-            ))}
+              {!row.pathD ? (
+                <text x={plotLeft + plotWidth / 2} y={sparkTop + sparkHeight / 2 + 3} textAnchor="middle" fontSize={10} fill="#475569">
+                  нет данных
+                </text>
+              ) : (
+                <>
+                  {/* Min/max reference labels for this row's own scale */}
+                  <text x={plotLeft - 5} y={sparkTop + 8} textAnchor="end" fontSize={10} fill="#94a3b8">
+                    {formatValue(row.maxV)}
+                  </text>
+                  <text x={plotLeft - 5} y={sparkTop + sparkHeight} textAnchor="end" fontSize={10} fill="#94a3b8">
+                    {formatValue(row.minV)}
+                  </text>
+                  <line
+                    x1={plotLeft}
+                    x2={plotLeft + plotWidth}
+                    y1={sparkTop + sparkHeight}
+                    y2={sparkTop + sparkHeight}
+                    stroke="#1e293b"
+                    strokeWidth={1}
+                  />
 
-            {hoverIndex !== null && hoverPoint && (
-              <g pointerEvents="none">
-                <line
-                  x1={hoverIndex * xStep}
-                  x2={hoverIndex * xStep}
-                  y1={0}
-                  y2={innerH}
-                  stroke="#94a3b8"
-                  strokeWidth={1}
-                  strokeDasharray="2 2"
-                />
-                {tagNames.map((name, i) => {
-                  const v = hoverPoint[name];
-                  if (typeof v !== "number") return null;
-                  const py = innerH - ((v - minV) / (maxV - minV)) * innerH;
-                  return (
-                    <circle
-                      key={name}
-                      cx={hoverIndex * xStep}
-                      cy={py}
-                      r={2.5}
-                      fill={LINE_COLORS[i % LINE_COLORS.length]}
-                      stroke="#0c1118"
-                      strokeWidth={1}
+                  <g transform={`translate(${plotLeft}, ${sparkTop})`}>
+                    <path d={row.pathD} fill="none" stroke={row.color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+
+                    {rowHover && typeof hoverValue === "number" && (
+                      <g pointerEvents="none">
+                        <line
+                          x1={rowHover.idx * xStep}
+                          x2={rowHover.idx * xStep}
+                          y1={0}
+                          y2={sparkHeight}
+                          stroke="#94a3b8"
+                          strokeWidth={1}
+                          strokeDasharray="2 2"
+                        />
+                        <circle
+                          cx={rowHover.idx * xStep}
+                          cy={sparkHeight - ((hoverValue - row.minV) / (row.maxV - row.minV)) * sparkHeight}
+                          r={2.5}
+                          fill={row.color}
+                          stroke="#0c1118"
+                          strokeWidth={1}
+                        />
+                      </g>
+                    )}
+
+                    {/* Invisible hit area for this row's hover */}
+                    <rect
+                      x={0}
+                      y={0}
+                      width={plotWidth}
+                      height={sparkHeight}
+                      fill="transparent"
+                      onPointerMove={handleRowPointerMove(i)}
+                      onPointerLeave={() => setHover((h) => (h?.row === i ? null : h))}
                     />
-                  );
-                })}
-              </g>
-            )}
+                  </g>
 
-            {/* Invisible hit area — captures hover for the crosshair/tooltip above */}
-            <rect
-              x={0}
-              y={0}
-              width={innerW}
-              height={innerH}
-              fill="transparent"
-              onPointerMove={handlePlotPointerMove}
-              onPointerLeave={() => setHoverIndex(null)}
-            />
-          </g>
+                  {rowHover && hoverPoint && typeof hoverValue === "number" && (
+                    <ChartTooltip
+                      anchorX={plotLeft + rowHover.idx * xStep}
+                      topY={sparkTop}
+                      boxWidth={width}
+                      time={hoverPoint.ms}
+                      rangeEnd={hoverPoint.ms + (TREND_RANGE_META[range]?.intervalMs ?? 0)}
+                      color={row.color}
+                      name={displayName}
+                      value={hoverValue}
+                    />
+                  )}
+                </>
+              )}
 
-          {hoverIndex !== null && hoverPoint && hoverRows.length > 0 && (
-            <ChartTooltip
-              anchorX={LEFT_PADDING + hoverIndex * xStep}
-              topY={PLOT_TOP_PADDING + 2}
-              boxWidth={width}
-              rangeStart={hoverPoint.ms}
-              rangeEnd={hoverPoint.ms + (TREND_RANGE_META[range]?.intervalMs ?? 0)}
-              rows={hoverRows}
-            />
-          )}
-        </>
+              {/* Shared X-axis time labels, once, under the last row */}
+              {isLastRow && row.pathD && (
+                <>
+                  <text x={plotLeft} y={sparkTop + sparkHeight + 13} textAnchor="start" fontSize={10} fill="#94a3b8">
+                    {series[0] ? formatAxisTime(series[0].ms) : ""}
+                  </text>
+                  <text x={plotLeft + plotWidth} y={sparkTop + sparkHeight + 13} textAnchor="end" fontSize={10} fill="#94a3b8">
+                    {series[series.length - 1] ? formatAxisTime(series[series.length - 1].ms) : ""}
+                  </text>
+                </>
+              )}
+            </g>
+          );
+        })
       )}
     </ParametrizedShape>
   );
@@ -334,38 +310,33 @@ interface ChartTooltipProps {
   anchorX: number;
   topY: number;
   boxWidth: number;
-  rangeStart: number;
+  time: number;
   rangeEnd: number;
-  rows: { name: string; color: string; value: number }[];
+  color: string;
+  name: string;
+  value: number;
 }
 
-/** Hover tooltip, styled after typical SCADA/ThingsBoard trend hovers: bucket time range + one row per plotted tag. Rendered as a fixed-position box under the legend (not chasing the cursor vertically) so it doesn't jump around or cover the trace it's describing. */
-function ChartTooltip({ anchorX, topY, boxWidth, rangeStart, rangeEnd, rows }: ChartTooltipProps) {
-  const width = 120;
-  const rowHeight = 10;
-  const height = 14 + rows.length * rowHeight + 4;
+/** Hover tooltip for one row: bucket time range + that parameter's name/value. Anchored just above the hovered row's sparkline so it never covers the trace it's describing. */
+function ChartTooltip({ anchorX, topY, boxWidth, time, rangeEnd, color, name, value }: ChartTooltipProps) {
+  const width = 152;
+  const height = 40;
+  const y = Math.max(2, topY - height - 4);
   const x = Math.min(Math.max(anchorX - width / 2, 2), boxWidth - width - 2);
 
   return (
     <g pointerEvents="none">
-      <rect x={x} y={topY} width={width} height={height} rx={4} fill="#0f172a" fillOpacity={0.96} stroke="#334155" strokeWidth={1} />
-      <text x={x + 6} y={topY + 10} fontSize={6.5} fill="#94a3b8">
-        {formatClockTime(rangeStart)} – {formatClockTime(rangeEnd)}
+      <rect x={x} y={y} width={width} height={height} rx={4} fill="#0f172a" fillOpacity={0.97} stroke="#334155" strokeWidth={1} />
+      <text x={x + 8} y={y + 14} fontSize={10} fill="#94a3b8">
+        {formatClockTime(time)} – {formatClockTime(rangeEnd)}
       </text>
-      {rows.map((row, i) => {
-        const rowY = topY + 14 + i * rowHeight;
-        return (
-          <g key={row.name}>
-            <circle cx={x + 8} cy={rowY + 3} r={2.5} fill={row.color} />
-            <text x={x + 14} y={rowY + 6} fontSize={7} fill="#cbd5e1">
-              {truncateLegend(row.name, 12)}
-            </text>
-            <text x={x + width - 6} y={rowY + 6} textAnchor="end" fontSize={7} fontFamily="monospace" fill="#e2e8f0">
-              {formatAxisValue(row.value)}
-            </text>
-          </g>
-        );
-      })}
+      <circle cx={x + 10} cy={y + 28} r={3.5} fill={color} />
+      <text x={x + 17} y={y + 31} fontSize={11} fill="#cbd5e1">
+        {truncate(name, 14)}
+      </text>
+      <text x={x + width - 8} y={y + 31} textAnchor="end" fontSize={12} fontWeight={700} fontFamily="monospace" fill="#e2e8f0">
+        {formatValue(value)}
+      </text>
     </g>
   );
 }

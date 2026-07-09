@@ -214,7 +214,7 @@ export const SHAPE_REGISTRY: Partial<Record<ShapeKind, ShapeDefinition>> = {
     kind: "chart",
     label: "График (тренд)",
     Component: Chart,
-    defaultSize: { width: 220, height: 120 },
+    defaultSize: { width: 320, height: 240 },
     defaultStyle: { fill: "#0c1118", stroke: "#334155", strokeWidth: 1, opacity: 1 },
     defaultState: { range: "1h" },
   },
