@@ -40,16 +40,27 @@ export const ROUTE_ACCESS_RULES = [
     roles: ["admin", "super_admin"],
   },
   {
-    prefix: "/dashboard/archive",
-    roles: ["admin", "super_admin"],
-  },
-  {
     prefix: "/dashboard/test",
     roles: ["admin", "super_admin"],
   },
   // --- Операторские страницы: просмотр разрешён и операторским ролям ---
+  // Редактор экрана (/dashboard/screens/[id], без /runtime) — только админы:
+  // редактирование мнемосхемы не операторская задача. `router.pathname` —
+  // это файловый шаблон маршрута ("/dashboard/screens/[id]"), а не путь с
+  // подставленным id, поэтому сравниваем с ним буквально. Правило на точный
+  // путь должно стоять ПЕРЕД общим префиксом ниже — оба совпадают по
+  // startsWith ("/dashboard/screens/[id]/runtime" тоже начинается с этой
+  // строки), а find() берёт первое совпадение по порядку.
+  {
+    pattern: /^\/dashboard\/screens\/\[id\]$/,
+    roles: ["admin", "super_admin"],
+  },
   {
     prefix: "/dashboard/screens",
+    roles: ["admin", "super_admin", "user", "scada-user"],
+  },
+  {
+    prefix: "/dashboard/archive",
     roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
@@ -97,10 +108,12 @@ export function hasRequiredRole(requiredRoles, userRoles) {
   return requiredRoles.some((role) => normalized.includes(role.toLowerCase()));
 }
 
-/** Доступен ли путь пользователю с данными ролями (первое совпавшее по префиксу правило решает) */
+/** Доступен ли путь пользователю с данными ролями (первое совпавшее правило решает — по regex `pattern`, если задан, иначе по префиксу) */
 export function hasRouteAccess(pathname, userRoles) {
   if (!pathname) return true;
-  const rule = ROUTE_ACCESS_RULES.find((r) => pathname.startsWith(r.prefix));
+  const rule = ROUTE_ACCESS_RULES.find((r) =>
+    r.pattern ? r.pattern.test(pathname) : pathname.startsWith(r.prefix),
+  );
   if (!rule) return true;
   return hasRequiredRole(rule.roles, userRoles);
 }

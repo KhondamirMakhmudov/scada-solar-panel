@@ -13,5 +13,19 @@ declare module "next-auth" {
     tokenType?: string;
     accessTokenExpires?: number;
     error?: string;
+    user?: {
+      id?: string;
+      name?: string;
+      username?: string;
+      employee_id?: string;
+      unit_code?: string;
+      roles?: string[];
+      rolesDetail?: Array<{
+        name: string;
+        permissions: Array<{ resource: { name?: string } | null; action: { name?: string } | null }>;
+      }>;
+      permissions?: Array<{ resource: string | null; action: string | null; role: string }>;
+      isAdmin?: boolean;
+    };
   }
 }

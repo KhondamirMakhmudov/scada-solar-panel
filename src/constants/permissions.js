@@ -9,6 +9,8 @@ export function hasPermission(permissions, resource, action) {
   if (!Array.isArray(permissions) || !permissions.length) return false;
   const requiredActions = Array.isArray(action) ? action : [action];
   return permissions.some(
-    (p) => p?.resource === resource && (p.action === "*" || requiredActions.includes(p.action)),
+    (p) =>
+      (p?.resource === resource || p?.resource === "*") &&
+      (p.action === "*" || requiredActions.includes(p.action)),
   );
 }

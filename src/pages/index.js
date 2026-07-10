@@ -12,7 +12,7 @@ import {
   saveAccount,
   removeSavedAccount,
 } from "@/lib/savedAccounts";
-import { getFirstAccessiblePath } from "@/constants/routeAccess";
+import { resolvePostLoginPath } from "@/lib/postLoginRedirect";
 
 export default function Home() {
   const router = useRouter();
@@ -42,8 +42,8 @@ export default function Home() {
     setSavedAccounts(removeSavedAccount(usernameToRemove));
   };
 
-  const handleEnter = () => {
-    router.push(getFirstAccessiblePath(session?.user?.roles));
+  const handleEnter = async () => {
+    router.push(await resolvePostLoginPath(session?.user?.roles, session?.accessToken));
   };
 
   const handleExit = async () => {
@@ -80,7 +80,9 @@ export default function Home() {
         // Роли появляются только в свежей сессии — берём её и ведём
         // пользователя на первую доступную ему страницу
         const freshSession = await getSession();
-        router.push(getFirstAccessiblePath(freshSession?.user?.roles));
+        router.push(
+          await resolvePostLoginPath(freshSession?.user?.roles, freshSession?.accessToken),
+        );
       }
     } catch (error) {
       console.error("Ошибка входа:", error);

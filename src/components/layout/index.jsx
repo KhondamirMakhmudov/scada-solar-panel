@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ContentLoader from "@/components/loader";
-import { hasRouteAccess, getFirstAccessiblePath } from "@/constants/routeAccess";
+import { hasRouteAccess } from "@/constants/routeAccess";
+import { resolvePostLoginPath } from "@/lib/postLoginRedirect";
 
 // Session gate for every non-home page (see src/pages/_app.js) — waits for
 // next-auth to resolve, then bounces unauthenticated users back to "/".
@@ -34,9 +35,11 @@ const Layout = ({ children }) => {
     }
     if (isRouteDenied) {
       toast.error("У вас нет доступа к этому разделу", { id: "route-denied" });
-      router.replace(getFirstAccessiblePath(session?.user?.roles));
+      resolvePostLoginPath(session?.user?.roles, session?.accessToken).then((path) =>
+        router.replace(path),
+      );
     }
-  }, [status, isHardSessionError, isRouteDenied, router, session?.user?.roles]);
+  }, [status, isHardSessionError, isRouteDenied, router, session?.user?.roles, session?.accessToken]);
 
   if (
     status === "loading" ||

@@ -8,6 +8,7 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
 import HubRoundedIcon from "@mui/icons-material/HubRounded";
+import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import { motion } from "framer-motion";
 import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
 import ExitModal from "../modal/exit-modal";
@@ -59,6 +60,12 @@ const menuItems = [
     icon: <HubRoundedIcon fontSize="medium" />,
     path: "/dashboard/screens",
     roles: ["admin", "super_admin", "scada-user"],
+  },
+  {
+    text: "Архивы",
+    icon: <HistoryRoundedIcon fontSize="medium" />,
+    path: "/dashboard/archive",
+    roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
     text: "Тест WebSocket",
