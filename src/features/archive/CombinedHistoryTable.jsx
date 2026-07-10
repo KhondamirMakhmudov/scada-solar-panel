@@ -12,15 +12,19 @@ const CombinedHistoryTable = ({ tags, seriesByTagId, valueMaps, isFetching }) =>
   const rows = useMemo(() => {
     const map = new Map();
     tags.forEach((tag) => {
+      // "avg" is a synthetic mean of bucket codes — meaningless for an enum
+      // tag ("1.73" isn't a real status). "last" is the actual last-observed
+      // value in that bucket, so enum tags read that column instead.
+      const isEnum = Boolean(valueMaps?.get(tag.id));
       const points = seriesByTagId.get(tag.id) || [];
       points.forEach((p) => {
         const row = map.get(p.ms) || { ms: p.ms };
-        row[tag.id] = p.avg;
+        row[tag.id] = isEnum ? p.last : p.avg;
         map.set(p.ms, row);
       });
     });
     return Array.from(map.values()).sort((a, b) => b.ms - a.ms);
-  }, [tags, seriesByTagId]);
+  }, [tags, seriesByTagId, valueMaps]);
 
   if (isFetching && rows.length === 0) {
     return (

@@ -12,6 +12,11 @@ import { requestScreens } from "@/services/api";
  * /tag-values/statistics (see FRONTEND_INTEGRATION.md). Shared by the
  * standalone "Архивы" page and the in-place archive modal opened from a
  * mnemonic screen, so both read history the same way.
+ *
+ * Each bucket carries both `avg` (a synthetic mean — meaningless for an
+ * enum/status tag, e.g. "1.73" is not a real code) and `min`/`max`/`last`
+ * (actual observed readings within that bucket). Callers rendering a tag
+ * with a `value_map` should read `last`, not `avg`.
  */
 export function useTagHistory({ tagIds, timeFrom, timeTo, interval }) {
   const { data: session } = useSession();
@@ -47,7 +52,7 @@ export function useTagHistory({ tagIds, timeFrom, timeTo, interval }) {
     list.forEach((s) => {
       const points = (s.buckets || [])
         .filter((b) => b.avg !== null && b.avg !== undefined)
-        .map((b) => ({ ms: new Date(b.time).getTime(), avg: b.avg, min: b.min, max: b.max }));
+        .map((b) => ({ ms: new Date(b.time).getTime(), avg: b.avg, min: b.min, max: b.max, last: b.last }));
       map.set(s.tagId, points);
     });
     return map;

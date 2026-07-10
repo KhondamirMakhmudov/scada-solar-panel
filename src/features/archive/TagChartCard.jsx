@@ -24,6 +24,11 @@ const TagChartCard = ({ tag, color, chartData, stats, spanMs, valueMap, onRemove
   const isLoading = chartData === null;
   const hasPoints = Array.isArray(chartData) && chartData.length > 0;
   const displayName = formatTagLabelShort(tag.name);
+  // "avg" is a synthetic mean of bucket codes — meaningless for an enum tag
+  // ("1.73" isn't a real status). "last" is the actual last-observed value
+  // in that bucket, so it's what an enum tag's line/pill should read.
+  const isEnum = Boolean(valueMap);
+  const valueKey = isEnum ? "last" : "avg";
 
   return (
     <motion.div
@@ -62,7 +67,10 @@ const TagChartCard = ({ tag, color, chartData, stats, spanMs, valueMap, onRemove
 
       <div className="mb-3 grid grid-cols-4 gap-2">
         <StatPill label="Мин" value={stats ? formatMaybeMapped(stats.min, valueMap) : "—"} />
-        <StatPill label="Сред" value={stats ? formatMaybeMapped(stats.avg, valueMap) : "—"} />
+        <StatPill
+          label={isEnum ? "Посл." : "Сред"}
+          value={stats ? formatMaybeMapped(isEnum ? stats.lastValue : stats.avg, valueMap) : "—"}
+        />
         <StatPill label="Макс" value={stats ? formatMaybeMapped(stats.max, valueMap) : "—"} />
         <StatPill label="Точек" value={stats ? stats.count : "—"} />
       </div>
@@ -110,7 +118,13 @@ const TagChartCard = ({ tag, color, chartData, stats, spanMs, valueMap, onRemove
                   displayName,
                 ]}
               />
-              <Line type="monotone" dataKey="avg" stroke={color} strokeWidth={2} dot={false} />
+              <Line
+                type={isEnum ? "stepAfter" : "monotone"}
+                dataKey={valueKey}
+                stroke={color}
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         )}

@@ -17,6 +17,7 @@ import { useUiStore } from "../store/uiStore";
 import { useHistoryStore } from "../store/history/historyStore";
 import { useRuntimeStore } from "../store/runtimeStore";
 import { useMnemonicWebSocket } from "../hooks/useMnemonicWebSocket";
+import { useSeedLatestTagValues } from "../hooks/useSeedLatestTagValues";
 import { createEmptyDocument } from "../document/defaults";
 import { parseMnemonicParams } from "../document/documentSchema";
 import { migrateMnemonicParams } from "../document/migrate";
@@ -85,12 +86,19 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
 
     return groups;
   }, [elements]);
+
+  const boundTagIds = useMemo(() => tagGroups.flatMap((g) => g.tags.map((t) => t.id)), [tagGroups]);
+
   // Гидратация привязана к id экрана: клик-переход между экранами в режиме
   // просмотра — клиентская навигация в тот же компонент, документ нужно
   // перезагрузить для нового id.
   const hydratedFor = useRef<string | null>(null);
 
   useMnemonicWebSocket(screenId, accessToken);
+  // Экранный WS-канал шлёт только изменения, без начальной истории (в
+  // отличие от ws/devices и ws/tags) — без этого снапшота каждое поле
+  // показывает "—", пока что-то не изменится хотя бы раз.
+  useSeedLatestTagValues(boundTagIds, accessToken);
 
   useEffect(() => {
     // Сверяем id из ответа: при клиентской навигации хук может ещё отдавать
