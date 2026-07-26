@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import toast from "react-hot-toast";
 import { useDocumentStore } from "../store/documentStore";
@@ -8,6 +8,10 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { screenToDocumentPoint } from "../lib/geometry";
 import { readImageFile } from "../lib/imageFile";
 import { generateId } from "../lib/idGen";
+import { createShapeElement } from "../lib/createShapeElement";
+import { SHAPE_REGISTRY } from "../shapes/registry";
+import type { ShapeKind } from "../types";
+import { SHAPE_DRAG_MIME } from "../toolbar/shapeCategories";
 import { DEFAULT_LAYER_ID } from "../document/defaults";
 import { commitImmediate } from "../store/history/historyActions";
 import CanvasLayer from "./CanvasLayer";
@@ -29,7 +33,12 @@ const EditorCanvas = () => {
   const setSpaceDown = useUiStore((state) => state.setSpaceDown);
   const activeTool = useUiStore((state) => state.activeTool);
   const drawingPoints = useUiStore((state) => state.drawingPoints);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const gridStyle = useUiStore((state) => state.gridStyle);
+  const focusRequestId = useUiStore((state) => state.focusRequestId);
+  const clearFocusRequest = useUiStore((state) => state.clearFocusRequest);
+  const setViewport = useUiStore((state) => state.setViewport);
+  const [isDraggingOver, setIsDraggingOver] = useState<"file" | "shape" | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const {
     handleBackgroundPointerDown,
@@ -61,25 +70,78 @@ const EditorCanvas = () => {
     };
   }, [setSpaceDown]);
 
-  // Native OS file drag-and-drop (dragging an image in from the file
-  // explorer) — a separate browser event system from the pointer-based
-  // shape dragging in useCanvasInteraction, so there's no conflict.
+  // Прокрутка холста к элементу по заявке из поиска или списка аварий.
+  // Центрирование считается здесь, потому что только холст знает свои
+  // экранные размеры.
+  useEffect(() => {
+    if (!focusRequestId) return;
+    const svg = svgRef.current;
+    const element = useDocumentStore
+      .getState()
+      .document.elements.find((el) => el.id === focusRequestId);
+    if (!svg || !element) {
+      clearFocusRequest();
+      return;
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const { zoom } = useUiStore.getState().viewport;
+    setViewport({
+      panX: rect.width / 2 - (element.x + element.width / 2) * zoom,
+      panY: rect.height / 2 - (element.y + element.height / 2) * zoom,
+    });
+    clearFocusRequest();
+  }, [focusRequestId, clearFocusRequest, setViewport]);
+
+  // Перетаскивание извне: файл изображения из проводника или фигура из
+  // палитры. Это HTML5 drag-and-drop — отдельная от указательных жестов
+  // useCanvasInteraction система событий, конфликта между ними нет.
   const handleDragOver = (event: DragEvent<SVGSVGElement>) => {
-    if (event.dataTransfer.types.includes("Files")) {
+    const types = event.dataTransfer.types;
+    if (types.includes(SHAPE_DRAG_MIME)) {
       event.preventDefault();
-      setIsDraggingFile(true);
+      event.dataTransfer.dropEffect = "copy";
+      setIsDraggingOver("shape");
+    } else if (types.includes("Files")) {
+      event.preventDefault();
+      setIsDraggingOver("file");
     }
   };
 
-  const handleDragLeave = () => setIsDraggingFile(false);
+  const handleDragLeave = () => setIsDraggingOver(null);
 
   const handleDrop = async (event: DragEvent<SVGSVGElement>) => {
-    setIsDraggingFile(false);
+    setIsDraggingOver(null);
+
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    const droppedKind = event.dataTransfer.getData(SHAPE_DRAG_MIME) as ShapeKind | "";
+    if (droppedKind && SHAPE_REGISTRY[droppedKind]) {
+      event.preventDefault();
+      const point = screenToDocumentPoint(event.clientX, event.clientY, rect, viewport);
+      const definition = SHAPE_REGISTRY[droppedKind]!;
+      const count = useDocumentStore.getState().document.elements.length;
+      // Курсор ставится в центр фигуры, а не в её левый верхний угол —
+      // иначе элемент «прыгает» вниз-вправо относительно места сброса
+      const element = createShapeElement(
+        droppedKind,
+        {
+          x: point.x - definition.defaultSize.width / 2,
+          y: point.y - definition.defaultSize.height / 2,
+        },
+        count,
+      );
+      if (element) {
+        commitImmediate(() => useDocumentStore.getState().addElement(element));
+        useUiStore.getState().select(element.id);
+      }
+      return;
+    }
+
     const file = event.dataTransfer.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
     event.preventDefault();
 
-    const rect = event.currentTarget.getBoundingClientRect();
     const dropPoint = screenToDocumentPoint(event.clientX, event.clientY, rect, viewport);
 
     try {
@@ -111,6 +173,7 @@ const EditorCanvas = () => {
   return (
     <div className="relative w-full h-full">
       <svg
+        ref={svgRef}
         className="w-full h-full"
         onPointerDown={handleBackgroundPointerDown}
         onPointerMove={handlePointerMove}
@@ -143,7 +206,13 @@ const EditorCanvas = () => {
               preserveAspectRatio="xMidYMid slice"
             />
           )}
-          <GridBackground gridSize={gridSize} width={canvasSize.width} height={canvasSize.height} />
+          <GridBackground
+            gridSize={gridSize}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            style={gridStyle}
+            zoom={viewport.zoom}
+          />
           <ConnectionLayer onConnectionPointerDown={handleConnectionPointerDown} />
           {layers.map((layer) => (
             <CanvasLayer
@@ -173,9 +242,13 @@ const EditorCanvas = () => {
           )}
         </g>
       </svg>
-      {isDraggingFile && (
+      {isDraggingOver && (
         <div className="pointer-events-none absolute inset-2 rounded-lg border-2 border-dashed border-blue-400 bg-blue-500/5 flex items-center justify-center">
-          <span className="text-sm text-blue-300">Отпустите, чтобы добавить изображение</span>
+          <span className="text-sm text-blue-300">
+            {isDraggingOver === "shape"
+              ? "Отпустите, чтобы разместить элемент"
+              : "Отпустите, чтобы добавить изображение"}
+          </span>
         </div>
       )}
       <ContextMenu />

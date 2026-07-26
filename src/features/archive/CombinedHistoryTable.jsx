@@ -1,20 +1,21 @@
 import { useMemo } from "react";
+import { DataTable, EmptyState } from "@/components/ui";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 import { formatFullTime, formatMaybeMapped } from "./constants";
 
 /**
- * One tag per table row is unreadable once you have more than a couple —
- * this merges every tag in a group into a single table (one column per tag,
- * one row per timestamp bucket) so "статус, мощность, температура..." read
- * side by side instead of in four separate scrolling tables.
+ * Одна строка на тег нечитаема уже при трёх тегах — таблица сводит все теги
+ * группы вместе: столбец на тег, строка на временной бакет. «Статус,
+ * мощность, температура…» читаются в одной строке, а не в четырёх отдельных
+ * прокручиваемых таблицах.
  */
 const CombinedHistoryTable = ({ tags, seriesByTagId, valueMaps, isFetching }) => {
   const rows = useMemo(() => {
     const map = new Map();
     tags.forEach((tag) => {
-      // "avg" is a synthetic mean of bucket codes — meaningless for an enum
-      // tag ("1.73" isn't a real status). "last" is the actual last-observed
-      // value in that bucket, so enum tags read that column instead.
+      // "avg" — синтетическое среднее кодов, для перечислимого тега оно
+      // бессмысленно («1.73» не является статусом). "last" — реально
+      // наблюдавшееся в бакете значение, его и читают такие теги.
       const isEnum = Boolean(valueMaps?.get(tag.id));
       const points = seriesByTagId.get(tag.id) || [];
       points.forEach((p) => {
@@ -26,47 +27,48 @@ const CombinedHistoryTable = ({ tags, seriesByTagId, valueMaps, isFetching }) =>
     return Array.from(map.values()).sort((a, b) => b.ms - a.ms);
   }, [tags, seriesByTagId, valueMaps]);
 
-  if (isFetching && rows.length === 0) {
-    return (
-      <div className="flex h-[220px] items-center justify-center text-sm text-slate-500">Загрузка…</div>
-    );
-  }
+  const columns = useMemo(
+    () => [
+      {
+        key: "time",
+        header: "Время",
+        render: (row) => (
+          <span className="whitespace-nowrap text-[#6b7280]">{formatFullTime(row.ms)}</span>
+        ),
+      },
+      ...tags.map((tag) => ({
+        key: tag.id,
+        numeric: true,
+        header: `${formatTagLabelShort(tag.name)}${tag.unit ? `, ${tag.unit}` : ""}`,
+        render: (row) => (
+          <span className="text-[#e5e2e1]">
+            {formatMaybeMapped(row[tag.id], valueMaps?.get(tag.id))}
+          </span>
+        ),
+      })),
+    ],
+    [tags, valueMaps],
+  );
 
-  if (rows.length === 0) {
-    return (
-      <div className="flex h-[220px] items-center justify-center text-sm text-slate-500">
-        Нет данных за выбранный период
-      </div>
-    );
+  if (isFetching && rows.length === 0) {
+    return <EmptyState compact title="Загрузка…" />;
   }
 
   return (
-    <div className="max-h-[420px] overflow-auto rounded-lg border border-slate-800">
-      <table className="w-full text-xs">
-        <thead className="sticky top-0 bg-slate-900">
-          <tr className="text-slate-400">
-            <th className="whitespace-nowrap px-3 py-2 text-left font-medium">Время</th>
-            {tags.map((tag) => (
-              <th key={tag.id} className="whitespace-nowrap px-3 py-2 text-right font-medium">
-                {formatTagLabelShort(tag.name)}
-                {tag.unit ? `, ${tag.unit}` : ""}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.ms} className="border-t border-slate-800/60">
-              <td className="whitespace-nowrap px-3 py-1.5 text-slate-400">{formatFullTime(row.ms)}</td>
-              {tags.map((tag) => (
-                <td key={tag.id} className="px-3 py-1.5 text-right font-mono font-semibold text-slate-100">
-                  {formatMaybeMapped(row[tag.id], valueMaps?.get(tag.id))}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="rounded-lg border border-surface-border overflow-hidden">
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => String(row.ms)}
+        maxHeight="26rem"
+        empty={
+          <EmptyState
+            compact
+            title="Нет данных за выбранный период"
+            description="Измените диапазон или проверьте, что опрос тега включён."
+          />
+        }
+      />
     </div>
   );
 };

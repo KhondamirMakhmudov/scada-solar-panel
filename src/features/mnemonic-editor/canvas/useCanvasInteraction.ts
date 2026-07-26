@@ -216,10 +216,19 @@ export function useCanvasInteraction() {
 
       const zoom = useUiStore.getState().viewport.zoom;
 
+      // Притяжение к сетке применяется к итоговым координатам, а не к
+      // смещению курсора: иначе элемент, изначально стоявший не по сетке,
+      // так и остался бы смещённым на постоянную дельту.
+      const snap = (value: number) => {
+        if (!useUiStore.getState().snapToGrid) return value;
+        const grid = useDocumentStore.getState().document.gridSize;
+        return grid > 0 ? Math.round(value / grid) * grid : value;
+      };
+
       if (drag.mode === "move" && drag.elementId) {
         updateElement(drag.elementId, {
-          x: (drag.startElementX ?? 0) + dx / zoom,
-          y: (drag.startElementY ?? 0) + dy / zoom,
+          x: snap((drag.startElementX ?? 0) + dx / zoom),
+          y: snap((drag.startElementY ?? 0) + dy / zoom),
         });
       } else if (drag.mode === "resize" && drag.elementId && drag.resizeHandle) {
         const rawDx = dx / zoom;
@@ -244,7 +253,12 @@ export function useCanvasInteraction() {
           nextY = y + (h - nextH);
         }
 
-        updateElement(drag.elementId, { x: nextX, y: nextY, width: nextW, height: nextH });
+        updateElement(drag.elementId, {
+          x: snap(nextX),
+          y: snap(nextY),
+          width: Math.max(MIN_SIZE, snap(nextW)),
+          height: Math.max(MIN_SIZE, snap(nextH)),
+        });
       } else if (drag.mode === "rotate" && drag.elementId) {
         const rect = event.currentTarget.getBoundingClientRect();
         const currentViewport = useUiStore.getState().viewport;

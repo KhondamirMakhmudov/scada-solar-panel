@@ -51,9 +51,7 @@ const NavigationSection = ({ element, currentScreenId }: NavigationSectionProps)
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">
-        Переход по клику
-      </p>
+      {/* Заголовок раздела рисует обёртка PropertyGroup в PropertiesPanel */}
       <select
         value={element.navigateToScreenId ?? ""}
         onChange={(event) => handleChange(event.target.value)}

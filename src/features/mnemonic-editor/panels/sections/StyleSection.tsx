@@ -15,7 +15,7 @@ const StyleSection = ({ element }: StyleSectionProps) => {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">Стиль</p>
+      {/* Заголовок раздела рисует обёртка PropertyGroup в PropertiesPanel */}
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <ColorField
           label="Заливка"

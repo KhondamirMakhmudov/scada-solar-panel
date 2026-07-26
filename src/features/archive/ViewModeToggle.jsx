@@ -1,26 +1,20 @@
+import { SegmentedControl } from "@/components/ui";
+
 const OPTIONS = [
   { value: "chart", label: "График" },
   { value: "table", label: "Таблица" },
 ];
 
-/** Chart/table tab switch shared by the archive page and the in-place archive modal. */
+/**
+ * Переключатель «график / таблица» для страницы архива и модального окна
+ * архива на мнемосхеме.
+ *
+ * Оставлен отдельным компонентом, хотя и сводится к SegmentedControl: набор
+ * режимов один и тот же в обоих местах, и держать его здесь надёжнее, чем
+ * дублировать массив OPTIONS по вызывающим сторонам.
+ */
 const ViewModeToggle = ({ value, onChange }) => (
-  <div className="inline-flex rounded-lg border border-slate-700 bg-slate-800 p-1">
-    {OPTIONS.map((opt) => (
-      <button
-        key={opt.value}
-        type="button"
-        onClick={() => onChange(opt.value)}
-        className={`rounded-md px-3 py-1.5 text-sm transition ${
-          value === opt.value
-            ? "bg-blue-500/20 text-blue-200"
-            : "text-slate-400 hover:text-slate-200"
-        }`}
-      >
-        {opt.label}
-      </button>
-    ))}
-  </div>
+  <SegmentedControl options={OPTIONS} value={value} onChange={onChange} />
 );
 
 export default ViewModeToggle;

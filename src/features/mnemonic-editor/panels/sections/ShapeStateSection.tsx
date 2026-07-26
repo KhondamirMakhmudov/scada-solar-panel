@@ -24,6 +24,33 @@ const BOOLEAN_STATE_FIELD: Partial<Record<ShapeKind, { key: string; label: strin
   grid: { key: "connected", label: "Подключено" },
 };
 
+/** Виды с собственной веткой редактирования состояния (кроме перечисленных в BOOLEAN_STATE_FIELD). */
+const KINDS_WITH_OWN_BRANCH: ShapeKind[] = [
+  "image",
+  "text",
+  "chart",
+  "tank",
+  "battery",
+  "inverter",
+  "gauge",
+  "lamp",
+  "sensor",
+  "pipe",
+];
+
+/**
+ * Есть ли у вида редактируемое состояние. Нужна вызывающей стороне
+ * (PropertiesPanel), чтобы не рисовать пустую группу «Состояние» у видов
+ * вроде счётчика или здания, для которых компонент возвращает null.
+ *
+ * Список ветвей продублирован осознанно и живёт вплотную к ним: вынести его
+ * из тела компонента без переписывания всех ветвей на таблицу нельзя, а
+ * рядом он с большей вероятностью будет обновлён вместе с новой веткой.
+ */
+export function hasEditableShapeState(kind: ShapeKind): boolean {
+  return KINDS_WITH_OWN_BRANCH.includes(kind) || Boolean(BOOLEAN_STATE_FIELD[kind]);
+}
+
 const INVERTER_STATUSES = [
   { value: "running", label: "Работает" },
   { value: "standby", label: "Ожидание" },
@@ -49,9 +76,9 @@ const LAMP_COLORS = [
   { value: "yellow", label: "Жёлтый" },
 ];
 
-const SectionHeading = () => (
-  <p className="text-[11px] uppercase tracking-wide text-slate-500">Состояние</p>
-);
+// Заголовок «Состояние» рисует обёртка PropertyGroup в PropertiesPanel —
+// раздел ветвится по видам фигур и повторял бы его в каждой ветке
+const SectionHeading = () => null;
 
 const BoundNote = () => (
   <p className="text-[10px] text-slate-600">

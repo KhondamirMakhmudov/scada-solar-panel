@@ -5,7 +5,11 @@ import { readImageFile } from "../lib/imageFile";
 import ColorField from "./fields/ColorField";
 import NumberField from "./fields/NumberField";
 
-/** Shown in the properties-panel slot when nothing is selected — document-level settings instead of an element's. */
+/**
+ * Настройки уровня документа — показываются в правой панели, когда ничего не
+ * выбрано и панель закреплена. Заголовок и рамку панели рисует
+ * PropertiesPanel, здесь только содержимое.
+ */
 const CanvasSettingsPanel = () => {
   const background = useDocumentStore((state) => state.document.background);
   const canvasSize = useDocumentStore((state) => state.document.canvasSize);
@@ -31,11 +35,7 @@ const CanvasSettingsPanel = () => {
   };
 
   return (
-    <div className="w-72 flex-shrink-0 border-l border-slate-800 bg-slate-900/40 p-4 overflow-y-auto space-y-4">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">
-        Настройки холста
-      </p>
-
+    <div className="flex-1 overflow-y-auto p-4 pt-3 space-y-4">
       <div className="space-y-2">
         <p className="text-[11px] text-slate-500">Фон</p>
         {/* Режим фона: сплошной цвет или изображение. Изображение рисуется

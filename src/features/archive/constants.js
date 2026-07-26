@@ -1,13 +1,6 @@
-export const ROW_COLORS = [
-  "#38bdf8",
-  "#4ade80",
-  "#f59e0b",
-  "#f472b6",
-  "#a78bfa",
-  "#f87171",
-  "#2dd4bf",
-  "#facc15",
-];
+// Палитра серий переехала в общий набор интерфейса (@/components/ui —
+// SERIES_COLORS / seriesColor): она нужна не только архиву, а две копии
+// неминуемо разошлись бы.
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;

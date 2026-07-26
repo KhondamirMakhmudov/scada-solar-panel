@@ -215,9 +215,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500">
-        Привязка к тегу
-      </p>
+      {/* Заголовок раздела рисует обёртка PropertyGroup в PropertiesPanel */}
       <select
         value={element.dataBinding?.tagId ?? ""}
         onChange={(event) => handleChange(event.target.value)}

@@ -2,16 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { get } from "lodash";
-import { motion } from "framer-motion";
-import { HistoryRounded } from "@mui/icons-material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
-import NoData from "@/components/no-data";
 import CustomSelect from "@/components/select";
+import { PageHeader, Panel, StatTile, Chip, EmptyState, seriesColor } from "@/components/ui";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
-import { toDatetimeLocal, pickInterval, resolveRange } from "@/features/archive/constants";
+import {
+  toDatetimeLocal,
+  pickInterval,
+  resolveRange,
+  formatFullTime,
+} from "@/features/archive/constants";
 import { useTagHistory } from "@/features/archive/useTagHistory";
 import GroupedTagCharts from "@/features/archive/GroupedTagCharts";
 import RangePicker from "@/features/archive/RangePicker";
@@ -22,6 +25,16 @@ import { useTagValueMaps } from "@/features/mnemonic-editor/hooks/useTagValueMap
 function resolveTagDeviceId(tag) {
   return tag?.deviceId || get(tag, "device.id", "") || "";
 }
+
+/** Человекочитаемый шаг усреднения — интервал приходит в формате ISO 8601 (PT5M, P1D). */
+const INTERVAL_LABELS = {
+  PT1M: "1 мин",
+  PT5M: "5 мин",
+  PT15M: "15 мин",
+  PT1H: "1 час",
+  PT6H: "6 часов",
+  P1D: "1 сутки",
+};
 
 const Index = () => {
   const { data: session } = useSession();
@@ -34,9 +47,12 @@ const Index = () => {
   const [deviceFilter, setDeviceFilter] = useState("all");
   const [selectedTagIds, setSelectedTagIds] = useState([]);
   const [range, setRange] = useState("24h");
-  const [customFrom, setCustomFrom] = useState(() => toDatetimeLocal(new Date(Date.now() - 24 * 60 * 60 * 1000)));
+  const [customFrom, setCustomFrom] = useState(() =>
+    toDatetimeLocal(new Date(Date.now() - 24 * 60 * 60 * 1000)),
+  );
   const [customTo, setCustomTo] = useState(() => toDatetimeLocal(new Date()));
   const [viewMode, setViewMode] = useState("chart");
+  const [tagQuery, setTagQuery] = useState("");
 
   const initializedFromQuery = useRef(false);
 
@@ -104,8 +120,14 @@ const Index = () => {
 
   const visibleTags = useMemo(() => {
     const list = Array.from(tagsById.values());
-    return deviceFilter === "all" ? list : list.filter((t) => t.deviceId === deviceFilter);
-  }, [tagsById, deviceFilter]);
+    const byDevice =
+      deviceFilter === "all" ? list : list.filter((t) => t.deviceId === deviceFilter);
+    const q = tagQuery.trim().toLowerCase();
+    if (!q) return byDevice;
+    return byDevice.filter((t) =>
+      `${t.name} ${t.deviceName}`.toLowerCase().includes(q),
+    );
+  }, [tagsById, deviceFilter, tagQuery]);
 
   const selectedTags = useMemo(
     () => selectedTagIds.map((id) => tagsById.get(id)).filter(Boolean),
@@ -132,12 +154,27 @@ const Index = () => {
     return Array.from(map.values());
   }, [selectedTags]);
 
+  // Цвет линии тега на графике задаётся порядком внутри групп — тот же обход,
+  // что и в GroupedTagCharts, чтобы точка на чипе совпадала с линией
+  const colorByTagId = useMemo(() => {
+    const map = new Map();
+    let index = 0;
+    groupedSelectedTags.forEach((group) => {
+      group.tags.forEach((tag) => {
+        map.set(tag.id, seriesColor(index));
+        index += 1;
+      });
+    });
+    return map;
+  }, [groupedSelectedTags]);
+
   const { timeFrom, timeTo } = useMemo(
     () => resolveRange(range, customFrom, customTo),
     [range, customFrom, customTo],
   );
 
-  const spanMs = timeFrom && timeTo ? new Date(timeTo).getTime() - new Date(timeFrom).getTime() : 0;
+  const spanMs =
+    timeFrom && timeTo ? new Date(timeTo).getTime() - new Date(timeFrom).getTime() : 0;
   const interval = spanMs > 0 ? pickInterval(spanMs) : "PT1H";
 
   const { seriesByTagId, statsByTagId, isFetching } = useTagHistory({
@@ -148,32 +185,49 @@ const Index = () => {
   });
   const valueMaps = useTagValueMaps();
 
+  const totalPoints = useMemo(
+    () =>
+      selectedTagIds.reduce((sum, id) => sum + (statsByTagId.get(id)?.count || 0), 0),
+    [selectedTagIds, statsByTagId],
+  );
+
   const isLoadingRefs = isLoadingDevices || isLoadingTags;
 
   return (
     <DashboardLayout headerTitle="Архивы">
-      <div className="font-manrope py-6 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
-        >
-          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-            <HistoryRounded fontSize="small" />
-            SCADA / Архивы
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-100">История значений тегов</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Выберите устройство и теги, задайте период — график и сводка строятся по даунсемплированной
-            истории (тот же источник, что и тренды на мнемосхемах).
-          </p>
-        </motion.div>
+      <div className="font-manrope max-w-[1800px]">
+        <PageHeader
+          title="История значений тегов"
+          description="Выберите устройство и теги, задайте период — график и сводка строятся по даунсемплированной истории (тот же источник, что и тренды на мнемосхемах)."
+        />
 
         {isLoadingRefs ? (
           <ContentLoader />
         ) : (
-          <>
-            <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 md:p-5 space-y-4">
+          <div className="space-y-4">
+            {/* Сводка по текущей выборке: до неё период и объём данных
+                приходилось выяснять по осям самих графиков */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+              <StatTile dense label="Тегов выбрано" value={selectedTags.length} />
+              <StatTile dense label="Устройств" value={groupedSelectedTags.length} />
+              <StatTile dense label="Точек" value={totalPoints || "—"} />
+              <StatTile
+                dense
+                label="Шаг усреднения"
+                value={INTERVAL_LABELS[interval] || interval}
+              />
+              <StatTile
+                dense
+                label="Период"
+                value={timeFrom ? formatFullTime(new Date(timeFrom).getTime()) : "—"}
+                hint={timeTo ? `по ${formatFullTime(new Date(timeTo).getTime())}` : undefined}
+              />
+            </div>
+
+            <Panel
+              title="Выборка"
+              toolbar={<ViewModeToggle value={viewMode} onChange={setViewMode} />}
+            >
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <CustomSelect
                   label="Устройство"
@@ -190,45 +244,82 @@ const Index = () => {
                   onCustomFromChange={setCustomFrom}
                   onCustomToChange={setCustomTo}
                 />
-                <div className="flex items-end">
-                  <ViewModeToggle value={viewMode} onChange={setViewMode} />
-                </div>
               </div>
 
-              <div>
-                <p className="mb-2 text-sm text-slate-400">
-                  Теги{visibleTags.length === 0 ? " (нет тегов у выбранного устройства)" : ""}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {visibleTags.map((tag) => {
-                    const isSelected = selectedTagIds.includes(tag.id);
-                    return (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => toggleTag(tag.id)}
-                        className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                          isSelected
-                            ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-                        }`}
-                      >
-                        {formatTagLabelShort(tag.name)}
-                        {deviceFilter === "all" && (
-                          <span className="ml-1.5 text-xs text-slate-500">· {tag.deviceName}</span>
-                        )}
-                      </button>
-                    );
-                  })}
+              <div className="mt-4">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <p className="text-[11px] uppercase tracking-wide text-[#6b7280]">
+                    Теги
+                  </p>
+                  <span className="text-[11px] text-[#475569]">
+                    {selectedTagIds.length} из {visibleTags.length}
+                  </span>
+                  <input
+                    type="search"
+                    value={tagQuery}
+                    onChange={(event) => setTagQuery(event.target.value)}
+                    placeholder="Фильтр по имени"
+                    className="h-7 w-44 rounded-md border border-surface-border bg-surface-1 px-2 text-[11px] text-[#e5e2e1] placeholder:text-[#6b7280] focus:border-primary/60 focus:outline-none"
+                  />
+                  <div className="ml-auto flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={visibleTags.length === 0}
+                      onClick={() =>
+                        setSelectedTagIds((prev) =>
+                          Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
+                        )
+                      }
+                      className="text-[11px] text-[#6b7280] hover:text-[#e5e2e1] disabled:opacity-40 transition-colors"
+                    >
+                      Выбрать все
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedTagIds.length === 0}
+                      onClick={() => setSelectedTagIds([])}
+                      className="text-[11px] text-[#6b7280] hover:text-[#e5e2e1] disabled:opacity-40 transition-colors"
+                    >
+                      Очистить
+                    </button>
+                  </div>
                 </div>
+
+                {visibleTags.length === 0 ? (
+                  <EmptyState
+                    compact
+                    title="Теги не найдены"
+                    description="Измените устройство или фильтр по имени."
+                  />
+                ) : (
+                  <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto">
+                    {visibleTags.map((tag) => {
+                      const isSelected = selectedTagIds.includes(tag.id);
+                      return (
+                        <Chip
+                          key={tag.id}
+                          selected={isSelected}
+                          onClick={() => toggleTag(tag.id)}
+                          dotColor={isSelected ? colorByTagId.get(tag.id) : undefined}
+                          title={`${tag.name}${tag.unit ? `, ${tag.unit}` : ""} · ${tag.deviceName}`}
+                          meta={deviceFilter === "all" ? tag.deviceName : undefined}
+                        >
+                          {formatTagLabelShort(tag.name)}
+                        </Chip>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
+            </Panel>
 
             {selectedTags.length === 0 ? (
-              <NoData
-                title="Теги не выбраны"
-                description="Выберите один или несколько тегов выше, чтобы построить график истории."
-              />
+              <Panel>
+                <EmptyState
+                  title="Теги не выбраны"
+                  description="Выберите один или несколько тегов выше, чтобы построить график истории."
+                />
+              </Panel>
             ) : (
               <GroupedTagCharts
                 groups={groupedSelectedTags}
@@ -241,7 +332,7 @@ const Index = () => {
                 onRemoveTag={toggleTag}
               />
             )}
-          </>
+          </div>
         )}
       </div>
     </DashboardLayout>

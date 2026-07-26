@@ -64,14 +64,6 @@ export const ROUTE_ACCESS_RULES = [
     roles: ["admin", "super_admin", "user", "scada-user"],
   },
   {
-    prefix: "/dashboard/solar",
-    roles: ["admin", "super_admin", "user", "scada-user"],
-  },
-  {
-    prefix: "/dashboard/eco-system-stations",
-    roles: ["admin", "super_admin", "user", "scada-user"],
-  },
-  {
     prefix: "/dashboard/settings",
     roles: ["admin", "super_admin", "user", "scada-user"],
   },

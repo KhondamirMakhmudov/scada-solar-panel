@@ -3,6 +3,9 @@ import type { ConnectionHandle, MnemonicElement } from "../types";
 
 export type EditorTool = "select" | "pan" | "draw";
 
+/** Точки — ненавязчивая сетка по умолчанию; линии — для точной компоновки; «нет» — чистый холст под фоновой подложкой. */
+export type GridStyle = "dots" | "lines" | "none";
+
 export interface Viewport {
   zoom: number;
   panX: number;
@@ -33,7 +36,27 @@ interface UiStoreState {
   /** Точки текущего мазка кисти (в координатах документа), null — не рисуем */
   drawingPoints: { x: number; y: number }[] | null;
 
+  /** Свёрнута ли левая палитра оборудования — освобождает место под холст */
+  isPaletteCollapsed: boolean;
+  /** Закреплена ли правая панель раскрытой, даже когда ничего не выбрано */
+  isInspectorPinned: boolean;
+  gridStyle: GridStyle;
+  /** Притягивать координаты к шагу сетки при перетаскивании и изменении размера */
+  snapToGrid: boolean;
+  /**
+   * Заявка на прокрутку холста к элементу (из поиска по схеме). Само
+   * центрирование выполняет EditorCanvas — только он знает свои экранные
+   * размеры, необходимые для расчёта панорамы.
+   */
+  focusRequestId: string | null;
+
   setActiveTool: (tool: EditorTool) => void;
+  requestFocus: (elementId: string) => void;
+  clearFocusRequest: () => void;
+  togglePalette: () => void;
+  toggleInspectorPinned: () => void;
+  setGridStyle: (style: GridStyle) => void;
+  toggleSnapToGrid: () => void;
   select: (id: string | null) => void;
   clearSelection: () => void;
   selectConnection: (id: string | null) => void;
@@ -66,8 +89,25 @@ export const useUiStore = create<UiStoreState>((set) => ({
   contextMenu: null,
   connecting: null,
   drawingPoints: null,
+  isPaletteCollapsed: false,
+  isInspectorPinned: false,
+  gridStyle: "dots",
+  snapToGrid: false,
+  focusRequestId: null,
 
   setActiveTool: (tool) => set({ activeTool: tool, drawingPoints: null }),
+  requestFocus: (elementId) =>
+    set({
+      focusRequestId: elementId,
+      selectedElementIds: [elementId],
+      selectedConnectionIds: [],
+    }),
+  clearFocusRequest: () => set({ focusRequestId: null }),
+  togglePalette: () => set((state) => ({ isPaletteCollapsed: !state.isPaletteCollapsed })),
+  toggleInspectorPinned: () =>
+    set((state) => ({ isInspectorPinned: !state.isInspectorPinned })),
+  setGridStyle: (gridStyle) => set({ gridStyle }),
+  toggleSnapToGrid: () => set((state) => ({ snapToGrid: !state.snapToGrid })),
   select: (id) => set({ selectedElementIds: id ? [id] : [], selectedConnectionIds: [] }),
   clearSelection: () => set({ selectedElementIds: [], selectedConnectionIds: [] }),
   selectConnection: (id) => set({ selectedConnectionIds: id ? [id] : [], selectedElementIds: [] }),

@@ -1,92 +1,31 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/router";
-import { List, ListItemButton, ListItemIcon, Typography } from "@mui/material";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
-import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
-import HubRoundedIcon from "@mui/icons-material/HubRounded";
-import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
-import { motion } from "framer-motion";
 import { SettingsRounded as SettingsRoundedIcon } from "@mui/icons-material";
-import ExitModal from "../modal/exit-modal";
-import { signOut, useSession } from "next-auth/react";
-import Avatar from "@mui/material/Avatar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-
+import Avatar from "@mui/material/Avatar";
+import { motion } from "framer-motion";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { get } from "lodash";
 
+import ExitModal from "../modal/exit-modal";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
-import { get } from "lodash";
 import Brand from "@/components/brand";
 import storage from "@/services/storage";
 import { SAVED_ACCOUNTS_KEY } from "@/lib/savedAccounts";
 import { hasRequiredRole } from "@/constants/routeAccess";
-
-// Роли каждого пункта заданы статически. Держите в согласии с
-// ROUTE_ACCESS_RULES (src/constants/routeAccess.js): скрытие пункта — только
-// косметика, реальный доступ к URL закрывает Layout по тем же правилам.
-const menuItems = [
-  {
-    text: "Главная",
-    icon: <HomeRoundedIcon fontSize="medium" />,
-    path: "/dashboard/main",
-    roles: ["admin", "super_admin", "user"],
-  },
-  {
-    text: "Подключения",
-    icon: <HubRoundedIcon fontSize="medium" />,
-    path: "/dashboard/connects",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    text: "Устройства",
-    icon: <MemoryRoundedIcon fontSize="medium" />,
-    path: "/dashboard/devices",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    text: "Теги",
-    icon: <WbSunnyRoundedIcon fontSize="medium" />,
-    path: "/dashboard/tags",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    text: "Экраны",
-    icon: <HubRoundedIcon fontSize="medium" />,
-    path: "/dashboard/screens",
-    roles: ["admin", "super_admin", "scada-user"],
-  },
-  {
-    text: "Архивы",
-    icon: <HistoryRoundedIcon fontSize="medium" />,
-    path: "/dashboard/archive",
-    roles: ["admin", "super_admin", "user", "scada-user"],
-  },
-  {
-    text: "Тест WebSocket",
-    icon: <HubRoundedIcon fontSize="medium" />,
-    path: "/dashboard/test/websocket",
-    roles: ["admin", "super_admin"],
-  },
-];
+import { NAV_GROUPS } from "@/constants/navigation";
 
 export default function Sidebar({ isOpen = true }) {
-  const [open, setOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [openExitModal, setOpenExitModal] = useState(false);
-  const [openSubmenus, setOpenSubmenus] = useState({});
   const { data: session } = useSession();
   const router = useRouter();
 
-  const {
-    data: getMe,
-    isLoading,
-    isFetching,
-  } = useGetPythonQuery({
+  const { data: getMe } = useGetPythonQuery({
     key: KEYS.getMe,
     url: URLS.getMe,
     headers: {
@@ -96,47 +35,22 @@ export default function Sidebar({ isOpen = true }) {
     enabled: !!session?.accessToken,
   });
 
-  // Filter the static menu by the session's roles — an item/submenu entry
-  // with no `roles` array is visible to any authenticated role; a parent
-  // with a submenu is only kept if at least one child survives filtering.
-  const filteredMenuItems = useMemo(() => {
+  // Группа скрывается целиком, если роль не даёт доступа ни к одному её пункту
+  const visibleGroups = useMemo(() => {
     const userRoles = session?.user?.roles || [];
     if (!Array.isArray(userRoles) || userRoles.length === 0) return [];
 
-    return menuItems
-      .filter((item) => hasRequiredRole(item.roles, userRoles))
-      .map((item) => {
-        if (item.submenu) {
-          const filteredSubmenu = item.submenu.filter((sub) =>
-            hasRequiredRole(sub.roles, userRoles),
-          );
-          return filteredSubmenu.length > 0
-            ? { ...item, submenu: filteredSubmenu }
-            : null;
-        }
-        return item;
-      })
-      .filter(Boolean);
+    return NAV_GROUPS
+      .map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) => !item.hiddenInSidebar && hasRequiredRole(item.roles, userRoles),
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
   }, [session?.user?.roles]);
 
-  // active submenu bo'lsa parentni ochiq qilib qo'yish
-  useEffect(() => {
-    filteredMenuItems.forEach((item, index) => {
-      if (item.submenu?.some((sub) => router.pathname === sub.path)) {
-        setOpenSubmenus((prev) => ({
-          ...prev,
-          [index]: true,
-        }));
-      }
-    });
-  }, [filteredMenuItems, router.pathname]);
-
-  const handleToggleSubmenu = (index) => {
-    setOpenSubmenus((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
+  const hasAnyItem = visibleGroups.length > 0;
 
   const handleLogout = async () => {
     const preservedAccounts = storage.get(SAVED_ACCOUNTS_KEY);
@@ -150,342 +64,178 @@ export default function Sidebar({ isOpen = true }) {
 
   function stringToColor(string) {
     let hash = 0;
-    let i;
-
-    for (i = 0; i < string.length; i += 1) {
+    for (let i = 0; i < string.length; i += 1) {
       hash = string.charCodeAt(i) + ((hash << 5) - hash);
     }
-
     let color = "#";
-
-    for (i = 0; i < 3; i += 1) {
+    for (let i = 0; i < 3; i += 1) {
       const value = (hash >> (i * 8)) & 0xff;
       color += `00${value.toString(16)}`.slice(-2);
     }
-
     return color;
   }
 
   function stringAvatar(name) {
     if (!name) return { sx: { bgcolor: "#374151" }, children: "U" };
-
     const nameParts = name.split(" ");
     return {
-      sx: {
-        bgcolor: stringToColor(name),
-      },
+      sx: { bgcolor: stringToColor(name) },
       children: `${nameParts[0]?.[0] || ""}${nameParts[1]?.[0] || ""}`,
     };
   }
 
-  const userFullName = `${get(getMe, "data.first_name", "")} ${get(
-    getMe,
-    "data.last_name",
-    "",
-  )}`.trim();
+  const firstName = get(getMe, "data.first_name", "");
+  const lastName = get(getMe, "data.last_name", "");
+  const userFullName = `${firstName} ${lastName}`.trim();
 
   return (
     <aside
       className={`${
-        isOpen ? "w-[340px]" : "w-[80px]"
-      } h-screen bg-[#131313] px-[16px] py-[25px] transition-all duration-300 overflow-y-auto flex flex-col justify-between font-mono border-r border-[#2a2a2a]`}
+        isOpen ? "w-[264px]" : "w-[68px]"
+      } h-screen flex-shrink-0 bg-[#131313] border-r border-[#2a2a2a] transition-[width] duration-200 flex flex-col font-manrope`}
     >
-      <div className="text-white pt-8 pb-8">
-        {/* LOGO */}
-        <div className="mb-8">
-          <Link href="/">
-            <div
-              className={`flex gap-2 items-center  ${
-                !isOpen ? "justify-center" : "justify-start"
-              }`}
-            >
-              {isOpen ? <Brand /> : <Brand title="" />}
-            </div>
-          </Link>
-        </div>
+      {/* ЛОГОТИП */}
+      <div
+        className={`flex-shrink-0 min-h-[64px] flex items-center border-b border-[#2a2a2a] ${
+          isOpen ? "px-3 py-2" : "justify-center px-2 py-2"
+        }`}
+      >
+        <Link href="/" className="min-w-0">
+          {isOpen ? (
+            <Brand
+              iconSize={30}
+              titleClassName="text-[10px] font-semibold leading-[1.25] tracking-tight text-[#bfc7d4]"
+            />
+          ) : (
+            <Brand title="" iconSize={28} />
+          )}
+        </Link>
+      </div>
 
-        {/* MENU */}
-        <List className="space-y-1">
-          {filteredMenuItems.map((item, index) => {
-            const isActive = router.pathname === item.path;
-            const isAnySubmenuActive =
-              item.submenu?.some((sub) => router.pathname === sub.path) ||
-              false;
-            const isOpenSubmenu = openSubmenus[index] || false;
+      {/* МЕНЮ */}
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+        {visibleGroups.map((group) => (
+          <div key={group.label}>
+            {isOpen ? (
+              <p className="px-2.5 pb-1.5 text-[10px] uppercase tracking-wider text-[#6b7280]">
+                {group.label}
+              </p>
+            ) : (
+              // В свёрнутом виде подпись группы не помещается — её роль
+              // разделителя берёт на себя линия
+              <div className="mx-2 mb-2 border-t border-[#2a2a2a]" />
+            )}
 
-            return (
-              <div key={index}>
-                {item.text === "Экраны" && (
-                  <div className="my-2 border-t border-[#2a2a2a]"></div>
-                )}
-                {/* Parent item */}
-                <ListItemButton
-                  onClick={() =>
-                    item.submenu
-                      ? handleToggleSubmenu(index)
-                      : router.push(item.path)
-                  }
-                  selected={isActive || isAnySubmenuActive}
-                  sx={{
-                    borderRadius: "10px",
-                    my: 0.5,
-                    color:
-                      isActive || isAnySubmenuActive ? "#3b82f6" : "#bfc7d4",
-                    backgroundColor:
-                      isActive || isAnySubmenuActive
-                        ? "rgba(59, 130, 246, 0.15) !important"
-                        : "transparent",
-                    "&:hover": {
-                      backgroundColor: "rgba(59, 130, 246, 0.1)",
-                      color: "#3b82f6",
-                    },
-                    border:
-                      isActive || isAnySubmenuActive
-                        ? "1px solid rgba(59, 130, 246, 0.3)"
-                        : "1px solid transparent",
-                    justifyContent: isOpen ? "flex-start" : "center",
-                    px: isOpen ? 2 : 1,
-                    py: 1.5,
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: "auto",
-                      color:
-                        isActive || isAnySubmenuActive ? "#3b82f6" : "#bfc7d4",
-                      justifyContent: "center",
-                      mr: isOpen ? 2 : 0,
-                    }}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = router.pathname === item.path;
+                const { Icon } = item;
+                return (
+                  <button
+                    key={item.path}
+                    type="button"
+                    onClick={() => router.push(item.path)}
+                    title={isOpen ? undefined : item.text}
+                    className={`w-full flex items-center rounded-lg transition-colors ${
+                      isOpen ? "gap-3 px-2.5 py-2" : "justify-center px-0 py-2"
+                    } ${
+                      isActive
+                        ? "bg-[rgba(59,130,246,0.14)] text-[#3b82f6]"
+                        : "text-[#bfc7d4] hover:bg-[#1c1b1b] hover:text-[#e5e2e1]"
+                    }`}
                   >
-                    {item.icon}
-                  </ListItemIcon>
-
-                  {isOpen && (
-                    <Typography
-                      sx={{
-                        fontFamily: "Manrope, sans-serif",
-                        fontSize: "16px",
-                        textTransform: "uppercase",
-                        fontWeight: isActive || isAnySubmenuActive ? 600 : 400,
-                        flexGrow: 1,
-                      }}
-                    >
-                      {item.text}
-                    </Typography>
-                  )}
-
-                  {item.submenu && isOpen && (
-                    <span className="ml-auto">
-                      {isOpenSubmenu ? (
-                        <ExpandLessIcon
-                          fontSize="small"
-                          sx={{
-                            color:
-                              isActive || isAnySubmenuActive
-                                ? "#3b82f6"
-                                : "#bfc7d4",
-                          }}
-                        />
-                      ) : (
-                        <ExpandMoreIcon
-                          fontSize="small"
-                          sx={{
-                            color:
-                              isActive || isAnySubmenuActive
-                                ? "#3b82f6"
-                                : "#bfc7d4",
-                          }}
-                        />
-                      )}
+                    {/* Полоса слева вместо рамки по контуру: активный пункт
+                        читается мгновенно и кнопка не «дёргается» на 1px */}
+                    <span
+                      className={`w-[3px] h-5 rounded-full flex-shrink-0 ${
+                        isActive ? "bg-[#3b82f6]" : "bg-transparent"
+                      } ${isOpen ? "" : "hidden"}`}
+                    />
+                    <span className="flex-shrink-0 flex items-center justify-center">
+                      <Icon fontSize="small" />
                     </span>
-                  )}
-                </ListItemButton>
+                    {isOpen && (
+                      <span
+                        className={`flex-1 text-left text-[13px] truncate ${
+                          isActive ? "font-semibold" : "font-normal"
+                        }`}
+                      >
+                        {item.text}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
 
-                {item.text === "Экраны" && (
-                  <div className="my-2 border-b border-[#2a2a2a]"></div>
-                )}
-
-                {/* Submenu */}
-                {item.submenu && isOpenSubmenu && isOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-8 pl-4 border-l-2 border-[#393939] mt-1 space-y-1"
-                  >
-                    {item.submenu.map((sub, subIndex) => {
-                      const isSubActive = router.pathname === sub.path;
-                      return (
-                        <ListItemButton
-                          key={subIndex}
-                          onClick={() => router.push(sub.path)}
-                          selected={isSubActive}
-                          sx={{
-                            borderRadius: "8px",
-                            my: 0.5,
-                            color: isSubActive ? "#3b82f6" : "#bfc7d4",
-                            backgroundColor: isSubActive
-                              ? "rgba(59, 130, 246, 0.1)"
-                              : "transparent",
-                            "&:hover": {
-                              backgroundColor: "rgba(59, 130, 246, 0.05)",
-                              color: "#3b82f6",
-                            },
-                            border: isSubActive
-                              ? "1px solid rgba(59, 130, 246, 0.2)"
-                              : "1px solid transparent",
-                            pl: 3,
-                            py: 1,
-                          }}
-                        >
-                          <div className="flex items-center w-full">
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full mr-3 ${
-                                isSubActive ? "bg-[#3b82f6]" : "bg-[#393939]"
-                              }`}
-                            />
-
-                            <Typography
-                              sx={{
-                                fontSize: "14px",
-                                fontFamily: "'Manrope', sans-serif",
-                                fontWeight: isSubActive ? 500 : 400,
-                              }}
-                            >
-                              {sub.text}
-                            </Typography>
-                          </div>
-                        </ListItemButton>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </div>
-            );
-          })}
-        </List>
-
-        {filteredMenuItems.length === 0 && isOpen && (
-          <p className="text-center text-sm text-[#6b7280] italic py-6">
+        {!hasAnyItem && isOpen && (
+          <p className="text-center text-xs text-[#6b7280] italic py-6">
             Нет доступных пунктов меню
           </p>
         )}
-      </div>
+      </nav>
 
-      {/* USER PROFILE & LOGOUT */}
-      <div className="relative">
-        <ListItemButton
-          onClick={() => setOpen((prev) => !prev)}
-          sx={{
-            borderRadius: "12px",
-            backgroundColor: "rgba(59, 130, 246, 0.1)",
-            border: "1px solid rgba(59, 130, 246, 0.2)",
-            justifyContent: isOpen ? "flex-start" : "center",
-            px: isOpen ? 2 : 1,
-            py: 1.5,
-            "&:hover": {
-              backgroundColor: "rgba(59, 130, 246, 0.15)",
-              borderColor: "rgba(59, 130, 246, 0.3)",
-            },
-          }}
+      {/* ПРОФИЛЬ И ВЫХОД */}
+      <div className="relative flex-shrink-0 border-t border-[#2a2a2a] p-2">
+        <button
+          type="button"
+          onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+          className={`w-full flex items-center rounded-lg px-2 py-2 hover:bg-[#1c1b1b] transition-colors ${
+            isOpen ? "gap-2.5" : "justify-center"
+          }`}
         >
-          <div
-            className={`flex ${
-              !isOpen ? "justify-center" : "justify-between"
-            } items-center w-full`}
-          >
-            <div className="flex items-center gap-3">
-              <Avatar
-                {...stringAvatar(userFullName)}
-                sx={{
-                  width: "36px",
-                  height: "36px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                }}
-              />
+          <Avatar
+            {...stringAvatar(userFullName)}
+            sx={{ width: 30, height: 30, fontSize: 12, fontWeight: 600 }}
+          />
+          {isOpen && (
+            <>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block text-[13px] font-medium text-[#e5e2e1] truncate">
+                  {userFullName || "Пользователь"}
+                </span>
+                <span className="block text-[11px] text-[#6b7280] truncate">
+                  {get(getMe, "data.username", "")}
+                </span>
+              </span>
+              <MoreVertIcon sx={{ color: "#6b7280", width: 18 }} />
+            </>
+          )}
+        </button>
 
-              {isOpen && (
-                <div className="text-[#e5e2e1]">
-                  <h4 className="text-[15px] font-semibold font-spaceGrotesk">
-                    {get(getMe, "data.first_name", "")}{" "}
-                    {get(getMe, "data.last_name", "")}
-                  </h4>
-                  <p className="text-sm text-[#bfc7d4] font-manrope">
-                    {get(getMe, "data.username", "")}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {isOpen && (
-              <MoreVertIcon
-                sx={{
-                  color: "#bfc7d4",
-                  width: "20px",
-                  "&:hover": {
-                    color: "#3b82f6",
-                  },
-                }}
-              />
-            )}
-          </div>
-        </ListItemButton>
-
-        {/* Dropdown menu */}
-        {open && (
+        {isProfileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-full left-0 right-0 mb-2"
+            className="absolute bottom-full left-2 right-2 mb-1"
           >
-            <div className="bg-[#1c1b1b] border border-[#2a2a2a] rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-[#1c1b1b] border border-[#2a2a2a] rounded-lg shadow-xl shadow-black/50 overflow-hidden">
               <Link
                 href="/dashboard/settings"
-                className={`flex p-3 hover:bg-[#393939] text-[#e5e2e1] items-center ${
-                  isOpen ? "gap-3" : "justify-center"
-                } transition-all duration-200 border-b border-[#2a2a2a]`}
+                className={`flex items-center p-2.5 hover:bg-[#242424] text-[#e5e2e1] transition-colors border-b border-[#2a2a2a] ${
+                  isOpen ? "gap-2.5" : "justify-center"
+                }`}
               >
-                <SettingsRoundedIcon
-                  sx={{
-                    fontSize: "20px",
-                    color: "#bfc7d4",
-                  }}
-                />
-                {isOpen && (
-                  <span className="font-manrope text-sm font-medium">
-                    Настройки
-                  </span>
-                )}
+                <SettingsRoundedIcon sx={{ fontSize: 18, color: "#bfc7d4" }} />
+                {isOpen && <span className="text-[13px]">Настройки</span>}
               </Link>
-
               <button
+                type="button"
                 onClick={() => setOpenExitModal(true)}
-                className={`flex p-3 hover:bg-[#393939] text-[#e5e2e1] items-center w-full text-left ${
-                  isOpen ? "gap-3" : "justify-center"
-                } transition-all duration-200`}
+                className={`w-full flex items-center p-2.5 hover:bg-[#242424] text-[#e5e2e1] text-left transition-colors ${
+                  isOpen ? "gap-2.5" : "justify-center"
+                }`}
               >
-                <ExitToAppIcon
-                  sx={{
-                    fontSize: "20px",
-                    color: "#bfc7d4",
-                  }}
-                />
-                {isOpen && (
-                  <span className="font-manrope text-sm font-medium">
-                    Выйти
-                  </span>
-                )}
+                <ExitToAppIcon sx={{ fontSize: 18, color: "#bfc7d4" }} />
+                {isOpen && <span className="text-[13px]">Выйти</span>}
               </button>
             </div>
           </motion.div>
         )}
       </div>
 
-      {/* Exit Modal */}
       <ExitModal
         open={openExitModal}
         onClose={() => setOpenExitModal(false)}
