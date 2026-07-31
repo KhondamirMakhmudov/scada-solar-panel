@@ -82,16 +82,16 @@ const ShapePalette = () => {
 
   if (isCollapsed) {
     return (
-      <div className="w-11 flex-shrink-0 border-r border-slate-800 bg-slate-900/40 flex flex-col items-center py-2 gap-1">
+      <div className="w-11 flex-shrink-0 border-r border-surface-border bg-surface-dark/40 flex flex-col items-center py-2 gap-1">
         <button
           type="button"
           onClick={togglePalette}
           title="Развернуть палитру оборудования"
-          className="w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
         >
           »
         </button>
-        <div className="w-6 h-px bg-slate-800 my-1" />
+        <div className="w-6 h-px bg-background-dark my-1" />
         <div className="flex-1 overflow-y-auto flex flex-col items-center gap-1 w-full">
           {SHAPE_CATEGORIES.flatMap((category) => category.kinds).map((kind) => {
             const definition = SHAPE_REGISTRY[kind];
@@ -104,7 +104,7 @@ const ShapePalette = () => {
                 onDragStart={handleDragStart(kind)}
                 onClick={() => handleAdd(kind)}
                 title={definition.label}
-                className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md text-slate-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
+                className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
               >
                 <ShapeThumbnail kind={kind} size={20} />
               </button>
@@ -116,14 +116,14 @@ const ShapePalette = () => {
   }
 
   return (
-    <div className="w-60 flex-shrink-0 border-r border-slate-800 bg-slate-900/40 flex flex-col">
+    <div className="w-60 flex-shrink-0 border-r border-surface-border bg-surface-dark/40 flex flex-col">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <p className="text-[11px] uppercase tracking-wide text-slate-500">Оборудование</p>
+        <p className="text-[11px] uppercase tracking-wide text-text-dim">Оборудование</p>
         <button
           type="button"
           onClick={togglePalette}
           title="Свернуть палитру"
-          className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors"
+          className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors"
         >
           «
         </button>
@@ -131,7 +131,7 @@ const ShapePalette = () => {
 
       <div className="px-3 pb-2">
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600 text-xs">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-faint text-xs">
             ⌕
           </span>
           <input
@@ -139,7 +139,7 @@ const ShapePalette = () => {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Поиск элемента"
-            className="w-full h-8 pl-7 pr-2 rounded-md bg-slate-950/60 border border-slate-800 focus:border-blue-500/60 focus:outline-none text-xs text-slate-200 placeholder:text-slate-600 transition-colors"
+            className="w-full h-8 pl-7 pr-2 rounded-[2px] bg-background-dark/60 border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
           />
         </div>
       </div>
@@ -161,16 +161,16 @@ const ShapePalette = () => {
                       : [...ids, category.id],
                   )
                 }
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] uppercase tracking-wide text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[2px] text-[11px] uppercase tracking-wide text-text-muted hover:bg-background-dark/60 hover:text-text-primary transition-colors"
               >
                 <span
-                  className="text-[9px] text-slate-600 transition-transform duration-150"
+                  className="text-[9px] text-text-faint transition-transform duration-150"
                   style={{ transform: isOpen ? "rotate(90deg)" : "none" }}
                 >
                   ▶
                 </span>
                 <span className="flex-1 text-left">{category.label}</span>
-                <span className="text-[10px] text-slate-600 font-mono">
+                <span className="text-[10px] text-text-faint font-ibmPlexMono">
                   {category.kinds.length}
                 </span>
               </button>
@@ -188,17 +188,17 @@ const ShapePalette = () => {
                         onDragStart={handleDragStart(kind)}
                         onClick={() => handleAdd(kind)}
                         title={SHAPE_HINTS[kind] ?? definition.label}
-                        className="group w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:cursor-grabbing text-left transition-colors"
+                        className="group w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[2px] border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:cursor-grabbing text-left transition-colors"
                       >
-                        <span className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-md bg-slate-950/50 border border-slate-800 text-slate-500 group-hover:border-blue-500/30 group-hover:text-blue-300 transition-colors">
+                        <span className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[2px] bg-background-dark/50 border border-surface-border text-text-dim group-hover:border-blue-500/30 group-hover:text-blue-300 transition-colors">
                           <ShapeThumbnail kind={kind} size={22} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] leading-tight text-slate-200 truncate">
+                          <span className="block text-[13px] leading-tight text-text-primary truncate">
                             {definition.label}
                           </span>
                           {SHAPE_HINTS[kind] && (
-                            <span className="block text-[10px] leading-tight text-slate-600 truncate">
+                            <span className="block text-[10px] leading-tight text-text-faint truncate">
                               {SHAPE_HINTS[kind]}
                             </span>
                           )}
@@ -213,13 +213,13 @@ const ShapePalette = () => {
         })}
 
         {totalMatches === 0 && (
-          <p className="px-2 py-6 text-center text-[11px] text-slate-600">
+          <p className="px-2 py-6 text-center text-[11px] text-text-faint">
             Ничего не найдено по запросу «{query.trim()}»
           </p>
         )}
       </div>
 
-      <p className="px-3 py-2 border-t border-slate-800/80 text-[10px] leading-relaxed text-slate-600">
+      <p className="px-3 py-2 border-t border-surface-border/80 text-[10px] leading-relaxed text-text-faint">
         Кликните по элементу или перетащите его на холст. Пробел + перетаскивание —
         панорамирование, колесо мыши — масштаб.
       </p>

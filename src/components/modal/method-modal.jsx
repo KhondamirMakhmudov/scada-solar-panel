@@ -21,12 +21,12 @@ const MethodModal = ({
           transform: "translate(-50%, -50%)",
           width: width,
           height: height,
-          bgcolor: "#1F2937",
+          bgcolor: "#1c1b1b",
           color: "white",
           boxShadow: 24,
           p: padding,
-          borderRadius: "8px",
-          fontFamily: "Manrope",
+          borderRadius: "2px",
+          fontFamily: "IBM Plex Sans",
         }}
       >
         {/* Title va X icon joylashuvi */}

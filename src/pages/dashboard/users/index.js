@@ -20,12 +20,13 @@ import { useRouter } from "next/router";
 import { TableRows, GridView } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import UserCard from "@/components/card/UserCard";
-import { ActionButtonGroup, DeleteButton } from "@/components/button";
 const Index = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("table");
+  const [searchValue, setSearchValue] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [createModal, setCreateModal] = useState(false);
   const [selectUser, setSelectUser] = useState(null);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -167,45 +168,61 @@ const Index = () => {
 
   const columns = [
     {
-      header: "№",
-      cell: ({ row }) => row.index + 1,
+      id: "user",
+      header: "User",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="w-5 h-5 rounded-[2px] bg-surface-border flex items-center justify-center text-[9px] font-ibmPlexMono font-semibold text-text-primary">
+            {`${row.original.first_name?.[0] || ""}${row.original.last_name?.[0] || ""}`.toUpperCase() || "U"}
+          </span>
+          <span className="font-medium text-text-primary">
+            {row.original.first_name} {row.original.last_name}
+          </span>
+        </div>
+      ),
     },
-    { accessorKey: "first_name", header: "Имя" },
-    { accessorKey: "last_name", header: "Фамилия" },
-    { accessorKey: "username", header: "Имя пользователя" },
+    { accessorKey: "username", header: "Username", cell: ({ row }) => (
+      <span className="text-text-muted">@{row.original.username}</span>
+    ) },
     {
       accessorKey: "role",
-      header: "Роль",
+      header: "Role",
       cell: ({ row }) => (
-        <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-xs ${
-            row.original.role === "admin"
-              ? "bg-blue-500/15 text-blue-300 border border-blue-400/30"
-              : "bg-slate-500/20 text-slate-300 border border-slate-400/30"
-          }`}
-        >
-          {row.original.role === "admin" ? "Администратор" : "Пользователь"}
+        <span className="inline-block px-1.5 py-0.5 border border-surface-border rounded-[2px] text-[9.5px] font-semibold uppercase tracking-wide text-text-secondary">
+          {row.original.role === "admin" ? "Admin" : "User"}
         </span>
       ),
     },
-
     {
       accessorKey: "actions",
-      header: "Действия",
+      header: "Actions",
       cell: ({ row }) => (
-        <ActionButtonGroup>
-          <DeleteButton
+        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+          <button
+            type="button"
             onClick={() => {
               setSelectUser(row?.original.id);
               setDeleteModal(true);
             }}
-            tooltip="Удалить пользователя"
-          />
-        </ActionButtonGroup>
+            className="text-status-fault hover:underline"
+          >
+            DEL
+          </button>
+        </div>
       ),
       enableSorting: false,
     },
   ];
+
+  const filteredUsers = get(users, "data.data", []).filter((user) => {
+    const query = searchValue.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      `${user.first_name} ${user.last_name}`.toLowerCase().includes(query) ||
+      user.username?.toLowerCase().includes(query);
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -225,59 +242,71 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Пользователи"}>
-      <div className="font-manrope py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <Button
-          onClick={() => setCreateModal(true)}
-          sx={{
-            textTransform: "none",
-            fontWeight: 700,
-            color: "#00111f",
-            background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
-            borderRadius: "10px",
-            height: "44px",
-            "&:hover": { opacity: 0.9 },
-          }}
-          variant="contained"
-        >
-          Создать
-        </Button>
+      <div className="font-ibmPlexSans space-y-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder="filter users…"
+            className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+          />
+          <div className="w-[170px]">
+            <CustomSelect
+              value={roleFilter}
+              onChange={(value) => setRoleFilter(value)}
+              options={[{ label: "Все роли", value: "all" }, ...roleOptions]}
+              placeholder="Роль"
+              sortOptions={false}
+            />
+          </div>
 
-        {/* Tab switch */}
-        <div className="flex items-center gap-2">
+          <div className="flex-1" />
+
+          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setActiveTab("table")}
+              className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
+                activeTab === "table"
+                  ? "bg-primary/15 text-primary"
+                  : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+              }`}
+            >
+              <TableRows sx={{ fontSize: 14 }} />
+              Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("card")}
+              className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-surface-border transition-colors ${
+                activeTab === "card"
+                  ? "bg-primary/15 text-primary"
+                  : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+              }`}
+            >
+              <GridView sx={{ fontSize: 14 }} />
+              Cards
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => setActiveTab("table")}
-            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
-              activeTab === "table"
-                ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-            }`}
+            onClick={() => setCreateModal(true)}
+            className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
           >
-            <TableRows fontSize="small" /> Таблица
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("card")}
-            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
-              activeTab === "card"
-                ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-            }`}
-          >
-            <GridView fontSize="small" /> Карточки
+            + NEW USER
           </button>
         </div>
-      </div>
 
-      <div>
         {activeTab === "table" && (
-          <CustomTable columns={columns} data={get(users, "data.data", [])} />
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+            <CustomTable columns={columns} data={filteredUsers} />
+          </div>
         )}
 
         {activeTab === "card" && (
-          <div className="flex gap-4">
-            {get(users, "data.data", []).map((user, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+            {filteredUsers.map((user, index) => (
               <UserCard
                 key={index}
                 user={user}
@@ -288,7 +317,6 @@ const Index = () => {
           </div>
         )}
       </div>
-      </div>
 
       {createModal && (
         <MethodModal
@@ -298,7 +326,7 @@ const Index = () => {
         >
           <h1 className="text-xl mb-[15px]">Создать пользователя</h1>
 
-          <div className="space-y-[20px] font-manrope">
+          <div className="space-y-[20px] font-ibmPlexSans">
             <div className="flex gap-2">
               <Input
                 placeholder={"Имя"}
@@ -316,7 +344,7 @@ const Index = () => {
               />
             </div>
             <CustomSelect
-              className="bg-gray-100"
+              className="bg-text-primary"
               options={companyOptions}
               value={formData.company_info_id}
               placeholder="Выберите станцию"
@@ -329,7 +357,7 @@ const Index = () => {
             />
 
             <CustomSelect
-              className="bg-gray-100"
+              className="bg-text-primary"
               options={roleOptions}
               value={formData.role}
               placeholder="Выберите роль"

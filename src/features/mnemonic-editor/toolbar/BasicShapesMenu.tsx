@@ -61,10 +61,10 @@ const BasicShapesMenu = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         title="Фигуры: треугольники, стрелки, звёзды и другие"
-        className={`w-7 h-7 flex items-center justify-center rounded-md text-sm transition-colors ${
+        className={`w-7 h-7 flex items-center justify-center rounded-[2px] text-sm transition-colors ${
           isOpen
             ? "bg-blue-500/20 text-blue-300 border border-blue-500/50"
-            : "text-slate-300 border border-transparent hover:bg-slate-800"
+            : "text-text-secondary border border-transparent hover:bg-background-dark"
         }`}
       >
         <svg width={16} height={16} viewBox="0 0 16 16">
@@ -73,8 +73,8 @@ const BasicShapesMenu = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-[180px] rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl">
-          <p className="text-[10px] uppercase tracking-wide text-slate-500 mb-1.5 px-0.5">
+        <div className="absolute left-0 top-full mt-2 z-50 w-[180px] rounded-[2px] border border-surface-border bg-surface-dark p-2 shadow-xl">
+          <p className="text-[10px] uppercase tracking-wide text-text-dim mb-1.5 px-0.5">
             Фигуры
           </p>
           <div className="grid grid-cols-4 gap-1">
@@ -84,7 +84,7 @@ const BasicShapesMenu = () => {
                 type="button"
                 onClick={() => handleAdd(variant)}
                 title={label}
-                className="flex items-center justify-center h-9 rounded-md border border-slate-700/70 bg-slate-800/60 hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors text-slate-300 hover:text-blue-300"
+                className="flex items-center justify-center h-9 rounded-[2px] border border-surface-border/70 bg-background-dark/60 hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors text-text-secondary hover:text-blue-300"
               >
                 <svg width={24} height={20} viewBox="-2 -2 28 24">
                   <path

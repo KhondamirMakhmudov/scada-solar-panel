@@ -40,7 +40,7 @@ const StatCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-surface-dark border border-surface-dark rounded-xl p-5 relative overflow-hidden group hover:border-primary/30 transition-all"
+      className="bg-surface-dark border border-surface-dark rounded-[2px] p-5 relative overflow-hidden group hover:border-primary/30 transition-all"
     >
       <div className="absolute right-0 top-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
         <span
@@ -53,12 +53,12 @@ const StatCard = ({
           {emoji}
         </span>
       </div>
-      <p className="text-gray-400 text-sm font-medium mb-1">{title}</p>
+      <p className="text-text-muted text-sm font-medium mb-1">{title}</p>
       <div className="flex items-baseline gap-2">
         <h3 className="text-3xl font-bold text-white tracking-tight font-mono">
           {value}
         </h3>
-        <span className="text-sm text-gray-400 font-medium">{unit}</span>
+        <span className="text-sm text-text-muted font-medium">{unit}</span>
       </div>
       {quality && (
         <div className="flex items-center gap-1 mt-3">
@@ -68,7 +68,7 @@ const StatCard = ({
             {quality}
           </span>
           {statusText && (
-            <span className="text-gray-400 text-xs ml-1">{statusText}</span>
+            <span className="text-text-muted text-xs ml-1">{statusText}</span>
           )}
         </div>
       )}
@@ -208,7 +208,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-gray-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -216,7 +216,7 @@ const Index = () => {
       header: "Имя регистра",
       cell: ({ row }) => (
         <div className="max-w-[250px]">
-          <p className="font-medium text-gray-100">
+          <p className="font-medium text-text-primary">
             {row.original.registerName}
           </p>
         </div>
@@ -226,7 +226,7 @@ const Index = () => {
       accessorKey: "deviceName",
       header: "Устройство",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">{row.original.deviceName}</span>
+        <span className="text-sm text-text-secondary">{row.original.deviceName}</span>
       ),
     },
     {
@@ -237,7 +237,7 @@ const Index = () => {
           <span className="text-lg font-bold text-primary">
             {row.original.value?.toFixed(2)}
           </span>
-          <span className="text-xs text-gray-400">{row.original.unit}</span>
+          <span className="text-xs text-text-muted">{row.original.unit}</span>
         </div>
       ),
     },
@@ -245,7 +245,7 @@ const Index = () => {
       accessorKey: "rawValue",
       header: "Сырое значение",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-400 font-mono">
+        <span className="text-sm text-text-muted font-mono">
           {row.original.rawValue}
         </span>
       ),
@@ -255,7 +255,7 @@ const Index = () => {
       header: "Качество",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold ${
+          className={`inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold ${
             row.original.quality === "GOOD"
               ? "bg-primary/10 text-primary border border-primary/30"
               : row.original.quality === "BAD"
@@ -271,11 +271,11 @@ const Index = () => {
       accessorKey: "timestamp",
       header: "Время",
       cell: ({ row }) => (
-        <div className="text-sm text-gray-300">
+        <div className="text-sm text-text-secondary">
           <div>
             {new Date(row.original.timestamp).toLocaleDateString("ru-RU")}
           </div>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-text-muted">
             {new Date(row.original.timestamp).toLocaleTimeString("ru-RU")}
           </div>
         </div>
@@ -298,7 +298,7 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
       >
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
@@ -309,30 +309,30 @@ const Index = () => {
               >
                 Чтение данных Modbus
               </Typography>
-              <p className="text-gray-300">
+              <p className="text-text-secondary">
                 Мониторинг и анализ показаний регистров в реальном времени
               </p>
             </div>
 
             {/* View Mode Toggle */}
             {selectedRegisterId && (
-              <div className="flex gap-2 bg-surface-dark rounded-lg p-1">
+              <div className="flex gap-2 bg-surface-dark rounded-[2px] p-1">
                 <button
                   onClick={() => setViewMode("table")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all ${
                     viewMode === "table"
                       ? "bg-primary text-background-dark"
-                      : "text-gray-400 hover:text-gray-200"
+                      : "text-text-muted hover:text-text-primary"
                   }`}
                 >
                   Таблица
                 </button>
                 <button
                   onClick={() => setViewMode("chart")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all ${
                     viewMode === "chart"
                       ? "bg-primary text-background-dark"
-                      : "text-gray-400 hover:text-gray-200"
+                      : "text-text-muted hover:text-text-primary"
                   }`}
                 >
                   График
@@ -400,7 +400,7 @@ const Index = () => {
 
           {/* Info */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-text-muted">
               {selectedRegisterId ? (
                 <>
                   Показания регистра:{" "}
@@ -430,7 +430,7 @@ const Index = () => {
             </p>
 
             {displayData.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-text-dim">
                 <span className="material-symbols-outlined">schedule</span>
                 <span>
                   Обновлено:{" "}
@@ -446,9 +446,9 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-surface-dark/30 rounded-lg p-6 border border-surface-dark"
+            className="mb-6 bg-surface-dark/30 rounded-[2px] p-6 border border-surface-dark"
           >
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">
               График изменения показаний
             </h3>
             <ResponsiveContainer width="100%" height={400}>
@@ -459,19 +459,19 @@ const Index = () => {
                     <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                 <XAxis
                   dataKey="time"
-                  stroke="#9CA3AF"
+                  stroke="#7c8290"
                   style={{ fontSize: "12px" }}
                 />
-                <YAxis stroke="#9CA3AF" style={{ fontSize: "12px" }} />
+                <YAxis stroke="#7c8290" style={{ fontSize: "12px" }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1F2937",
-                    border: "1px solid #374151",
+                    backgroundColor: "#1c1b1b",
+                    border: "1px solid #2a2a2a",
                     borderRadius: "8px",
-                    color: "#F3F4F6",
+                    color: "#e5e2e1",
                   }}
                 />
                 <Legend />
@@ -499,12 +499,12 @@ const Index = () => {
             ) : displayData.length > 0 ? (
               <CustomTable data={displayData} columns={columns} />
             ) : (
-              <div className="text-center py-12 bg-surface-dark/30 rounded-lg border border-surface-dark">
+              <div className="text-center py-12 bg-surface-dark/30 rounded-[2px] border border-surface-dark">
                 <div className="text-6xl mb-4">💾</div>
-                <p className="text-gray-400 text-lg mb-2">
+                <p className="text-text-muted text-lg mb-2">
                   Нет данных для отображения
                 </p>
-                <p className="text-gray-500 text-sm">
+                <p className="text-text-dim text-sm">
                   {!selectedDeviceId && !selectedRegisterId
                     ? "Выберите устройство или регистр"
                     : "Показания для выбранного регистра отсутствуют"}

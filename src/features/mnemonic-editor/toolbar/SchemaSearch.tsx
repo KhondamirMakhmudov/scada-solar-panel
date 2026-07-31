@@ -70,7 +70,7 @@ const SchemaSearch = () => {
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600 text-xs pointer-events-none">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-faint text-xs pointer-events-none">
           ⌕
         </span>
         <input
@@ -90,14 +90,14 @@ const SchemaSearch = () => {
             if (event.key === "Enter" && results.length > 0) handleSelect(results[0].id);
           }}
           placeholder="Поиск по схеме"
-          className="w-56 h-8 pl-7 pr-2 rounded-md bg-slate-950/60 border border-slate-800 focus:border-blue-500/60 focus:outline-none text-xs text-slate-200 placeholder:text-slate-600 transition-colors"
+          className="w-56 h-8 pl-7 pr-2 rounded-[2px] bg-background-dark/60 border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
         />
       </div>
 
       {isOpen && normalized.length > 0 && (
-        <div className="absolute z-50 mt-1 w-72 rounded-lg border border-slate-700 bg-slate-900 shadow-xl shadow-black/50 overflow-hidden">
+        <div className="absolute z-50 mt-1 w-72 rounded-[2px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50 overflow-hidden">
           {results.length === 0 ? (
-            <p className="px-3 py-3 text-[11px] text-slate-500">Совпадений не найдено</p>
+            <p className="px-3 py-3 text-[11px] text-text-dim">Совпадений не найдено</p>
           ) : (
             results.map((element) => (
               <button
@@ -106,14 +106,14 @@ const SchemaSearch = () => {
                 onClick={() => handleSelect(element.id)}
                 className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-blue-500/10 text-left transition-colors"
               >
-                <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center text-slate-500">
+                <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center text-text-dim">
                   <ShapeThumbnail kind={element.type} size={20} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-xs text-slate-200 truncate">
+                  <span className="block text-xs text-text-primary truncate">
                     {element.label?.trim() || SHAPE_REGISTRY[element.type]?.label || element.type}
                   </span>
-                  <span className="block text-[10px] text-slate-600 truncate">
+                  <span className="block text-[10px] text-text-faint truncate">
                     {element.dataBinding?.tagName ||
                       SHAPE_REGISTRY[element.type]?.label ||
                       element.type}

@@ -11,12 +11,12 @@ import { useScreenAlarms } from "../hooks/useScreenAlarms";
  */
 const COUNTER_STYLES = {
   alarm: {
-    idle: "border-slate-800 text-slate-500",
+    idle: "border-surface-border text-text-dim",
     active: "border-rose-500/50 bg-rose-500/10 text-rose-300",
     dot: "bg-rose-400",
   },
   warning: {
-    idle: "border-slate-800 text-slate-500",
+    idle: "border-surface-border text-text-dim",
     active: "border-amber-500/50 bg-amber-500/10 text-amber-300",
     dot: "bg-amber-400",
   },
@@ -39,16 +39,16 @@ const Counter = ({ kind, label, count, onClick }: CounterProps) => {
       onClick={onClick}
       disabled={!isActive}
       title={label}
-      className={`flex items-center gap-1.5 h-6 px-2 rounded-md border text-[11px] font-medium transition-colors ${
+      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[11px] font-medium transition-colors ${
         isActive ? styles.active : styles.idle
       } ${isActive ? "hover:brightness-125 cursor-pointer" : "cursor-default"}`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${isActive ? styles.dot : "bg-slate-700"} ${
+        className={`w-1.5 h-1.5 rounded-full ${isActive ? styles.dot : "bg-surface-border"} ${
           kind === "alarm" && isActive ? "animate-pulse" : ""
         }`}
       />
-      <span className="font-mono tabular-nums">{count}</span>
+      <span className="font-ibmPlexMono tabular-nums">{count}</span>
       <span className="hidden xl:inline opacity-80">{label}</span>
     </button>
   );
@@ -91,16 +91,16 @@ const AlarmSummary = () => {
         onClick={() => setIsOpen((open) => !open)}
       />
       <span
-        className="flex items-center gap-1.5 h-6 px-2 rounded-md border border-slate-800 text-[11px] text-slate-500"
+        className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border text-[11px] text-text-dim"
         title={`В работе ${okCount} из ${boundCount} привязанных элементов`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" />
-        <span className="font-mono tabular-nums">{okCount}</span>
+        <span className="font-ibmPlexMono tabular-nums">{okCount}</span>
         <span className="hidden xl:inline opacity-80">в работе</span>
       </span>
 
       {isOpen && alarms.length > 0 && (
-        <div className="absolute top-full left-0 z-50 mt-1.5 w-80 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 shadow-xl shadow-black/50">
+        <div className="absolute top-full left-0 z-50 mt-1.5 w-80 max-h-72 overflow-y-auto rounded-[2px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50">
           {alarms.map((alarm) => (
             <button
               key={`${alarm.elementId}-${alarm.severity}`}
@@ -109,7 +109,7 @@ const AlarmSummary = () => {
                 requestFocus(alarm.elementId);
                 setIsOpen(false);
               }}
-              className="w-full flex items-start gap-2 px-3 py-2 border-b border-slate-800/70 last:border-b-0 hover:bg-slate-800/60 text-left transition-colors"
+              className="w-full flex items-start gap-2 px-3 py-2 border-b border-surface-border/70 last:border-b-0 hover:bg-background-dark/60 text-left transition-colors"
             >
               <span
                 className={`mt-1.5 w-1.5 h-1.5 flex-shrink-0 rounded-full ${
@@ -117,10 +117,10 @@ const AlarmSummary = () => {
                 }`}
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-xs text-slate-200 truncate">
+                <span className="block text-xs text-text-primary truncate">
                   {alarm.elementLabel}
                 </span>
-                <span className="block text-[10px] text-slate-500 truncate">
+                <span className="block text-[10px] text-text-dim truncate">
                   {alarm.message}
                   {alarm.tagName ? ` · ${alarm.tagName}` : ""}
                 </span>

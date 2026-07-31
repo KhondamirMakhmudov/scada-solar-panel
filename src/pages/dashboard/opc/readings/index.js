@@ -42,7 +42,7 @@ const StatCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-surface-dark border border-surface-dark rounded-xl p-5 relative overflow-hidden group hover:border-primary/30 transition-all"
+      className="bg-surface-dark border border-surface-dark rounded-[2px] p-5 relative overflow-hidden group hover:border-primary/30 transition-all"
     >
       <div className="absolute right-0 top-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
         <span
@@ -55,12 +55,12 @@ const StatCard = ({
           {emoji}
         </span>
       </div>
-      <p className="text-gray-400 text-sm font-medium mb-1">{title}</p>
+      <p className="text-text-muted text-sm font-medium mb-1">{title}</p>
       <div className="flex items-baseline gap-2">
         <h3 className="text-3xl font-bold text-white tracking-tight font-mono">
           {value}
         </h3>
-        <span className="text-sm text-gray-400 font-medium">{unit}</span>
+        <span className="text-sm text-text-muted font-medium">{unit}</span>
       </div>
       {quality && (
         <div className="flex items-center gap-1 mt-3">
@@ -70,7 +70,7 @@ const StatCard = ({
             {quality}
           </span>
           {statusText && (
-            <span className="text-gray-400 text-xs ml-1">{statusText}</span>
+            <span className="text-text-muted text-xs ml-1">{statusText}</span>
           )}
         </div>
       )}

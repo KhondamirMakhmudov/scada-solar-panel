@@ -195,7 +195,7 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle="Архивы">
-      <div className="font-manrope max-w-[1800px]">
+      <div className="font-ibmPlexSans max-w-[1800px]">
         <PageHeader
           title="История значений тегов"
           description="Выберите устройство и теги, задайте период — график и сводка строятся по даунсемплированной истории (тот же источник, что и тренды на мнемосхемах)."

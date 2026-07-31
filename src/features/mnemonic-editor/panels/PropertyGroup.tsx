@@ -22,21 +22,21 @@ const PropertyGroup = ({ title, badge, defaultOpen = true, children }: PropertyG
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="rounded-lg border border-slate-800/80 bg-slate-950/30">
+    <div className="rounded-[2px] border border-surface-border/80 bg-background-dark/30">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[11px] uppercase tracking-wide text-slate-400 hover:text-slate-200 transition-colors"
+        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[11px] uppercase tracking-wide text-text-muted hover:text-text-primary transition-colors"
       >
         <span
-          className="text-[9px] text-slate-600 transition-transform duration-150"
+          className="text-[9px] text-text-faint transition-transform duration-150"
           style={{ transform: isOpen ? "rotate(90deg)" : "none" }}
         >
           ▶
         </span>
         <span className="flex-1 text-left">{title}</span>
         {badge && (
-          <span className="max-w-[7rem] truncate normal-case tracking-normal text-[10px] text-slate-600">
+          <span className="max-w-[7rem] truncate normal-case tracking-normal text-[10px] text-text-faint">
             {badge}
           </span>
         )}

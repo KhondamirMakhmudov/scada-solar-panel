@@ -134,7 +134,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
 
   if (isLoadingScreen || !screen) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0e0e0e] font-manrope">
+      <div className="fixed inset-0 z-50 bg-[#0e0e0e] font-ibmPlexSans">
         <Head>
           <title>Экран | SCADA</title>
         </Head>
@@ -144,7 +144,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0e0e] text-[#e5e2e1] font-manrope">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0e0e] text-[#e5e2e1] font-ibmPlexSans">
       <Head>
         <title>{`${screen.name} | SCADA`}</title>
       </Head>

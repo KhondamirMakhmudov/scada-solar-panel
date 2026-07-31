@@ -42,20 +42,20 @@ const ScreenArchiveModal = ({ onClose, screenName, groups }) => {
   const valueMaps = useTagValueMaps();
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 font-manrope">
-      <div className="flex max-h-[85vh] w-full max-w-5xl flex-col rounded-2xl border border-slate-700/70 bg-[#0e0e0e] shadow-2xl">
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-800 px-5 py-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 font-ibmPlexSans">
+      <div className="flex max-h-[85vh] w-full max-w-5xl flex-col rounded-2xl border border-surface-border/70 bg-[#0e0e0e] shadow-2xl">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-surface-border px-5 py-4">
           <div className="flex items-center gap-2 min-w-0">
             <HistoryRounded className="text-blue-400 flex-shrink-0" fontSize="small" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-100">Архив — {screenName}</p>
-              <p className="text-xs text-slate-500">История значений тегов этого экрана</p>
+              <p className="truncate text-sm font-semibold text-text-primary">Архив — {screenName}</p>
+              <p className="text-xs text-text-dim">История значений тегов этого экрана</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-text-muted transition hover:bg-background-dark hover:text-text-primary"
           >
             <Close fontSize="small" />
           </button>

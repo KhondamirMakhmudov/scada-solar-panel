@@ -42,7 +42,7 @@ const GroupedTagCharts = ({
           <h3 className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[#6b7280]">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             {group.label}
-            <span className="font-normal normal-case tracking-normal text-[#475569]">
+            <span className="font-normal normal-case tracking-normal text-[#5c6270]">
               · {group.tags.length}
             </span>
           </h3>

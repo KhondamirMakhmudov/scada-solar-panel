@@ -212,48 +212,48 @@ const Index = () => {
         <div className="flex flex-wrap gap-2">
           {params.host && (
             <Tooltip title="IP-адрес целевого устройства:сетевой порт для установления соединения">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
                 {params.host}:{params.port}
               </span>
             </Tooltip>
           )}
           {params.timeout && (
             <Tooltip title="допустимое время ожидания ответа">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
                 {params.timeout}
               </span>
             </Tooltip>
           )}
           {params.comPort && (
             <Tooltip title="последовательный интерфейс подключения (COM-порт)">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
                 {params.comPort}
               </span>
             </Tooltip>
           )}
           {params.baudRate && (
             <Tooltip title="скорость передачи данных ">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-purple-500/20 text-purple-400">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-purple-500/20 text-purple-400">
                 {params.baudRate}
               </span>
             </Tooltip>
           )}
           {params.dataBits && (
             <Tooltip title="количество информационных бит / количество стоп-битов кадра">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
                 {params.dataBits}/{params.stopBits}
               </span>
             </Tooltip>
           )}
           {params.parity && (
             <Tooltip title="тип контроля чётности">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-blue-500/20 text-blue-400">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-blue-500/20 text-blue-400">
                 {params.parity}
               </span>
             </Tooltip>
           )}
           <Tooltip title="сетевой адрес ведомого устройства (Modbus ID)">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface-dark border border-pink-500/20 text-pink-400">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-pink-500/20 text-pink-400">
               Slave: {params.slaveId}
             </span>
           </Tooltip>
@@ -268,7 +268,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-gray-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -276,7 +276,7 @@ const Index = () => {
       header: "Имя",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">{row.original.name}</p>
+          <p className="font-medium text-text-primary">{row.original.name}</p>
         </div>
       ),
     },
@@ -284,7 +284,7 @@ const Index = () => {
       accessorKey: "protocolType",
       header: "Тип протокола",
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
+        <span className="inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
           {row.original.protocolType}
         </span>
       ),
@@ -302,7 +302,7 @@ const Index = () => {
       accessorKey: "pollInterval",
       header: "Интервал опроса",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.pollInterval} мс
         </span>
       ),
@@ -329,7 +329,7 @@ const Index = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold ${
+          className={`inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold ${
             row.original.status === "CONNECTED"
               ? "bg-primary/10 text-primary border border-primary/30"
               : "bg-red-500/10 text-red-400 border border-red-500/30"
@@ -376,12 +376,12 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
       >
         <div className="mb-2 flex justify-between">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
           >
             <span>Добавить устройство</span>
           </button>
@@ -389,7 +389,7 @@ const Index = () => {
           <div className="flex gap-2">
             <button
               onClick={handleSyncronize}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
             >
               <span className="material-symbols-outlined">sync</span>
               <span>Синхронизировать</span>
@@ -397,7 +397,7 @@ const Index = () => {
 
             <Link
               href={"/dashboard/modbus/devices/status"}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-[2px] transition-colors duration-200 font-medium text-sm"
             >
               <span className="material-symbols-outlined">bar_chart</span>
               Статус устройств

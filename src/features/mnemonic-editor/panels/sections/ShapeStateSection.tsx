@@ -81,7 +81,7 @@ const LAMP_COLORS = [
 const SectionHeading = () => null;
 
 const BoundNote = () => (
-  <p className="text-[10px] text-slate-600">
+  <p className="text-[10px] text-text-faint">
     Значение определяется привязанным тегом.
   </p>
 );
@@ -123,7 +123,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => imageInputRef.current?.click()}
-          className="w-full flex items-center justify-center px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/60 text-sm text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors"
+          className="w-full flex items-center justify-center px-3 py-2 rounded-[2px] border border-surface-border bg-background-dark/60 text-sm text-text-primary hover:border-blue-500/50 hover:bg-blue-500/10 transition-colors"
         >
           {hasImage ? "Заменить изображение" : "Загрузить изображение"}
         </button>
@@ -151,7 +151,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={range}
           onChange={(event) => commitImmediate(() => setState({ range: event.target.value }))}
-          className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {Object.entries(TREND_RANGE_META).map(([value, meta]) => (
             <option key={value} value={value}>
@@ -159,7 +159,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
             </option>
           ))}
         </select>
-        <p className="text-[10px] text-slate-600">
+        <p className="text-[10px] text-text-faint">
           Теги для графика выбираются ниже, в разделе «Привязка к тегу»
           (основной тег + доп. теги) — каждый показывается отдельной строкой
           со своим масштабом, без переключения.
@@ -201,10 +201,10 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => commitImmediate(() => setState({ charging: !charging }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors ${
             charging
               ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
-              : "border-slate-700 bg-slate-800/60 text-slate-400"
+              : "border-surface-border bg-background-dark/60 text-text-muted"
           }`}
         >
           Заряжается
@@ -224,7 +224,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <select
             value={status}
             onChange={(event) => commitImmediate(() => setState({ status: event.target.value }))}
-            className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+            className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           >
             {INVERTER_STATUSES.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -267,7 +267,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <select
             value={color}
             onChange={(event) => commitImmediate(() => setState({ color: event.target.value }))}
-            className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+            className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           >
             {LAMP_COLORS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -279,10 +279,10 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => commitImmediate(() => setState({ blinking: !blinking }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors ${
             blinking
               ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
-              : "border-slate-700 bg-slate-800/60 text-slate-400"
+              : "border-surface-border bg-background-dark/60 text-text-muted"
           }`}
         >
           Мигание (авария)
@@ -301,7 +301,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={sensorType}
           onChange={(event) => commitImmediate(() => setState({ sensorType: event.target.value }))}
-          className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {SENSOR_TYPES.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -322,7 +322,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={variant}
           onChange={(event) => commitImmediate(() => setState({ variant: event.target.value }))}
-          className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {PIPE_VARIANTS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -334,10 +334,10 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <button
             type="button"
             onClick={() => commitImmediate(() => setState({ flowing: !flowing }))}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors ${
               flowing
                 ? "border-green-500/50 bg-green-500/10 text-green-300"
-                : "border-slate-700 bg-slate-800/60 text-slate-400"
+                : "border-surface-border bg-background-dark/60 text-text-muted"
             }`}
           >
             Поток
@@ -359,10 +359,10 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           type="button"
           disabled={isBound}
           onClick={() => commitImmediate(() => setState({ [booleanField.key]: !active }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
             active
               ? "border-green-500/50 bg-green-500/10 text-green-300"
-              : "border-slate-700 bg-slate-800/60 text-slate-400"
+              : "border-surface-border bg-background-dark/60 text-text-muted"
           }`}
         >
           {booleanField.label}

@@ -5,18 +5,16 @@ const NoData = ({
   description = "К сожалению, данные отсутствуют. Попробуйте изменить фильтры или добавить новые записи.",
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-4 font-manrope">
-      <div className="mb-6 text-6xl opacity-50">
-        <Image src="/icons/no-data.svg" alt="500" width={400} height={400} />
+    <div className="flex flex-col items-center justify-center text-center py-16 px-4 font-ibmPlexSans">
+      <div className="mb-6 opacity-40">
+        <Image src="/icons/no-data.svg" alt="" width={160} height={160} />
       </div>
 
-      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3">
+      <h3 className="text-base font-semibold text-text-primary mb-2">
         {title}
       </h3>
 
-      <p className="text-base text-gray-500 dark:text-gray-400 max-w-md">
-        {description}
-      </p>
+      <p className="text-[12.5px] text-text-muted max-w-md">{description}</p>
     </div>
   );
 };

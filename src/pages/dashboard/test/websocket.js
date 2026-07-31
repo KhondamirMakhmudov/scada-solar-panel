@@ -427,17 +427,17 @@ export default function WebSocketTestPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#0e0e0e] text-[#e5e2e1] p-6">
-      <div className="font-manrope text-slate-200">
+      <div className="font-ibmPlexSans text-text-primary">
         {/* ============================================================
             TOP STATUS BAR
             ============================================================ */}
-        <div className="flex items-stretch flex-wrap rounded-lg border border-white/10 bg-gradient-to-b from-[#0e131c] to-[#0a0d12] overflow-hidden mb-4">
+        <div className="flex items-stretch flex-wrap rounded-[2px] border border-white/10 bg-gradient-to-b from-[#0e131c] to-[#0a0d12] overflow-hidden mb-4">
           <div className="flex items-center gap-3 px-4 py-2.5 border-r border-white/10">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-black text-slate-900 font-mono">
+            <div className="w-8 h-8 rounded bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-black text-surface-dark font-mono">
               S
             </div>
             <div>
-              <div className="text-[10px] tracking-widest font-semibold text-slate-500">
+              <div className="text-[10px] tracking-widest font-semibold text-text-dim">
                 SCADA · CONSOLE
               </div>
               <div className="text-sm font-semibold text-white">
@@ -458,7 +458,7 @@ export default function WebSocketTestPage() {
                         ? "bg-amber-400 animate-pulse"
                         : isError
                           ? "bg-rose-400"
-                          : "bg-slate-500"
+                          : "bg-text-dim"
                   }`}
                 />
                 <span
@@ -469,7 +469,7 @@ export default function WebSocketTestPage() {
                         ? "text-amber-400"
                         : isError
                           ? "text-rose-400"
-                          : "text-slate-400"
+                          : "text-text-muted"
                   }`}
                 >
                   {isConnected
@@ -544,7 +544,7 @@ export default function WebSocketTestPage() {
             ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
           {/* ----- LEFT RAIL ----- */}
-          <div className="rounded-lg border border-white/10 bg-[#0c1118] overflow-hidden">
+          <div className="rounded-[2px] border border-white/10 bg-[#0c1118] overflow-hidden">
             {/* Channel toggle */}
             <div className="p-3 border-b border-white/10">
               <SectionLabel>ТИП ДАННЫХ</SectionLabel>
@@ -565,14 +565,14 @@ export default function WebSocketTestPage() {
                       className={`p-2.5 rounded text-left flex flex-col gap-1 transition border ${
                         active
                           ? "bg-[#1a2030] border-orange-500 text-orange-400"
-                          : "bg-transparent border-white/10 text-slate-400 hover:border-white/20"
+                          : "bg-transparent border-white/10 text-text-muted hover:border-white/20"
                       }`}
                     >
                       <Ico style={{ fontSize: 14 }} />
                       <span className="text-[10px] uppercase tracking-wider font-semibold">
                         {preset.label}
                       </span>
-                      <span className="text-[9px] text-slate-500 font-mono">
+                      <span className="text-[9px] text-text-dim font-mono">
                         {String(count).padStart(2, "0")}
                       </span>
                     </button>
@@ -592,7 +592,7 @@ export default function WebSocketTestPage() {
                       : "ЭКРАНЫ"}
                 </SectionLabel>
                 {currentList.length > 0 && (
-                  <span className="text-[10px] text-slate-500 font-mono border border-white/10 rounded px-1.5 py-0.5">
+                  <span className="text-[10px] text-text-dim font-mono border border-white/10 rounded px-1.5 py-0.5">
                     {currentList.length}
                   </span>
                 )}
@@ -600,7 +600,7 @@ export default function WebSocketTestPage() {
 
               {channel === "devices" ? (
                 isLoadingList ? (
-                  <div className="text-center py-3 text-slate-500 text-xs">
+                  <div className="text-center py-3 text-text-dim text-xs">
                     Загрузка списка...
                   </div>
                 ) : (
@@ -621,22 +621,22 @@ export default function WebSocketTestPage() {
                   <div className="relative mb-2">
                     <SearchOutlinedIcon
                       style={{ fontSize: 14 }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 text-text-dim"
                     />
                     <input
                       value={tagSearch}
                       onChange={(e) => setTagSearch(e.target.value)}
                       placeholder="фильтр…"
-                      className="w-full bg-[#070a0f] border border-white/10 text-slate-200 placeholder:text-slate-600 pl-7 pr-2 py-1.5 rounded text-xs outline-none focus:border-white/30"
+                      className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint pl-7 pr-2 py-1.5 rounded text-xs outline-none focus:border-white/30"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5 max-h-[60vh] overflow-y-auto pr-1">
                     {isLoadingList ? (
-                      <div className="text-center py-3 text-slate-500 text-xs">
+                      <div className="text-center py-3 text-text-dim text-xs">
                         Загрузка...
                       </div>
                     ) : filteredTagList.length === 0 ? (
-                      <div className="text-center py-3 text-slate-500 text-xs">
+                      <div className="text-center py-3 text-text-dim text-xs">
                         Не найдено
                       </div>
                     ) : (
@@ -663,11 +663,11 @@ export default function WebSocketTestPage() {
                                 background: errored ? "#ff5c8a" : c,
                               }}
                             />
-                            <span className="flex-1 min-w-0 truncate text-slate-200">
+                            <span className="flex-1 min-w-0 truncate text-text-primary">
                               {t.name || "Без названия"}
                             </span>
                             {tagState[t.id]?.last?.unit && (
-                              <span className="font-mono text-[10px] text-slate-500">
+                              <span className="font-mono text-[10px] text-text-dim">
                                 {tagState[t.id].last.unit}
                               </span>
                             )}
@@ -684,7 +684,7 @@ export default function WebSocketTestPage() {
           {/* ----- MAIN ----- */}
           <div className="flex flex-col gap-4 min-w-0">
             {/* Live tile grid (built from message history) */}
-            <div className="rounded-lg border border-white/10 bg-[#0c1118] p-4">
+            <div className="rounded-[2px] border border-white/10 bg-[#0c1118] p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <SectionLabel>ТЕКУЩИЕ ЗНАЧЕНИЯ</SectionLabel>
@@ -695,7 +695,7 @@ export default function WebSocketTestPage() {
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-[11px] text-text-dim font-mono">
                   {activeTags.length > 0
                     ? `${activeTags.length} активн${
                         activeTags.length === 1 ? "ый" : "ых"
@@ -705,7 +705,7 @@ export default function WebSocketTestPage() {
               </div>
 
               {activeTags.length === 0 ? (
-                <div className="text-center py-10 text-slate-500 text-xs">
+                <div className="text-center py-10 text-text-dim text-xs">
                   {isConnected
                     ? "Поток подключен. Ожидание первого сообщения…"
                     : "Подключитесь, чтобы увидеть текущие значения тегов"}
@@ -726,7 +726,7 @@ export default function WebSocketTestPage() {
                       <div className="flex items-center gap-2">
                         <SectionLabel>ТРЕНД ЗНАЧЕНИЙ</SectionLabel>
                         {isLoadingAggregates && (
-                          <span className="text-[10px] text-slate-500 font-mono">
+                          <span className="text-[10px] text-text-dim font-mono">
                             загрузка истории…
                           </span>
                         )}
@@ -739,7 +739,7 @@ export default function WebSocketTestPage() {
                             className={`px-2.5 py-1 rounded font-mono font-semibold tracking-wide text-[10px] border transition ${
                               range === key
                                 ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
-                                : "border-white/10 text-slate-500 hover:text-slate-300"
+                                : "border-white/10 text-text-dim hover:text-text-secondary"
                             }`}
                           >
                             {meta.label}
@@ -754,17 +754,17 @@ export default function WebSocketTestPage() {
             </div>
 
             {/* Message stream */}
-            <div className="rounded-lg border border-white/10 bg-[#0c1118] p-4">
+            <div className="rounded-[2px] border border-white/10 bg-[#0c1118] p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <SectionLabel>ПОТОК СООБЩЕНИЙ</SectionLabel>
-                  <span className="text-[11px] text-slate-500 font-mono">
+                  <span className="text-[11px] text-text-dim font-mono">
                     {filteredMessages.length} / {messages.length}
                   </span>
                 </div>
                 <div className="flex gap-0.5">
                   {[
-                    { k: "all", l: "ВСЕ", c: "text-slate-200" },
+                    { k: "all", l: "ВСЕ", c: "text-text-primary" },
                     { k: "recv", l: "← RX", c: "text-emerald-400" },
                     { k: "sent", l: "→ TX", c: "text-sky-400" },
                     { k: "err", l: "ERR", c: "text-rose-400" },
@@ -777,7 +777,7 @@ export default function WebSocketTestPage() {
                         className={`px-2.5 py-1 rounded font-mono font-semibold tracking-wide text-[10px] border transition ${
                           active
                             ? `bg-[#1a2030] border-[#2b3a55] ${o.c}`
-                            : "border-white/10 text-slate-500 hover:text-slate-300"
+                            : "border-white/10 text-text-dim hover:text-text-secondary"
                         }`}
                       >
                         {o.l}
@@ -790,10 +790,10 @@ export default function WebSocketTestPage() {
               <div className="bg-[#070a0f] border border-white/10 rounded overflow-hidden">
                 <div className="overflow-auto max-h-[55vh]">
                   {filteredMessages.length === 0 ? (
-                    <div className="text-center py-10 text-slate-500">
+                    <div className="text-center py-10 text-text-dim">
                       <MarkEmailUnreadOutlinedIcon
                         style={{ fontSize: 28 }}
-                        className="text-slate-600 mb-2"
+                        className="text-text-faint mb-2"
                       />
                       <div className="text-xs">
                         {isConnected
@@ -804,7 +804,7 @@ export default function WebSocketTestPage() {
                   ) : (
                     <table className="w-full font-mono text-[12px]">
                       <thead className="sticky top-0 bg-[#0a0d12] z-10">
-                        <tr className="text-slate-500 text-[10px] tracking-wider font-semibold">
+                        <tr className="text-text-dim text-[10px] tracking-wider font-semibold">
                           <Th>TIME</Th>
                           <Th>DIR</Th>
                           <Th>TAG</Th>
@@ -852,7 +852,7 @@ function TrendChart({ series, tagNames }) {
 
   if (chartData.length === 0) {
     return (
-      <div className="text-slate-500 text-xs py-4">Собираем данные...</div>
+      <div className="text-text-dim text-xs py-4">Собираем данные...</div>
     );
   }
 
@@ -894,7 +894,7 @@ function TrendChart({ series, tagNames }) {
 
 function SectionLabel({ children }) {
   return (
-    <div className="text-[10px] text-slate-400 tracking-widest font-bold uppercase">
+    <div className="text-[10px] text-text-muted tracking-widest font-bold uppercase">
       {children}
     </div>
   );
@@ -903,12 +903,12 @@ function SectionLabel({ children }) {
 function StatusChunk({ label, value, mono, color, muted }) {
   return (
     <div className="px-4 py-2 border-r border-white/10 flex flex-col justify-center gap-0.5 min-w-[120px]">
-      <div className="text-[9px] text-slate-500 tracking-wider font-semibold">
+      <div className="text-[9px] text-text-dim tracking-wider font-semibold">
         {label}
       </div>
       <div
         className={`text-[13px] font-semibold ${
-          color || (muted ? "text-slate-500" : "text-slate-100")
+          color || (muted ? "text-text-dim" : "text-text-primary")
         } ${mono ? "font-mono" : ""}`}
       >
         {value}
@@ -920,7 +920,7 @@ function StatusChunk({ label, value, mono, color, muted }) {
 const ACCENT = {
   emerald: "text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10",
   rose: "text-rose-400 border-rose-500/40 hover:bg-rose-500/10",
-  slate: "text-slate-300 border-white/20 hover:bg-white/5",
+  slate: "text-text-secondary border-white/20 hover:bg-white/5",
 };
 
 function ToolBtn({ children, accent = "slate", disabled, onClick }) {
@@ -948,7 +948,7 @@ function TagTile({ t }) {
       style={{ borderTop: `2px solid ${errored ? "#ff5c8a" : c}` }}
     >
       <div className="flex items-center justify-between">
-        <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide truncate">
+        <div className="text-[10px] text-text-muted font-semibold uppercase tracking-wide truncate">
           {last.tag_name || "—"}
         </div>
         {errored ? (
@@ -972,16 +972,16 @@ function TagTile({ t }) {
               : "—"}
         </span>
         {last.unit && (
-          <span className="text-[11px] text-slate-500 font-mono">
+          <span className="text-[11px] text-text-dim font-mono">
             {last.unit}
           </span>
         )}
       </div>
       <Sparkline data={t.history} color={c} width={220} height={24} />
-      <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+      <div className="flex justify-between text-[9px] text-text-dim font-mono">
         <span>min {min != null ? min.toFixed(2) : "—"}</span>
         {last.device_id && (
-          <span className="text-slate-600 truncate max-w-[100px]">
+          <span className="text-text-faint truncate max-w-[100px]">
             dev: {String(last.device_id).slice(0, 8)}
           </span>
         )}
@@ -1009,7 +1009,7 @@ function LogRow({ m, alt }) {
   const isErr = d?.is_error;
   return (
     <tr
-      className={`border-b border-white/5 text-slate-400 ${
+      className={`border-b border-white/5 text-text-muted ${
         alt ? "bg-white/[0.015]" : ""
       }`}
     >
@@ -1020,8 +1020,8 @@ function LogRow({ m, alt }) {
         </span>
       </Td>
       <Td>
-        <span className="text-slate-200">
-          {d?.tag_name || <span className="text-slate-600">—</span>}
+        <span className="text-text-primary">
+          {d?.tag_name || <span className="text-text-faint">—</span>}
         </span>
       </Td>
       <Td align="right">
@@ -1038,7 +1038,7 @@ function LogRow({ m, alt }) {
         </span>
       </Td>
       <Td>
-        <span className="text-slate-500">{d?.unit || ""}</span>
+        <span className="text-text-dim">{d?.unit || ""}</span>
       </Td>
       <Td>
         {isErr ? (
@@ -1049,11 +1049,11 @@ function LogRow({ m, alt }) {
         ) : d ? (
           <span className="text-emerald-400">● OK</span>
         ) : (
-          <span className="text-slate-600">—</span>
+          <span className="text-text-faint">—</span>
         )}
       </Td>
       <Td>
-        <span className="text-slate-500 text-[11px]">
+        <span className="text-text-dim text-[11px]">
           {d?.device_id ? String(d.device_id).slice(0, 12) : ""}
         </span>
       </Td>

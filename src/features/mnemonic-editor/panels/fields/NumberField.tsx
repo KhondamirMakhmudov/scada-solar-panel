@@ -18,7 +18,7 @@ const NumberField = ({ label, value, onChange, step = 1 }: NumberFieldProps) => 
   }, [value]);
 
   return (
-    <label className="flex items-center justify-between gap-2 text-xs text-slate-400">
+    <label className="flex items-center justify-between gap-2 text-xs text-text-muted">
       {label}
       <input
         type="number"
@@ -38,7 +38,7 @@ const NumberField = ({ label, value, onChange, step = 1 }: NumberFieldProps) => 
             beforeRef.current = null;
           }
         }}
-        className="w-16 h-7 rounded-md bg-slate-800 border border-slate-700 px-2 text-right text-slate-100 outline-none focus:border-blue-500"
+        className="w-16 h-7 rounded-[2px] bg-background-dark border border-surface-border px-2 text-right text-text-primary outline-none focus:border-blue-500"
       />
     </label>
   );

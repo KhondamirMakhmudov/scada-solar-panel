@@ -11,7 +11,7 @@ const ColorField = ({ label, value, onChange }: ColorFieldProps) => {
   const beforeRef = useRef<ReturnType<typeof snapshotDocumentArrays> | null>(null);
 
   return (
-    <label className="flex items-center justify-between gap-2 text-xs text-slate-400">
+    <label className="flex items-center justify-between gap-2 text-xs text-text-muted">
       {label}
       <input
         type="color"
@@ -26,7 +26,7 @@ const ColorField = ({ label, value, onChange }: ColorFieldProps) => {
             beforeRef.current = null;
           }
         }}
-        className="w-9 h-7 rounded border border-slate-700 bg-slate-800 cursor-pointer"
+        className="w-9 h-7 rounded border border-surface-border bg-background-dark cursor-pointer"
       />
     </label>
   );

@@ -212,7 +212,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-gray-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -220,9 +220,9 @@ const Index = () => {
       header: "Имя сервера",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">{row.original.name}</p>
+          <p className="font-medium text-text-primary">{row.original.name}</p>
           {row.original.description && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               {row.original.description}
             </p>
           )}
@@ -234,7 +234,7 @@ const Index = () => {
       accessorKey: "endpointUrl",
       header: "URL конечной точки",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.endpointUrl || "-"}
         </span>
       ),
@@ -243,7 +243,7 @@ const Index = () => {
       accessorKey: "pollInterval",
       header: "Интервал опроса",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.pollInterval ?? "-"}
         </span>
       ),
@@ -252,7 +252,7 @@ const Index = () => {
       accessorKey: "username",
       header: "Имя пользователя",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.username || "-"}
         </span>
       ),
@@ -292,7 +292,7 @@ const Index = () => {
             // Для null, undefined или других неожиданных значений
             return {
               text: "Неизвестно",
-              color: "bg-gray-500/10 text-gray-400 border-gray-500/30",
+              color: "bg-text-dim/10 text-text-muted border-surface-border-hover/30",
             };
           }
         };
@@ -301,7 +301,7 @@ const Index = () => {
 
         return (
           <span
-            className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold border ${statusInfo.color}`}
+            className={`inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold border ${statusInfo.color}`}
           >
             {statusInfo.text}
           </span>
@@ -312,7 +312,7 @@ const Index = () => {
       accessorKey: "nodesCount",
       header: "Узлы",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.nodesCount || 0}
         </span>
       ),
@@ -354,14 +354,14 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
       >
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-100">
+            <h2 className="text-xl font-semibold text-text-primary">
               OPC UA Серверы
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-text-muted mt-1">
               Всего серверов: {get(servers, "data", []).length} | Активных:{" "}
               {get(enabledServers, "data", []).length}
             </p>
@@ -371,7 +371,7 @@ const Index = () => {
         <div className="mb-2 flex justify-between">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
           >
             <span>Добавить OPC UA сервер</span>
           </button>
@@ -379,7 +379,7 @@ const Index = () => {
           <div className="flex gap-2">
             <button
               onClick={handleSyncronize}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
             >
               <span className="material-symbols-outlined">sync</span>
               <span>Синхронизировать</span>
@@ -387,7 +387,7 @@ const Index = () => {
 
             <Link
               href={"/dashboard/opc/servers/status"}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-[2px] transition-colors duration-200 font-medium text-sm"
             >
               <span className="material-symbols-outlined">bar_chart</span>
               Статус серверов

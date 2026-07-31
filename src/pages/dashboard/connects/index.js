@@ -22,15 +22,11 @@ import {
   Add,
   GridView,
   TableRows,
-  VisibilityOutlined,
-  EditOutlined,
-  DeleteOutline,
   Lan,
   Usb,
   ElectricBoltOutlined,
   Schedule,
 } from "@mui/icons-material";
-import { ActionButtonGroup, EyeButton, EditButton, DeleteButton } from "@/components/button";
 import { toast } from "react-hot-toast";
 import {
   CONNECTION_TYPE_OPTIONS,
@@ -45,9 +41,9 @@ const STATIC_DRIVER_ID = "12313";
 
 const DARK_TOAST_OPTIONS = {
   style: {
-    background: "#0f172a",
-    color: "#e2e8f0",
-    border: "1px solid #334155",
+    background: "#131313",
+    color: "#e5e2e1",
+    border: "1px solid #2a2a2a",
     fontFamily: "'Manrope', sans-serif",
   },
 };
@@ -56,6 +52,9 @@ const Index = () => {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("table");
+  const [searchValue, setSearchValue] = useState("");
+  const [protocolFilter, setProtocolFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -101,7 +100,19 @@ const Index = () => {
     });
 
   const connections = get(connects, "data.data", []);
-  const total = get(connects, "data.pagination.total", connections.length);
+
+  const filteredConnections = connections.filter((item) => {
+    const query = searchValue.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      item.name?.toLowerCase().includes(query) ||
+      get(item, "params.host", "")?.toLowerCase?.().includes(query);
+    const matchesProtocol = protocolFilter === "all" || item.type === protocolFilter;
+    const matchesStatus =
+      statusFilter === "all" || (statusFilter === "enabled" ? item.enabled : !item.enabled);
+    return matchesSearch && matchesProtocol && matchesStatus;
+  });
+
   const currentParamFields = PARAM_FIELDS[createForm.type] || [];
   const currentEditParamFields = PARAM_FIELDS[editForm.type] || [];
 
@@ -498,68 +509,78 @@ const Index = () => {
 
   const columns = [
     {
-      header: "№",
-      cell: ({ row }) => row.index + 1,
-    },
-    {
       accessorKey: "name",
-      header: "Название",
+      header: "Name",
       cell: ({ row }) => (
-        <div className="font-semibold text-white">{row.original.name}</div>
+        <span className="font-medium text-text-primary">{row.original.name}</span>
       ),
     },
     {
       accessorKey: "type",
-      header: "Тип",
-      cell: ({ row }) => (
-        <span className="inline-flex px-2 py-1 rounded-md text-xs border border-primary/60 bg-primary/20 text-blue-200">
-          {row.original.type}
-        </span>
-      ),
+      header: "Protocol",
+      cell: ({ row }) => <span className="text-text-secondary">{row.original.type}</span>,
+    },
+    {
+      id: "endpoint",
+      header: "Endpoint",
+      cell: ({ row }) => {
+        const host = get(row.original, "params.host");
+        const port = get(row.original, "params.port");
+        const serialPort = get(row.original, "params.serial_port");
+        return (
+          <span className="text-text-muted">
+            {host ? `${host}${port ? `:${port}` : ""}` : serialPort || "—"}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "enabled",
-      header: "Статус",
+      header: "Status",
       cell: ({ row }) => (
         <span
-          className={`inline-flex px-2 py-1 rounded-md text-xs border ${
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
             row.original.enabled
-              ? "border-green-500 bg-green-500/20 text-green-300"
-              : "border-slate-500 bg-slate-500/20 text-slate-300"
+              ? "border-status-ok text-status-ok"
+              : "border-status-fault text-status-fault"
           }`}
         >
-          {row.original.enabled ? "Включен" : "Отключен"}
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${row.original.enabled ? "bg-status-ok" : "bg-status-fault"}`}
+          />
+          {row.original.enabled ? "ONLINE" : "OFFLINE"}
         </span>
       ),
     },
     {
-      accessorKey: "params.host",
-      header: "Хост",
-      cell: ({ row }) => get(row.original, "params.host", "-") || "-",
-    },
-    {
-      accessorKey: "params.port",
-      header: "Порт",
-      cell: ({ row }) => get(row.original, "params.port", "-") || "-",
-    },
-    {
-      accessorKey: "actions",
-      header: "Действия",
+      id: "actions",
+      header: "Actions",
       cell: ({ row }) => (
-        <ActionButtonGroup>
-          <EyeButton
+        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+          <button
+            type="button"
             onClick={() => setSelectedConnection(row.original)}
-            tooltip="Показать детали"
-          />
-          <EditButton
+            className="text-primary hover:underline"
+          >
+            VIEW
+          </button>
+          <span className="text-text-faint">·</span>
+          <button
+            type="button"
             onClick={() => handleOpenEditModal(row.original)}
-            tooltip="Изменить подключение"
-          />
-          <DeleteButton
+            className="text-primary hover:underline"
+          >
+            EDIT
+          </button>
+          <span className="text-text-faint">·</span>
+          <button
+            type="button"
             onClick={() => handleOpenDeleteModal(row.original)}
-            tooltip="Удалить подключение"
-          />
-        </ActionButtonGroup>
+            className="text-status-fault hover:underline"
+          >
+            DEL
+          </button>
+        </div>
       ),
     },
   ];
@@ -574,62 +595,73 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Подключения"}>
-      <div className="flex items-center justify-between my-[15px] gap-3 flex-wrap font-manrope">
-        <div>
-          <h2 className="text-lg font-semibold">Обзор подключений</h2>
-          <p className="text-sm text-slate-400">
-            Всего подключений:{" "}
-            <span className="text-white font-medium">{total}</span>
-          </p>
+      <div className="flex flex-wrap items-center gap-2 mb-2.5 font-ibmPlexSans">
+        <input
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
+          placeholder="filter connections…"
+          className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+        />
+        <div className="w-[190px]">
+          <CustomSelect
+            value={protocolFilter}
+            onChange={(value) => setProtocolFilter(value)}
+            options={[{ label: "Все протоколы", value: "all" }, ...CONNECTION_TYPE_OPTIONS]}
+            placeholder="Протокол"
+            sortOptions={false}
+          />
+        </div>
+        <div className="w-[160px]">
+          <CustomSelect
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            options={[
+              { label: "Все статусы", value: "all" },
+              { label: "Включено", value: "enabled" },
+              { label: "Отключено", value: "disabled" },
+            ]}
+            placeholder="Статус"
+            sortOptions={false}
+          />
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            onClick={handleOpenCreateModal}
-            variant="contained"
-            sx={{
-              textTransform: "none",
-              fontWeight: 700,
-              background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
-              color: "#00111f",
-              borderRadius: "10px",
-              height: "44px",
-              px: 2,
-              "&:hover": { opacity: 0.9 },
-            }}
+        <div className="flex-1" />
+
+        <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+          <button
+            onClick={() => setActiveTab("table")}
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
+              activeTab === "table"
+                ? "bg-primary/15 text-primary"
+                : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+            }`}
           >
-            Создать подключение
-          </Button>
-
-          <div className="relative flex items-center bg-[#1f2a37] border border-[#304156] p-[6px] rounded-2xl shadow-sm">
-            <button
-              onClick={() => setActiveTab("table")}
-              className={`z-10 flex items-center justify-center w-12 h-10 rounded-xl transition-all ${
-                activeTab === "table"
-                  ? "text-white bg-primary/25 border border-primary/50 rounded-xl"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-              title="Табличный вид"
-            >
-              <TableRows fontSize="small" />
-            </button>
-
-            <button
-              onClick={() => setActiveTab("card")}
-              className={`z-10 flex items-center justify-center w-12 h-10 rounded-xl transition-all ${
-                activeTab === "card"
-                  ? "text-white bg-primary/25 border border-primary/50 rounded-xl"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-              title="Карточный вид"
-            >
-              <GridView fontSize="small" />
-            </button>
-          </div>
+            <TableRows sx={{ fontSize: 14 }} />
+            Table
+          </button>
+          <button
+            onClick={() => setActiveTab("card")}
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-surface-border transition-colors ${
+              activeTab === "card"
+                ? "bg-primary/15 text-primary"
+                : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+            }`}
+          >
+            <GridView sx={{ fontSize: 14 }} />
+            Cards
+          </button>
         </div>
+
+        <button
+          type="button"
+          onClick={handleOpenCreateModal}
+          className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
+        >
+          + NEW CONNECTION
+        </button>
       </div>
 
-      {!connections.length ? (
+      {!filteredConnections.length ? (
         <NoData
           title="Подключения не найдены"
           description="Пока нет SCADA-подключений. Добавьте подключение, чтобы начать мониторинг."
@@ -637,126 +669,83 @@ const Index = () => {
       ) : (
         <>
           {activeTab === "table" && (
-            <CustomTable columns={columns} data={connections} />
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+              <CustomTable columns={columns} data={filteredConnections} />
+            </div>
           )}
 
           {activeTab === "card" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 font-manrope">
-              {connections.map((connection) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 font-ibmPlexSans">
+              {filteredConnections.map((connection) => {
                 const isTcp = connection?.type?.includes("TCP");
                 return (
                   <div
                     key={connection.id}
-                    className="rounded-2xl bg-[#171b22] border border-[#2d3848] p-4 shadow-sm hover:shadow-lg hover:border-[#3f5f84] transition-all duration-200"
+                    className="rounded-[2px] bg-surface-dark border border-surface-border p-3 hover:border-surface-border-hover transition-colors"
                   >
-                    <div className="h-1 w-full rounded-full bg-primary/50 mb-4" />
-
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <h3 className="text-base font-semibold tracking-wide">
-                          {connection.name}
-                        </h3>
-                      </div>
+                    <div className="flex items-start justify-between gap-3 mb-2.5">
+                      <span className="font-ibmPlexMono text-[12.5px] font-semibold text-text-primary">
+                        {connection.name}
+                      </span>
                       <span
-                        className={`inline-flex px-2 py-1 rounded-md text-xs border ${
+                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
                           connection.enabled
-                            ? "border-green-500 bg-green-500/20 text-green-300"
-                            : "border-slate-500 bg-slate-500/20 text-slate-300"
+                            ? "border-status-ok text-status-ok"
+                            : "border-status-fault text-status-fault"
                         }`}
                       >
-                        {connection.enabled ? "Включен" : "Отключен"}
+                        {connection.enabled ? "ONLINE" : "OFFLINE"}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-8 h-8 rounded-lg bg-[#253347] border border-[#334c68] flex items-center justify-center text-[#9EC5FF]">
-                        {isTcp ? (
-                          <Lan fontSize="small" />
-                        ) : (
-                          <Usb fontSize="small" />
-                        )}
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className="w-7 h-7 rounded-[2px] bg-background-dark border border-surface-border flex items-center justify-center text-primary">
+                        {isTcp ? <Lan sx={{ fontSize: 15 }} /> : <Usb sx={{ fontSize: 15 }} />}
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-md bg-primary/20 text-blue-200 border border-primary/60">
+                      <span className="text-[10.5px] font-ibmPlexMono text-text-secondary">
                         {connection.type}
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-md bg-slate-700/40 text-slate-200 border border-slate-600">
-                        ID: {connection.id?.slice(0, 8)}
-                      </span>
                     </div>
 
-                    <div className="space-y-1 text-sm text-slate-300">
+                    <div className="space-y-1 text-[11px] font-ibmPlexMono text-text-muted">
                       <p>
-                        Хост:{" "}
-                        <span className="text-white">
-                          {get(connection, "params.host", "-")}
-                        </span>
+                        Хост: <span className="text-text-primary">{get(connection, "params.host", "-")}</span>
                       </p>
                       <p>
-                        Порт:{" "}
-                        <span className="text-white">
-                          {get(connection, "params.port", "-")}
-                        </span>
+                        Порт: <span className="text-text-primary">{get(connection, "params.port", "-")}</span>
                       </p>
                       <p>
                         Таймаут:{" "}
-                        <span className="text-white">
+                        <span className="text-text-primary">
                           {get(connection, "params.timeout_ms", "-")} ms
                         </span>
                       </p>
                     </div>
 
-                    <div className="mt-4 flex justify-end gap-2">
-                      <Button
+                    <div className="mt-3 pt-2.5 border-t border-surface-border flex justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+                      <button
+                        type="button"
                         onClick={() => setSelectedConnection(connection)}
-                        sx={{
-                          textTransform: "none",
-                          color: "#bfdbfe",
-                          borderColor: "#426080",
-                          background: "#1b2633",
-                          "&:hover": {
-                            background: "#223246",
-                            borderColor: "#5a82b0",
-                          },
-                        }}
-                        variant="outlined"
-                        startIcon={<VisibilityOutlined fontSize="small" />}
+                        className="text-primary hover:underline"
                       >
-                        Показать детали
-                      </Button>
-                      <Button
+                        VIEW
+                      </button>
+                      <span className="text-text-faint">·</span>
+                      <button
+                        type="button"
                         onClick={() => handleOpenEditModal(connection)}
-                        sx={{
-                          textTransform: "none",
-                          color: "#fdba74",
-                          borderColor: "#7a5a2c",
-                          background: "#2f2418",
-                          "&:hover": {
-                            background: "#3b2d1e",
-                            borderColor: "#9a6d30",
-                          },
-                        }}
-                        variant="outlined"
-                        startIcon={<EditOutlined fontSize="small" />}
+                        className="text-primary hover:underline"
                       >
-                        Изменить
-                      </Button>
-                      <Button
+                        EDIT
+                      </button>
+                      <span className="text-text-faint">·</span>
+                      <button
+                        type="button"
                         onClick={() => handleOpenDeleteModal(connection)}
-                        sx={{
-                          textTransform: "none",
-                          color: "#fca5a5",
-                          borderColor: "#7f1d1d",
-                          background: "#2a1717",
-                          "&:hover": {
-                            background: "#351b1b",
-                            borderColor: "#991b1b",
-                          },
-                        }}
-                        variant="outlined"
-                        startIcon={<DeleteOutline fontSize="small" />}
+                        className="text-status-fault hover:underline"
                       >
-                        Удалить
-                      </Button>
+                        DEL
+                      </button>
                     </div>
                   </div>
                 );
@@ -774,7 +763,7 @@ const Index = () => {
         title={"Создать подключение"}
         width={780}
       >
-        <div className="space-y-4 font-manrope">
+        <div className="space-y-4 font-ibmPlexSans">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Название"
@@ -807,7 +796,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-[#334155] bg-[#111827] p-4">
+          <div className="rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b] p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
@@ -837,7 +826,7 @@ const Index = () => {
               </Button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-3">
+            <p className="text-xs text-text-muted mb-3">
               {PARAM_HINTS[createForm.type]}
             </p>
 
@@ -886,8 +875,8 @@ const Index = () => {
               variant="outlined"
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
                 fontFamily: "'Manrope', sans-serif",
               }}
             >
@@ -906,8 +895,8 @@ const Index = () => {
                   background: "#1d4ed8",
                 },
                 "&.Mui-disabled": {
-                  background: "#334155",
-                  color: "#94a3b8",
+                  background: "#2a2a2a",
+                  color: "#7c8290",
                 },
               }}
             >
@@ -925,7 +914,7 @@ const Index = () => {
         title={"Изменить подключение"}
         width={780}
       >
-        <div className="space-y-4 font-manrope">
+        <div className="space-y-4 font-ibmPlexSans">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Название"
@@ -958,15 +947,15 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-[#334155] bg-[#111827] p-4">
+          <div className="rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b] p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
                   Параметры подключения
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   Верхнеуровневый тип будет автоматически добавлен в
-                  <span className="text-slate-200"> params.type</span> при
+                  <span className="text-text-primary"> params.type</span> при
                   отправке.
                 </p>
               </div>
@@ -994,7 +983,7 @@ const Index = () => {
               </Button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-3">
+            <p className="text-xs text-text-muted mb-3">
               {PARAM_HINTS[editForm.type]}
             </p>
 
@@ -1045,8 +1034,8 @@ const Index = () => {
               variant="outlined"
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
               }}
             >
               Отмена
@@ -1063,8 +1052,8 @@ const Index = () => {
                   background: "#b45309",
                 },
                 "&.Mui-disabled": {
-                  background: "#334155",
-                  color: "#94a3b8",
+                  background: "#2a2a2a",
+                  color: "#7c8290",
                 },
               }}
             >
@@ -1088,7 +1077,7 @@ const Index = () => {
           </span>
           ?
           {isDeletingConnection && (
-            <span className="block text-xs text-slate-400 mt-2">
+            <span className="block text-xs text-text-muted mt-2">
               Удаление...
             </span>
           )}
@@ -1104,10 +1093,10 @@ const Index = () => {
           title={"Детали подключения"}
           width={700}
         >
-          <div className="mb-4 p-4 rounded-xl border border-[#334155] bg-[#111827]">
+          <div className="mb-4 p-4 rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b]">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center text-blue-200">
+                <span className="w-10 h-10 rounded-[2px] bg-primary/20 border border-primary/50 flex items-center justify-center text-blue-200">
                   {selectedConnection?.type?.includes("TCP") ? (
                     <Lan fontSize="small" />
                   ) : (
@@ -1118,7 +1107,7 @@ const Index = () => {
                   <p className="text-white text-base font-semibold">
                     {selectedConnection.name}
                   </p>
-                  <p className="text-slate-400 text-xs">
+                  <p className="text-text-muted text-xs">
                     ID: {selectedConnection.id}
                   </p>
                 </div>
@@ -1128,7 +1117,7 @@ const Index = () => {
                 className={`inline-flex px-3 py-1 rounded-full text-xs border ${
                   selectedConnection.enabled
                     ? "border-green-500 bg-green-500/20 text-green-300"
-                    : "border-slate-500 bg-slate-500/20 text-slate-300"
+                    : "border-surface-border-hover bg-text-dim/20 text-text-secondary"
                 }`}
               >
                 {selectedConnection.enabled ? "Включен" : "Отключен"}
@@ -1137,45 +1126,45 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Название</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Название</p>
               <p className="text-white font-medium">
                 {selectedConnection.name}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Тип</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Тип</p>
               <p className="text-white font-medium">
                 {selectedConnection.type}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Статус</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Статус</p>
               <p className="text-white font-medium">
                 {selectedConnection.enabled ? "Включен" : "Отключен"}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Хост</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Хост</p>
               <p className="text-white font-medium">
                 {get(selectedConnection, "params.host", "-")}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Порт</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Порт</p>
               <p className="text-white font-medium">
                 {get(selectedConnection, "params.port", "-")}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Таймаут</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Таймаут</p>
               <p className="text-white font-medium flex items-center gap-2">
-                <Schedule fontSize="inherit" className="text-slate-400" />
+                <Schedule fontSize="inherit" className="text-text-muted" />
                 {get(selectedConnection, "params.timeout_ms", "-")} ms
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Протокол</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Протокол</p>
               <p className="text-white font-medium flex items-center gap-2">
                 <ElectricBoltOutlined
                   fontSize="inherit"
@@ -1184,8 +1173,8 @@ const Index = () => {
                 {get(selectedConnection, "params.type", "-")}
               </p>
             </div>
-            <div className="bg-[#111827] rounded-lg p-3 border border-[#2f3848]">
-              <p className="text-slate-400">Создано</p>
+            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
+              <p className="text-text-muted">Создано</p>
               <p className="text-white font-medium">
                 {selectedConnection.createdAt
                   ? new Date(selectedConnection.createdAt).toLocaleString()

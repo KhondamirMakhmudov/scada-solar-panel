@@ -10,18 +10,18 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 400,
-          bgcolor: "#1f2937",
+          bgcolor: "#1c1b1b",
           boxShadow: 24,
           p: 4,
-          borderRadius: "12px",
-          border: "1px solid #334155",
+          borderRadius: "2px",
+          border: "1px solid #2a2a2a",
         }}
       >
         <div className="flex items-center gap-3 mb-4">
           <Typography
             sx={{
-              fontFamily: "'Manrope', sans-serif",
-              color: "#f8fafc",
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              color: "#e5e2e1",
               fontSize: "20px",
               fontWeight: 600,
             }}
@@ -32,8 +32,8 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
 
         <Typography
           sx={{
-            fontFamily: "'Manrope', sans-serif",
-            color: "#cbd5e1",
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            color: "#bfc7d4",
             fontSize: "15px",
             mb: 3,
           }}
@@ -46,16 +46,16 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
           <Button
             sx={{
               flex: 1,
-              backgroundColor: "#334155",
+              backgroundColor: "#2a2a2a",
               color: "#ffffff",
               textTransform: "none",
               fontSize: "15px",
-              fontFamily: "'Manrope', sans-serif",
-              borderRadius: "8px",
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              borderRadius: "2px",
               fontWeight: 500,
               py: 1.5,
               "&:hover": {
-                backgroundColor: "#475569",
+                backgroundColor: "#383737",
               },
             }}
             onClick={onClose}
@@ -68,16 +68,16 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
           <Button
             sx={{
               flex: 1,
-              backgroundColor: "#dc2626",
+              backgroundColor: "#ef4444",
               color: "#ffffff",
               textTransform: "none",
               fontSize: "15px",
               fontWeight: 600,
-              fontFamily: "'Manrope', sans-serif",
-              borderRadius: "8px",
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              borderRadius: "2px",
               py: 1.5,
               "&:hover": {
-                backgroundColor: "#b91c1c",
+                backgroundColor: "#dc2626",
               },
             }}
             onClick={deleting}

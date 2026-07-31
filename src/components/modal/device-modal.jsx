@@ -133,14 +133,14 @@ export const DeviceModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-noto-sans">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-ibmPlexSans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-background-dark border border-surface-dark rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-100 mb-6">
+          <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-6">
             {editDevice ? "Редактировать устройство" : "Добавить устройство"}
           </h2>
 
@@ -150,7 +150,7 @@ export const DeviceModal = ({
               type="text"
               label={"Имя устройства"}
               value={formData.name}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Введите имя устройства"
               required
@@ -159,7 +159,7 @@ export const DeviceModal = ({
               type="text"
               label={"Серийный номер устройства"}
               value={formData.serialNumber}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("serialNumber", e.target.value)}
               placeholder="Введите серийный номер устройства"
               required
@@ -187,7 +187,7 @@ export const DeviceModal = ({
                     <Input
                       label={"Хост"}
                       type="text"
-                      inputClass="!h-[45px] text-sm"
+                      inputClass="text-[12.5px]"
                       value={formData.host}
                       onChange={(e) => handleChange("host", e.target.value)}
                       placeholder="0.0.0.0"
@@ -198,7 +198,7 @@ export const DeviceModal = ({
                     <Input
                       label={"Порт"}
                       type="number"
-                      inputClass="!h-[45px] text-sm"
+                      inputClass="text-[12.5px]"
                       value={formData.port}
                       onChange={(e) => handleChange("port", e.target.value)}
                       placeholder="3000"
@@ -211,7 +211,7 @@ export const DeviceModal = ({
                     <Input
                       label={"Slave ID"}
                       type="number"
-                      inputClass="!h-[45px] text-sm"
+                      inputClass="text-[12.5px]"
                       value={formData.slaveId}
                       onChange={(e) => handleChange("slaveId", e.target.value)}
                       placeholder="Введите ID"
@@ -222,7 +222,7 @@ export const DeviceModal = ({
                     <Input
                       label={"Timeout (мс)"}
                       type="number"
-                      inputClass="!h-[45px] text-sm"
+                      inputClass="text-[12.5px]"
                       value={formData.timeout}
                       onChange={(e) => handleChange("timeout", e.target.value)}
                       placeholder="Введите таймоут"
@@ -238,7 +238,7 @@ export const DeviceModal = ({
                     <Input
                       label={"COM Порт"}
                       type="text"
-                      inputClass="!h-[45px] text-sm"
+                      inputClass="text-[12.5px]"
                       value={formData.comPort}
                       onChange={(e) => handleChange("comPort", e.target.value)}
                       placeholder="Введите COM Порт"
@@ -308,7 +308,7 @@ export const DeviceModal = ({
                   <Input
                     label={"Slave ID"}
                     type="number"
-                    inputClass="!h-[45px] text-sm"
+                    inputClass="text-[12.5px]"
                     value={formData.slaveId}
                     onChange={(e) => handleChange("slaveId", e.target.value)}
                     placeholder="Введите ID"
@@ -323,7 +323,7 @@ export const DeviceModal = ({
               <Input
                 label={"Интервал опроса (мс)"}
                 type="number"
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 value={formData.pollInterval}
                 onChange={(e) => handleChange("pollInterval", e.target.value)}
                 placeholder="Введите интервал опроса"
@@ -337,9 +337,9 @@ export const DeviceModal = ({
                 type="checkbox"
                 checked={formData.enabled}
                 onChange={(e) => handleChange("enabled", e.target.checked)}
-                className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
               />
-              <label className="text-sm font-medium text-gray-300">
+              <label className="text-sm font-medium text-text-secondary">
                 Включить устройство
               </label>
             </div>
@@ -348,14 +348,14 @@ export const DeviceModal = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-[2px] hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
               >
                 {editDevice ? "Сохранить" : "Создать"}
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-5 py-2.5 bg-surface-dark text-gray-300 text-sm font-bold rounded-lg hover:bg-opacity-80 transition-all active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95"
               >
                 Отмена
               </button>

@@ -21,14 +21,14 @@ const Input = ({
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
-    <div className={`relative ${classNames} font-spaceGrotesk`}>
+    <div className={`relative ${classNames} font-ibmPlexSans`}>
       {label && (
         <label
           htmlFor={name}
-          className={`block mb-1 text-sm text-gray-300 ${labelClass}`}
+          className={`block mb-1 text-[11px] uppercase tracking-wide text-text-muted ${labelClass}`}
         >
           {label}
-          {required && <span className="text-red-400 ml-1">*</span>}
+          {required && <span className="text-status-fault ml-1">*</span>}
         </label>
       )}
 
@@ -41,13 +41,12 @@ const Input = ({
         value={value}
         onChange={onChange}
         className={`
-          w-full h-[55px] border bg-surface-dark text-white
-          placeholder:text-gray-400
-          ${error ? "border-red-500" : "border-gray-600"}
-          rounded-[8px] p-2 pr-10 focus:outline-none focus:ring-2
-          ${error ? "focus:ring-red-500" : "focus:ring-primary"}
-          transition-all duration-200
-          hover:border-gray-500
+          w-full h-9 border bg-background-dark text-text-primary text-[12.5px]
+          placeholder:text-text-faint
+          ${error ? "border-status-fault" : "border-surface-border"}
+          rounded-[2px] px-2.5 pr-9 focus:outline-none
+          transition-colors duration-150
+          hover:border-surface-border-hover
           ${inputClass}
         `}
       />
@@ -56,15 +55,19 @@ const Input = ({
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-3 top-[50%] transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors duration-200"
+          className="absolute right-2.5 top-[50%] transform -translate-y-1/2 text-text-faint hover:text-primary transition-colors duration-200"
         >
-          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+          {showPassword ? (
+            <VisibilityOffIcon sx={{ fontSize: 18 }} />
+          ) : (
+            <VisibilityIcon sx={{ fontSize: 18 }} />
+          )}
         </button>
       )}
 
       {error && (
-        <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
-          <span className="text-red-500">•</span>
+        <p className="text-status-fault text-[11px] mt-1 flex items-center gap-1">
+          <span className="text-status-fault">•</span>
           {error}
         </p>
       )}

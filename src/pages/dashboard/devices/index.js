@@ -25,14 +25,7 @@ import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import { requestPython } from "@/services/api";
-import {
-  Add,
-  DevicesOther,
-  Lan,
-  Search,
-  TableRows,
-  ViewModule,
-} from "@mui/icons-material";
+import { TableRows, ViewModule } from "@mui/icons-material";
 import { Button } from "@mui/material";
 
 const STATUS_OPTIONS = [
@@ -93,33 +86,33 @@ const DeviceCard = ({ device, onView, onEdit, onDelete }) => {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.55)]"
+      className="rounded-[2px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.55)]"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-100">
+          <h3 className="text-base font-semibold text-text-primary">
             {device.name}
           </h3>
-          <p className="mt-1 text-xs text-slate-400">ID: {device.id}</p>
+          <p className="mt-1 text-xs text-text-muted">ID: {device.id}</p>
         </div>
         <span
-          className={`rounded-md px-2.5 py-1 text-xs font-medium ${getStatusStyles(device.enabled)}`}
+          className={`rounded-[2px] px-2.5 py-1 text-xs font-medium ${getStatusStyles(device.enabled)}`}
         >
           {device.enabled ? "Включено" : "Отключено"}
         </span>
       </div>
 
       <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/60 px-3 py-2">
-          <span className="text-slate-400">Протокол</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2">
+          <span className="text-text-muted">Протокол</span>
           <span className="font-medium text-blue-300">{protocol}</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/60 px-3 py-2">
-          <span className="text-slate-400">Slave address</span>
-          <span className="font-medium text-slate-100">{slaveAddress}</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2">
+          <span className="text-text-muted">Slave address</span>
+          <span className="font-medium text-text-primary">{slaveAddress}</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/60 px-3 py-2">
-          <span className="text-slate-400">Connection ID</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2">
+          <span className="text-text-muted">Connection ID</span>
           <span
             className="max-w-[170px] truncate font-medium text-cyan-300"
             title={device.connectionId}
@@ -129,12 +122,12 @@ const DeviceCard = ({ device, onView, onEdit, onDelete }) => {
         </div>
       </div>
 
-      <div className="mt-4 text-xs text-slate-500">
+      <div className="mt-4 text-xs text-text-dim">
         Обновлено:{" "}
-        <span className="text-slate-300">{formatDate(device.updatedAt)}</span>
+        <span className="text-text-secondary">{formatDate(device.updatedAt)}</span>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-700/60">
+      <div className="mt-4 pt-4 border-t border-surface-border/60">
         <ActionButtonGroup>
           <EyeButton onClick={onView} tooltip="Детали устройства" />
           <EditButton onClick={onEdit} tooltip="Изменить устройство" />
@@ -208,7 +201,6 @@ const Index = () => {
   });
 
   const list = get(devices, "data.data", []);
-  const total = get(devices, "data.pagination.total", list.length);
   const connections = get(connects, "data.data", []);
 
   const protocolOptions = useMemo(() => {
@@ -456,24 +448,6 @@ const Index = () => {
     });
   }, [list, searchValue, statusFilter, protocolFilter]);
 
-  const stats = useMemo(() => {
-    const enabledCount = list.filter((item) => item.enabled).length;
-    const disabledCount = list.length - enabledCount;
-    const protocolsCount = new Set(
-      list.map((item) => get(item, "params.type", "")).filter(Boolean),
-    ).size;
-    const linkedConnectionsCount = new Set(
-      list.map((item) => item.connectionId).filter(Boolean),
-    ).size;
-
-    return {
-      enabledCount,
-      disabledCount,
-      protocolsCount,
-      linkedConnectionsCount,
-    };
-  }, [list]);
-
   const totalPages = Math.max(1, Math.ceil(filteredDevices.length / pageSize));
   const paginatedDevices = filteredDevices.slice(
     (currentPage - 1) * pageSize,
@@ -484,7 +458,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-slate-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -492,8 +466,8 @@ const Index = () => {
       header: "Устройство",
       cell: ({ row }) => (
         <div>
-          <p className="font-medium text-slate-100">{row.original.name}</p>
-          <p className="text-xs text-slate-400">
+          <p className="font-medium text-text-primary">{row.original.name}</p>
+          <p className="text-xs text-text-muted">
             {row.original.description || "Без описания"}
           </p>
         </div>
@@ -504,7 +478,7 @@ const Index = () => {
       header: "Connection",
       cell: ({ row }) => (
         <span
-          className="inline-flex max-w-[240px] truncate rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-medium text-cyan-200"
+          className="block max-w-[220px] truncate text-text-secondary"
           title={row.original.connectionId}
         >
           {row.original.connectionId || "—"}
@@ -515,16 +489,14 @@ const Index = () => {
       id: "protocol",
       header: "Протокол",
       cell: ({ row }) => (
-        <span className="inline-flex rounded-md border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-300">
-          {get(row.original, "params.type", "—")}
-        </span>
+        <span className="text-text-muted">{get(row.original, "params.type", "—")}</span>
       ),
     },
     {
       id: "slaveAddress",
-      header: "Slave",
+      header: "Unit",
       cell: ({ row }) => (
-        <span className="text-sm text-slate-200">
+        <span className="text-text-secondary">
           {get(row.original, "params.slave_address", "—")}
         </span>
       ),
@@ -534,7 +506,7 @@ const Index = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${getStatusStyles(row.original.enabled)}`}
+          className={`inline-flex rounded-[2px] px-2.5 py-1 text-xs font-medium ${getStatusStyles(row.original.enabled)}`}
         >
           {row.original.enabled ? "Включено" : "Отключено"}
         </span>
@@ -544,29 +516,40 @@ const Index = () => {
       accessorKey: "updatedAt",
       header: "Обновлено",
       cell: ({ row }) => (
-        <span className="text-xs text-slate-300">
+        <span className="text-xs text-text-secondary">
           {formatDate(row.original.updatedAt)}
         </span>
       ),
     },
     {
       id: "actions",
-      header: "Действия",
+      header: "Actions",
       cell: ({ row }) => (
-        <ActionButtonGroup>
-          <EyeButton
+        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+          <button
+            type="button"
             onClick={() => openViewModal(row.original)}
-            tooltip="Детали устройства"
-          />
-          <EditButton
+            className="text-primary hover:underline"
+          >
+            VIEW
+          </button>
+          <span className="text-text-faint">·</span>
+          <button
+            type="button"
             onClick={() => openEditModal(row.original)}
-            tooltip="Изменить устройство"
-          />
-          <DeleteButton
+            className="text-primary hover:underline"
+          >
+            EDIT
+          </button>
+          <span className="text-text-faint">·</span>
+          <button
+            type="button"
             onClick={() => openDeleteModal(row.original)}
-            tooltip="Удалить устройство"
-          />
-        </ActionButtonGroup>
+            className="text-status-fault hover:underline"
+          >
+            DEL
+          </button>
+        </div>
       ),
       enableSorting: false,
     },
@@ -582,147 +565,70 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Устройства"}>
-      <div className="font-manrope py-6 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
-        >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                <Lan fontSize="small" />
-                SCADA / Connects / Devices
-              </p>
-              <h2 className="text-2xl font-semibold text-slate-100">
-                Управление устройствами
-              </h2>
-              <p className="mt-2 text-sm text-slate-400">
-                Страница для мониторинга и визуальной навигации по устройствам,
-                связанным с подключениями.
-              </p>
-            </div>
+      <div className="font-ibmPlexSans space-y-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder="filter devices…"
+            className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+          />
+          <div className="w-[180px]">
+            <CustomSelect
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              options={STATUS_OPTIONS}
+              placeholder="Статус"
+              sortOptions={false}
+            />
+          </div>
+          <div className="w-[200px]">
+            <CustomSelect
+              value={protocolFilter}
+              onChange={(value) => setProtocolFilter(value)}
+              options={protocolOptions}
+              placeholder="Протокол"
+            />
+          </div>
 
-            <Button
-              onClick={() => {
-                resetCreateForm();
-                setShowCreateModal(true);
-              }}
-              startIcon={<Add />}
-              sx={{
-                height: "44px",
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 700,
-                color: "#00111f",
-                background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
-                "&:hover": {
-                  opacity: 0.9,
-                },
-              }}
-            >
-              Добавить устройство
-            </Button>
-          </div>
-        </motion.div>
+          <div className="flex-1" />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-xl border border-slate-700/60 bg-slate-900/70 p-4">
-            <p className="text-sm text-slate-400">Всего устройств</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-100">
-              {total}
-            </p>
+          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+            {VIEW_MODE_OPTIONS.map((item) => {
+              const Icon = item.icon;
+              const isActive = viewMode === item.value;
+
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setViewMode(item.value)}
+                  className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
+                    isActive
+                      ? "bg-primary/15 text-primary"
+                      : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+                  }`}
+                >
+                  <Icon sx={{ fontSize: 14 }} />
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
-          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4">
-            <p className="text-sm text-emerald-300">Включено</p>
-            <p className="mt-1 text-2xl font-semibold text-emerald-200">
-              {stats.enabledCount}
-            </p>
-          </div>
-          <div className="rounded-xl border border-rose-500/25 bg-rose-500/10 p-4">
-            <p className="text-sm text-rose-300">Отключено</p>
-            <p className="mt-1 text-2xl font-semibold text-rose-200">
-              {stats.disabledCount}
-            </p>
-          </div>
-          <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-4">
-            <p className="text-sm text-blue-300">Протоколы / Connects</p>
-            <p className="mt-1 text-2xl font-semibold text-blue-200">
-              {stats.protocolsCount} / {stats.linkedConnectionsCount}
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              resetCreateForm();
+              setShowCreateModal(true);
+            }}
+            className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
+          >
+            + NEW DEVICE
+          </button>
         </div>
 
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 md:p-5">
-          <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex w-full flex-col gap-3 md:flex-row">
-              <div className="relative w-full md:max-w-md">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-                  fontSize="small"
-                />
-                <input
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder="Поиск по имени, ID, description или connectionId"
-                  className="h-11 w-full rounded-lg border border-slate-700 bg-slate-800 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-blue-500"
-                />
-              </div>
-
-              <div className="w-full md:w-[220px]">
-                <CustomSelect
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value)}
-                  options={STATUS_OPTIONS}
-                  placeholder="Статус"
-                  sortOptions={false}
-                />
-              </div>
-
-              <div className="w-full md:w-[260px]">
-                <CustomSelect
-                  value={protocolFilter}
-                  onChange={(value) => setProtocolFilter(value)}
-                  options={protocolOptions}
-                  placeholder="Протокол"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {VIEW_MODE_OPTIONS.map((item) => {
-                const Icon = item.icon;
-                const isActive = viewMode === item.value;
-
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setViewMode(item.value)}
-                    className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
-                      isActive
-                        ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-                    }`}
-                  >
-                    <Icon fontSize="small" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
-            <span className="inline-flex items-center gap-2">
-              <DevicesOther fontSize="small" />
-              Найдено устройств:{" "}
-              <span className="font-semibold text-slate-200">
-                {filteredDevices.length}
-              </span>
-            </span>
-          </div>
-
+        <div className="rounded-[2px] border border-surface-border bg-surface-dark">
           {filteredDevices.length === 0 ? (
             <NoData
               title="Устройства не найдены"
@@ -745,8 +651,8 @@ const Index = () => {
           )}
 
           {filteredDevices.length > 0 && (
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-slate-700/60 pt-4 sm:flex-row">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-surface-border/60 pt-4 sm:flex-row">
+              <div className="flex items-center gap-2 text-sm text-text-muted">
                 <span>Строк на странице:</span>
                 {[10, 20, 50].map((size) => (
                   <button
@@ -756,10 +662,10 @@ const Index = () => {
                       setPageSize(size);
                       setCurrentPage(1);
                     }}
-                    className={`h-8 w-10 rounded-md border text-xs font-medium transition ${
+                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition ${
                       pageSize === size
                         ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
                     {size}
@@ -772,7 +678,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Первая"
                 >
                   «
@@ -781,7 +687,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Назад"
                 >
                   ‹
@@ -805,7 +711,7 @@ const Index = () => {
                     item === "..." ? (
                       <span
                         key={`ellipsis-${idx}`}
-                        className="flex h-8 w-8 items-center justify-center text-slate-500"
+                        className="flex h-8 w-8 items-center justify-center text-text-dim"
                       >
                         …
                       </span>
@@ -814,10 +720,10 @@ const Index = () => {
                         key={item}
                         type="button"
                         onClick={() => setCurrentPage(item)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition ${
                           currentPage === item
                             ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                            : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                         }`}
                       >
                         {item}
@@ -831,7 +737,7 @@ const Index = () => {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Вперёд"
                 >
                   ›
@@ -840,24 +746,24 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Последняя"
                 >
                   »
                 </button>
               </div>
 
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-text-muted">
                 Страница{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {currentPage}
                 </span>{" "}
                 из{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {totalPages}
                 </span>
                 {" · "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {filteredDevices.length}
                 </span>{" "}
                 записей
@@ -951,8 +857,8 @@ const Index = () => {
               onClick={() => setShowCreateModal(false)}
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
               }}
               variant="outlined"
             >
@@ -1057,8 +963,8 @@ const Index = () => {
               onClick={() => setShowEditModal(false)}
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
               }}
               variant="outlined"
             >
@@ -1090,47 +996,47 @@ const Index = () => {
         width={640}
       >
         <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Название</p>
-            <p className="text-slate-100 font-semibold">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Название</p>
+            <p className="text-text-primary font-semibold">
               {selectedDevice?.name || "—"}
             </p>
           </div>
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Описание</p>
-            <p className="text-slate-100">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Описание</p>
+            <p className="text-text-primary">
               {selectedDevice?.description || "—"}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Connection ID</p>
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Connection ID</p>
               <p className="text-cyan-200 break-all">
                 {selectedDevice?.connectionId || "—"}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Статус</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Статус</p>
+              <p className="text-text-primary">
                 {selectedDevice?.enabled ? "Включено" : "Отключено"}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Тип протокола</p>
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Тип протокола</p>
               <p className="text-blue-200">
                 {get(selectedDevice, "params.type", "—")}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Slave address</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Slave address</p>
+              <p className="text-text-primary">
                 {get(selectedDevice, "params.slave_address", "—")}
               </p>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">ID</p>
-            <p className="text-slate-100 break-all">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">ID</p>
+            <p className="text-text-primary break-all">
               {selectedDevice?.id || "—"}
             </p>
           </div>

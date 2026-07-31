@@ -11,7 +11,7 @@ const Metric = ({ label, active, total }) => {
 
   return (
     <div
-      className="flex items-center gap-1.5"
+      className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border bg-background-dark flex-shrink-0"
       title={`${label}: ${active} из ${total} активны`}
     >
       <span
@@ -23,8 +23,8 @@ const Metric = ({ label, active, total }) => {
           animation: status === "alarm" ? "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite" : undefined,
         }}
       />
-      <span className="text-[11px] text-[#6b7280]">{label}</span>
-      <span className="text-[11px] font-mono tabular-nums" style={{ color }}>
+      <span className="text-[10.5px] font-ibmPlexMono text-text-faint">{label}</span>
+      <span className="text-[10.5px] font-ibmPlexMono tabular-nums" style={{ color }}>
         {active}/{total}
       </span>
     </div>

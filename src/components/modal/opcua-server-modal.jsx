@@ -94,14 +94,14 @@ export const OPCUAServerModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-noto-sans">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-ibmPlexSans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-background-dark border border-surface-dark rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-100 mb-6">
+          <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-6">
             {editServer
               ? "Редактировать OPC UA сервер"
               : "Добавить OPC UA сервер"}
@@ -113,7 +113,7 @@ export const OPCUAServerModal = ({
               type="text"
               label={"Имя сервера"}
               value={formData.name}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Введите имя сервера"
               required
@@ -124,7 +124,7 @@ export const OPCUAServerModal = ({
               type="text"
               label={"Endpoint URL"}
               value={formData.endpointUrl}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleEndpointUrlChange(e.target.value)}
               placeholder="192.168.1.100:4840"
               required
@@ -135,7 +135,7 @@ export const OPCUAServerModal = ({
               type="text"
               label={"Имя пользователя"}
               value={formData.username}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("username", e.target.value)}
               placeholder="Введите имя пользователя (опционально)"
             />
@@ -145,7 +145,7 @@ export const OPCUAServerModal = ({
               type="password"
               label={"Пароль"}
               value={formData.password}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("password", e.target.value)}
               placeholder={
                 editServer
@@ -160,15 +160,15 @@ export const OPCUAServerModal = ({
                 type="checkbox"
                 checked={formData.enabled}
                 onChange={(e) => handleChange("enabled", e.target.checked)}
-                className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
               />
-              <label className="text-sm font-medium text-gray-300">
+              <label className="text-sm font-medium text-text-secondary">
                 Включить сервер после создания
               </label>
             </div>
 
             {/* Info Note */}
-            <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
+            <div className="bg-blue-900/20 border border-blue-700/30 rounded-[2px] p-3">
               <p className="text-sm text-blue-300">
                 <strong>Примечание:</strong> Поля "Имя пользователя" и "Пароль"
                 являются опциональными.
@@ -194,14 +194,14 @@ export const OPCUAServerModal = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-[2px] hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
               >
                 {editServer ? "Сохранить" : "Создать"}
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-5 py-2.5 bg-surface-dark text-gray-300 text-sm font-bold rounded-lg hover:bg-opacity-80 transition-all active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95"
               >
                 Отмена
               </button>

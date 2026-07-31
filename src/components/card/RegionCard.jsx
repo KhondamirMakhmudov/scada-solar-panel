@@ -4,14 +4,14 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 const StatItem = ({ value, label }) => (
   <div className="text-center">
     <div className="text-[1.3rem] font-bold text-white mb-1">{value}</div>
-    <div className="text-sm text-gray-500 font-medium">{label}</div>
+    <div className="text-sm text-text-dim font-medium">{label}</div>
   </div>
 );
 
 const Metric = ({ value, label }) => (
   <div className="text-center">
-    <div className="text-lg font-semibold text-gray-800">{value}</div>
-    <div className="text-xs text-gray-500 mt-1">{label}</div>
+    <div className="text-lg font-semibold text-text-primary">{value}</div>
+    <div className="text-xs text-text-dim mt-1">{label}</div>
   </div>
 );
 
@@ -43,7 +43,7 @@ const InverterCard = ({ inverter }) => {
   return (
     <div className={getCardClass(inverter.status)}>
       <div className="flex justify-between items-center mb-4">
-        <div className="font-semibold text-gray-800">{inverter.name}</div>
+        <div className="font-semibold text-text-primary">{inverter.name}</div>
         <div
           className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClass(
             inverter.status
@@ -85,7 +85,7 @@ const RegionCard = ({ region, isExpanded, onToggle }) => (
       <StatItem value={region.currentGeneration} label="Текущая выработка" />
     </div>
     {isExpanded && (
-      <div className="grid gap-4 p-6 bg-gray-200 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid gap-4 p-6 bg-text-primary sm:grid-cols-2 md:grid-cols-3">
         {region.inverters.map((inverter, index) => (
           <InverterCard key={index} inverter={inverter} />
         ))}

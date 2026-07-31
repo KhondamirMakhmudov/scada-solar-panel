@@ -46,11 +46,11 @@ const CustomSelect = ({
     : options;
 
   return (
-    <div className={`relative w-full rounded-md ${className}`} ref={selectRef}>
+    <div className={`relative w-full font-ibmPlexSans ${className}`} ref={selectRef}>
       {label && (
-        <label className="block mb-[4px] text-sm text-gray-200">
+        <label className="block mb-[4px] text-[11px] uppercase tracking-wide text-text-muted">
           {label}
-          {required && <span className="text-red-500"> *</span>}
+          {required && <span className="text-status-fault"> *</span>}
         </label>
       )}
 
@@ -58,29 +58,30 @@ const CustomSelect = ({
         type="button"
         onClick={toggleDropdown}
         className={clsx(
-          "w-full h-[45px] border text-sm border-primary/30 rounded-md p-2  text-left bg-surface-dark text-gray-100 flex items-center justify-between focus:outline-none focus:ring-2 transition-all",
+          "w-full h-9 border text-[12.5px] rounded-[2px] px-2.5 text-left bg-background-dark text-text-primary flex items-center justify-between focus:outline-none transition-colors",
           error
-            ? "border-red-500 focus:ring-red-500"
-            : "border-surface-border hover:border-primary/30 focus:ring-primary/50"
+            ? "border-status-fault"
+            : "border-surface-border hover:border-surface-border-hover"
         )}
       >
-        <span className={clsx("truncate", !value && "text-text-secondary")}>
+        <span className={clsx("truncate", !value && "text-text-faint")}>
           {selectedLabel || placeholder}
         </span>
         <KeyboardArrowDown
-          className={`transition-transform duration-200 text-primary ${
+          sx={{ fontSize: 16 }}
+          className={`transition-transform duration-200 text-text-muted ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <ul className="absolute z-[9999] mt-2 w-full bg-surface-dark text-gray-100 border border-primary/30 rounded-md shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute z-[9999] mt-1 w-full bg-surface-dark text-text-primary border border-surface-border rounded-[2px] shadow-xl shadow-black/40 max-h-60 overflow-auto">
           {finalOptions.map((opt, idx) => (
             <li
               key={idx}
               className={clsx(
-                "px-4 py-2 hover:bg-background-dark cursor-pointer transition-colors",
+                "px-3 py-1.5 text-[12.5px] hover:bg-background-dark cursor-pointer transition-colors",
                 (returnObject ? value?.value : value) === opt.value &&
                   "bg-primary/10 text-primary font-medium border-l-2 border-primary"
               )}
@@ -92,7 +93,7 @@ const CustomSelect = ({
         </ul>
       )}
 
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && <p className="text-status-fault text-[11px] mt-1">{error}</p>}
     </div>
   );
 };

@@ -54,16 +54,16 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
   if (selected.length !== 1) {
     if (isPinned) {
       return (
-        <div className="w-72 flex-shrink-0 border-l border-slate-800 bg-slate-900/40 flex flex-col">
+        <div className="w-72 flex-shrink-0 border-l border-surface-border bg-surface-dark/40 flex flex-col">
           <div className="flex items-center justify-between px-3 pt-3">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">
+            <p className="text-[11px] uppercase tracking-wide text-text-dim">
               Настройки холста
             </p>
             <button
               type="button"
               onClick={togglePinned}
               title="Свернуть панель"
-              className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors"
+              className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors"
             >
               »
             </button>
@@ -74,17 +74,17 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
     }
 
     return (
-      <div className="w-11 flex-shrink-0 border-l border-slate-800 bg-slate-900/40 flex flex-col items-center py-2 gap-2">
+      <div className="w-11 flex-shrink-0 border-l border-surface-border bg-surface-dark/40 flex flex-col items-center py-2 gap-2">
         <button
           type="button"
           onClick={togglePinned}
           title="Настройки холста"
-          className="w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
         >
           «
         </button>
         <p
-          className="text-[10px] text-slate-600 tracking-wide"
+          className="text-[10px] text-text-faint tracking-wide"
           style={{ writingMode: "vertical-rl" }}
         >
           Выберите элемент
@@ -108,23 +108,23 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
     // локальное состояние раскрытия групп к значениям по умолчанию
     <div
       key={element.id}
-      className="w-80 flex-shrink-0 border-l border-slate-800 bg-slate-900/40 flex flex-col"
+      className="w-80 flex-shrink-0 border-l border-surface-border bg-surface-dark/40 flex flex-col"
     >
-      <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-slate-800/70">
-        <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md bg-slate-950/50 border border-slate-800 text-slate-400">
+      <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-surface-border/70">
+        <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[2px] bg-background-dark/50 border border-surface-border text-text-muted">
           <ShapeThumbnail kind={element.type} size={24} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] text-slate-100 truncate leading-tight">
+          <span className="block text-[13px] text-text-primary truncate leading-tight">
             {element.label?.trim() || definition?.label || element.type}
           </span>
           <span className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-[10px] text-slate-600 truncate">
+            <span className="text-[10px] text-text-faint truncate">
               {definition?.label ?? element.type}
             </span>
             {status && (
               <>
-                <span className="text-slate-700 text-[10px]">·</span>
+                <span className="text-text-faint text-[10px]">·</span>
                 <span
                   className="flex items-center gap-1 text-[10px]"
                   style={{ color: LIVE_STATUS_COLORS[status] }}
@@ -143,7 +143,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           type="button"
           onClick={clearSelection}
           title="Снять выделение"
-          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-300 text-sm leading-none transition-colors"
+          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary text-sm leading-none transition-colors"
         >
           ✕
         </button>
@@ -190,11 +190,11 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
         </PropertyGroup>
       </div>
 
-      <div className="p-2.5 border-t border-slate-800/70">
+      <div className="p-2.5 border-t border-surface-border/70">
         <button
           type="button"
           onClick={handleDelete}
-          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 rounded-lg py-2 transition-colors"
+          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 rounded-[2px] py-2 transition-colors"
         >
           Удалить элемент
         </button>

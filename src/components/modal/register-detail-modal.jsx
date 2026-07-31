@@ -126,31 +126,31 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-manrope">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-ibmPlexSans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.2 }}
-        className="bg-background-dark border border-surface-dark rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-surface-dark p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-100 mb-1 flex items-center gap-3">
+              <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-1 flex items-center gap-3">
                 <span className="text-primary text-3xl">
                   <DescriptionIcon fontSize="large" />
                 </span>
                 Детали регистра
               </h2>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-text-muted">
                 Полная информация о регистре Modbus
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-surface-dark rounded-lg transition-all text-gray-400 hover:text-gray-200 active:scale-95"
+              className="p-2 hover:bg-surface-dark rounded-[2px] transition-all text-text-muted hover:text-text-primary active:scale-95"
             >
               <CloseIcon fontSize="medium" />
             </button>
@@ -166,9 +166,9 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: sectionIndex * 0.05 }}
-                className="bg-surface-dark/30 rounded-lg p-5 border border-surface-dark"
+                className="bg-surface-dark/30 rounded-[2px] p-5 border border-surface-dark"
               >
-                <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                   <span className="w-1 h-6 bg-primary rounded-full"></span>
                   {section.title}
                 </h3>
@@ -176,16 +176,16 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
                   {section.fields.map((field, fieldIndex) => (
                     <div
                       key={fieldIndex}
-                      className="bg-background-dark/50 rounded-lg p-4 border border-surface-dark/50 hover:border-primary/30 transition-all"
+                      className="bg-background-dark/50 rounded-[2px] p-4 border border-surface-dark/50 hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-400 mb-2">
+                          <p className="text-xs font-medium text-text-muted mb-2">
                             {field.label}
                           </p>
                           {field.badge ? (
                             <span
-                              className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-semibold border ${
+                              className={`inline-flex items-center px-3 py-1.5 rounded-[2px] text-sm font-semibold border ${
                                 badgeColors[field.color]
                               }`}
                             >
@@ -207,7 +207,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
                               </span>
                             </div>
                           ) : (
-                            <p className="text-base font-semibold text-gray-100">
+                            <p className="text-base font-semibold text-text-primary">
                               {field.value}
                             </p>
                           )}
@@ -228,7 +228,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
           </div>
 
           {/* Footer Info */}
-          <div className="mt-6 p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+          <div className="mt-6 p-4 bg-blue-900/10 border border-blue-900/30 rounded-[2px]">
             <div className="flex items-center gap-2">
               <InfoIcon className="text-blue-400" />
               <p className="text-sm text-blue-400">
@@ -243,7 +243,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
         <div className="border-t border-surface-dark p-4 bg-surface-dark/20">
           <button
             onClick={onClose}
-            className="w-full px-5 py-2.5 bg-surface-dark text-gray-300 text-sm font-bold rounded-lg hover:bg-opacity-80 transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="w-full px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <CloseIcon fontSize="small" />
             Закрыть

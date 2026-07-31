@@ -39,7 +39,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.4 }}
-      className="group relative bg-slate-900 border border-gray-700 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
+      className="group relative bg-surface-dark border border-surface-border rounded-[2px] p-6 hover:border-blue-500/50 transition-all duration-300 overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
@@ -48,15 +48,15 @@ const DeviceCard = ({ device, delay, onAction }) => {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-lg ${
+              className={`w-10 h-10 rounded-[2px] ${
                 device.isPolling
                   ? "bg-green-500/20 border-green-500/30"
-                  : "bg-slate-500/20 border-slate-500/30"
+                  : "bg-text-dim/20 border-surface-border-hover/30"
               } border flex items-center justify-center`}
             >
               <div
                 className={`w-2.5 h-2.5 rounded-full ${
-                  device.isPolling ? "bg-green-400" : "bg-slate-400"
+                  device.isPolling ? "bg-green-400" : "bg-text-muted"
                 } ${device.isPolling ? "animate-pulse" : ""}`}
               ></div>
             </div>
@@ -64,7 +64,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
               <h3 className="text-white font-semibold text-lg">
                 {device.deviceName}
               </h3>
-              <p className="text-gray-400 text-sm">ID: {device.deviceId}</p>
+              <p className="text-text-muted text-sm">ID: {device.deviceId}</p>
             </div>
           </div>
 
@@ -73,7 +73,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 device.isPolling
                   ? "bg-green-500/20 text-green-400"
-                  : "bg-slate-500/20 text-slate-400"
+                  : "bg-text-dim/20 text-text-muted"
               }`}
             >
               {device.isPolling ? "Активен" : "Неактивен"}
@@ -82,9 +82,9 @@ const DeviceCard = ({ device, delay, onAction }) => {
             {/* Actions Menu Toggle */}
             <button
               onClick={() => setShowActions(!showActions)}
-              className="w-8 h-8 rounded-lg bg-gray-800/80 hover:bg-gray-700 border border-gray-600 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-[2px] bg-background-dark/80 hover:bg-surface-border border border-surface-border-hover flex items-center justify-center transition-all"
             >
-              <span className="material-symbols-outlined text-gray-300 text-lg">
+              <span className="material-symbols-outlined text-text-secondary text-lg">
                 more_vert
               </span>
             </button>
@@ -97,12 +97,12 @@ const DeviceCard = ({ device, delay, onAction }) => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-4 bg-gray-800 border border-gray-700 rounded-xl p-2 space-y-1"
+            className="mb-4 bg-background-dark border border-surface-border rounded-[2px] p-2 space-y-1"
           >
             <button
               onClick={() => handleAction("start")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {actionLoading === "start" ? (
                 <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -115,14 +115,14 @@ const DeviceCard = ({ device, delay, onAction }) => {
                 <p className="text-white font-medium text-sm">
                   Запустить опрос
                 </p>
-                <p className="text-gray-400 text-xs">Начать опрос устройства</p>
+                <p className="text-text-muted text-xs">Начать опрос устройства</p>
               </div>
             </button>
 
             <button
               onClick={() => handleAction("stop")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {actionLoading === "stop" ? (
                 <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -135,7 +135,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
                 <p className="text-white font-medium text-sm">
                   Остановить опрос
                 </p>
-                <p className="text-gray-400 text-xs">
+                <p className="text-text-muted text-xs">
                   Приостановить опрос устройства
                 </p>
               </div>
@@ -144,7 +144,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <button
               onClick={() => handleAction("restart")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {actionLoading === "restart" ? (
                 <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -155,7 +155,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
               )}
               <div className="flex-1">
                 <p className="text-white font-medium text-sm">Перезапустить</p>
-                <p className="text-gray-400 text-xs">
+                <p className="text-text-muted text-xs">
                   Перезапустить опрос устройства
                 </p>
               </div>
@@ -165,15 +165,15 @@ const DeviceCard = ({ device, delay, onAction }) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-blue-700/50">
-            <p className="text-gray-400 text-xs mb-1">Успешных опросов</p>
+          <div className="bg-background-dark/50 rounded-[2px] p-3 border border-blue-700/50">
+            <p className="text-text-muted text-xs mb-1">Успешных опросов</p>
             <p className="text-white text-xl font-bold">
               {device.successfulPolls.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-red-700/50">
-            <p className="text-gray-400 text-xs mb-1">Неудачных опросов</p>
+          <div className="bg-background-dark/50 rounded-[2px] p-3 border border-red-700/50">
+            <p className="text-text-muted text-xs mb-1">Неудачных опросов</p>
             <p className="text-white text-xl font-bold">
               {device.failedPolls.toLocaleString()}
             </p>
@@ -183,10 +183,10 @@ const DeviceCard = ({ device, delay, onAction }) => {
         {/* Success Rate Bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-400 text-sm">Успешность</span>
+            <span className="text-text-muted text-sm">Успешность</span>
             <span className="text-white font-semibold">{successRate}%</span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-surface-border rounded-full h-2 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${successRate}%` }}
@@ -204,12 +204,12 @@ const DeviceCard = ({ device, delay, onAction }) => {
 
         {/* Last Poll Time */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Последний опрос:</span>
-          <span className="text-gray-300 font-medium">{timeAgo}</span>
+          <span className="text-text-muted">Последний опрос:</span>
+          <span className="text-text-secondary font-medium">{timeAgo}</span>
         </div>
 
         {device.lastError && (
-          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-[2px]">
             <p className="text-red-400 text-sm font-medium">
               ⚠ Ошибка: {device.lastError}
             </p>
@@ -345,13 +345,13 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Панель управления Modbus/OPC"}>
-      <div className="font-manrope py-6 space-y-6">
+      <div className="font-ibmPlexSans py-6 space-y-6">
         {/* Refresh Warning Banner */}
         {showRefreshWarning && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-center justify-between"
+            className="bg-yellow-500/10 border border-yellow-500/30 rounded-[2px] p-4 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-yellow-400 text-2xl">
@@ -369,7 +369,7 @@ const Index = () => {
             </div>
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-all"
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-[2px] font-medium transition-all"
             >
               Обновить сейчас
             </button>
@@ -383,10 +383,10 @@ const Index = () => {
           className="flex items-center justify-between"
         >
           <div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-text-muted text-sm">
               Мониторинг и управление устройствами в реальном времени
             </p>
-            <p className="text-gray-500 text-xs mt-1">
+            <p className="text-text-dim text-xs mt-1">
               Последнее обновление: {lastUpdate.toLocaleTimeString("ru-RU")}
             </p>
           </div>
@@ -394,7 +394,7 @@ const Index = () => {
           <div className="flex gap-2 items-center">
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-[2px] font-medium transition-all text-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">refresh</span>
               Обновить
@@ -403,30 +403,30 @@ const Index = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
                   filter === "all"
                     ? "bg-blue-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >
                 Все
               </button>
               <button
                 onClick={() => setFilter("active")}
-                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
                   filter === "active"
                     ? "bg-blue-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >
                 Активные
               </button>
               <button
                 onClick={() => setFilter("inactive")}
-                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
                   filter === "inactive"
                     ? "bg-red-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >
                 Неактивные
@@ -481,9 +481,9 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-center py-12 bg-gray-800/50 rounded-2xl border border-gray-700"
+              className="text-center py-12 bg-background-dark/50 rounded-[2px] border border-surface-border"
             >
-              <p className="text-gray-400 text-lg">
+              <p className="text-text-muted text-lg">
                 Нет устройств для отображения
               </p>
             </motion.div>

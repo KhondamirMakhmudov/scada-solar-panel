@@ -11,7 +11,7 @@ const RangeField = ({ label, value, onChange }: RangeFieldProps) => {
   const beforeRef = useRef<ReturnType<typeof snapshotDocumentArrays> | null>(null);
 
   return (
-    <label className="flex items-center gap-2 text-xs text-slate-400">
+    <label className="flex items-center gap-2 text-xs text-text-muted">
       <span className="flex-shrink-0">{label}</span>
       <input
         type="range"
@@ -30,7 +30,7 @@ const RangeField = ({ label, value, onChange }: RangeFieldProps) => {
         }}
         className="flex-1"
       />
-      <span className="w-9 text-right text-slate-300">{value}%</span>
+      <span className="w-9 text-right text-text-secondary">{value}%</span>
     </label>
   );
 };

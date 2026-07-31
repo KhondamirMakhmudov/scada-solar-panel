@@ -15,7 +15,7 @@ const TextField = ({ label, value, onChange }: TextFieldProps) => {
 
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-text-muted mb-1">{label}</label>
       <input
         value={draft}
         onFocus={() => {
@@ -31,7 +31,7 @@ const TextField = ({ label, value, onChange }: TextFieldProps) => {
             beforeRef.current = null;
           }
         }}
-        className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+        className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
       />
     </div>
   );

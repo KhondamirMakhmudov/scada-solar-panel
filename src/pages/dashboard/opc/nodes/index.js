@@ -233,7 +233,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-gray-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -241,9 +241,9 @@ const Index = () => {
       header: "Название узла",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">{row.original.name}</p>
+          <p className="font-medium text-text-primary">{row.original.name}</p>
           {row.original.description && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               {row.original.description}
             </p>
           )}
@@ -254,7 +254,7 @@ const Index = () => {
       accessorKey: "opcServerId",
       header: "OPC Сервер",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {getServerName(row.original.opcServerId)}
         </span>
       ),
@@ -264,7 +264,7 @@ const Index = () => {
       header: "Node ID",
       cell: ({ row }) => (
         <Tooltip title={row.original.nodeId} placement="top">
-          <span className="text-sm text-gray-300 truncate max-w-[150px] block">
+          <span className="text-sm text-text-secondary truncate max-w-[150px] block">
             {row.original.nodeId}
           </span>
         </Tooltip>
@@ -274,7 +274,7 @@ const Index = () => {
       accessorKey: "dataType",
       header: "Тип данных",
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+        <span className="inline-flex items-center px-2 py-1 rounded-[2px] text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
           {row.original.dataType}
         </span>
       ),
@@ -295,7 +295,7 @@ const Index = () => {
             : "-";
 
         return (
-          <span className="text-sm text-gray-300">
+          <span className="text-sm text-text-secondary">
             {calculatedValue} {unit}
           </span>
         );
@@ -377,19 +377,19 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
       >
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-100">Узлы OPC UA</h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <h2 className="text-xl font-semibold text-text-primary">Узлы OPC UA</h2>
+            <p className="text-sm text-text-muted mt-1">
               Всего узлов: {get(nodes, "data", []).length} | Активных:{" "}
               {activeNodes}
             </p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
           >
             <span>Добавить узел</span>
           </button>

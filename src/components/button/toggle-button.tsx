@@ -12,7 +12,7 @@ const ToggleButton = ({ enabled, onClick, tooltip }: ToggleButtonProps) => {
       <button
         onClick={onClick}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-          enabled ? "bg-primary" : "bg-gray-600"
+          enabled ? "bg-primary" : "bg-surface-border-hover"
         }`}
       >
         <span

@@ -8,10 +8,12 @@ import { AuthProvider } from "@/context/AuthContext";
 import { getAppSettings, applyAppSettings } from "@/lib/appSettings";
 
 import CssBaseline from "@mui/material/CssBaseline";
+import { ThemeProvider } from "@mui/material/styles";
 import "@/styles/globals.css";
 import "@/styles/loader.css";
 
 import Layout from "@/components/layout";
+import theme from "@/components/theme/theme";
 
 // Обработчик ошибок сессии next-auth: если jwt-колбэк на сервере не смог
 // обновить access-токен (см. [...nextauth].js), сессия приходит с
@@ -62,21 +64,23 @@ export default function App({
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Hydrate state={pageProps?.dehydratedState}>
-            <div className="dark">
-              <CssBaseline />
-              <SessionErrorHandler />
-              {isHomePage ? (
-                <Component {...pageProps} />
-              ) : (
-                <Layout
-                  bgColor={pageProps.bgColor}
-                  headerBg={pageProps.headerBg}
-                >
+            <ThemeProvider theme={theme}>
+              <div className="dark">
+                <CssBaseline />
+                <SessionErrorHandler />
+                {isHomePage ? (
                   <Component {...pageProps} />
-                </Layout>
-              )}
-              <ClientOnlyToaster />
-            </div>
+                ) : (
+                  <Layout
+                    bgColor={pageProps.bgColor}
+                    headerBg={pageProps.headerBg}
+                  >
+                    <Component {...pageProps} />
+                  </Layout>
+                )}
+                <ClientOnlyToaster />
+              </div>
+            </ThemeProvider>
           </Hydrate>
         </AuthProvider>
       </QueryClientProvider>

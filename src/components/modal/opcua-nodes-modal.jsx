@@ -171,14 +171,14 @@ export const OPCUANodeModal = ({
   }));
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-noto-sans">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-ibmPlexSans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-background-dark border border-surface-dark rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-4xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-100 mb-6">
+          <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-6">
             {editNode ? "Редактировать узел OPC UA" : "Добавить узел OPC UA"}
           </h2>
 
@@ -200,7 +200,7 @@ export const OPCUANodeModal = ({
                   type="text"
                   label="Node ID"
                   value={formData.nodeId}
-                  inputClass="!h-[45px] text-sm"
+                  inputClass="text-[12.5px]"
                   onChange={(e) => handleChange("nodeId", e.target.value)}
                   placeholder="ns=2;s=Temperature"
                   required
@@ -210,14 +210,14 @@ export const OPCUANodeModal = ({
                   type="text"
                   label="Название узла"
                   value={formData.name}
-                  inputClass="!h-[45px] text-sm"
+                  inputClass="text-[12.5px]"
                   onChange={(e) => handleChange("name", e.target.value)}
                   placeholder="Температура котла"
                   required
                 />
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
+                  <label className="block text-sm font-medium text-text-secondary">
                     Описание
                   </label>
                   <textarea
@@ -225,7 +225,7 @@ export const OPCUANodeModal = ({
                     onChange={(e) =>
                       handleChange("description", e.target.value)
                     }
-                    className="w-full px-3 py-2 bg-surface-dark border border-gray-700 rounded-lg text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 bg-surface-dark border border-surface-border rounded-[2px] text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                     placeholder="Температура воды в котле №1"
                     rows="3"
                   />
@@ -246,7 +246,7 @@ export const OPCUANodeModal = ({
                     type="number"
                     label="Множитель"
                     value={formData.multiplier}
-                    inputClass="!h-[45px] text-sm"
+                    inputClass="text-[12.5px]"
                     onChange={(e) => handleChange("multiplier", e.target.value)}
                     placeholder="1"
                     step="0.01"
@@ -256,7 +256,7 @@ export const OPCUANodeModal = ({
                     type="number"
                     label="Смещение"
                     value={formData.offsetValue}
-                    inputClass="!h-[45px] text-sm"
+                    inputClass="text-[12.5px]"
                     onChange={(e) =>
                       handleChange("offsetValue", e.target.value)
                     }
@@ -269,7 +269,7 @@ export const OPCUANodeModal = ({
                   type="text"
                   label="Единица измерения"
                   value={formData.unit}
-                  inputClass="!h-[45px] text-sm"
+                  inputClass="text-[12.5px]"
                   onChange={(e) => handleChange("unit", e.target.value)}
                   placeholder="°C"
                 />
@@ -282,9 +282,9 @@ export const OPCUANodeModal = ({
                       onChange={(e) =>
                         handleChange("saveToDb", e.target.checked)
                       }
-                      className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                      className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
                     />
-                    <label className="text-sm font-medium text-gray-300">
+                    <label className="text-sm font-medium text-text-secondary">
                       Сохранять в базу данных
                     </label>
                   </div>
@@ -296,9 +296,9 @@ export const OPCUANodeModal = ({
                       onChange={(e) =>
                         handleChange("sendToClient", e.target.checked)
                       }
-                      className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                      className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
                     />
-                    <label className="text-sm font-medium text-gray-300">
+                    <label className="text-sm font-medium text-text-secondary">
                       Отправлять клиенту
                     </label>
                   </div>
@@ -308,18 +308,18 @@ export const OPCUANodeModal = ({
               {/* Right Column - Node Browser */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Обзор узлов
                   </label>
 
                   {!selectedServerId ? (
-                    <div className="bg-surface-dark border border-gray-700 rounded-lg p-4 text-center text-gray-400 text-sm">
+                    <div className="bg-surface-dark border border-surface-border rounded-[2px] p-4 text-center text-text-muted text-sm">
                       Выберите сервер для просмотра узлов
                     </div>
                   ) : (
-                    <div className="bg-surface-dark border border-gray-700 rounded-lg overflow-hidden">
+                    <div className="bg-surface-dark border border-surface-border rounded-[2px] overflow-hidden">
                       {/* Breadcrumb Navigation */}
-                      <div className="px-3 py-2 bg-gray-800/50 border-b border-gray-700 flex items-center gap-1 text-xs overflow-x-auto">
+                      <div className="px-3 py-2 bg-background-dark/50 border-b border-surface-border flex items-center gap-1 text-xs overflow-x-auto">
                         <button
                           type="button"
                           onClick={() => handleBreadcrumbClick(-1)}
@@ -331,7 +331,7 @@ export const OPCUANodeModal = ({
                           <div key={index} className="flex items-center gap-1">
                             <ChevronRightOutlinedIcon
                               sx={{ fontSize: 14 }}
-                              className="text-gray-500"
+                              className="text-text-dim"
                             />
                             <button
                               type="button"
@@ -347,22 +347,22 @@ export const OPCUANodeModal = ({
                       {/* Node List */}
                       <div className="max-h-[400px] overflow-y-auto">
                         {isLoadingChildren ? (
-                          <div className="p-4 text-center text-gray-400 text-sm">
+                          <div className="p-4 text-center text-text-muted text-sm">
                             Загрузка...
                           </div>
                         ) : !nodeChildren?.data ||
                           nodeChildren.data.length === 0 ? (
-                          <div className="p-4 text-center text-gray-400 text-sm">
+                          <div className="p-4 text-center text-text-muted text-sm">
                             Нет доступных узлов
                           </div>
                         ) : (
-                          <div className="divide-y divide-gray-700">
+                          <div className="divide-y divide-surface-border">
                             {nodeChildren.data.map((node, index) => (
                               <button
                                 key={index}
                                 type="button"
                                 onClick={() => handleNodeClick(node)}
-                                className="w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-800/50 transition-colors text-left"
+                                className="w-full px-3 py-2 flex items-center gap-2 hover:bg-background-dark/50 transition-colors text-left"
                               >
                                 {node.hasChildren && (
                                   <FolderOutlinedIcon
@@ -371,17 +371,17 @@ export const OPCUANodeModal = ({
                                   />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-sm text-gray-100 truncate">
+                                  <div className="text-sm text-text-primary truncate">
                                     {node.displayName || node.browseName}
                                   </div>
-                                  <div className="text-xs text-gray-400 truncate">
+                                  <div className="text-xs text-text-muted truncate">
                                     {node.nodeId}
                                   </div>
                                 </div>
                                 {node.hasChildren && (
                                   <ChevronRightOutlinedIcon
                                     sx={{ fontSize: 18 }}
-                                    className="text-gray-500 flex-shrink-0"
+                                    className="text-text-dim flex-shrink-0"
                                   />
                                 )}
                               </button>
@@ -394,7 +394,7 @@ export const OPCUANodeModal = ({
                 </div>
 
                 {/* Info Note */}
-                <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
+                <div className="bg-blue-900/20 border border-blue-700/30 rounded-[2px] p-3">
                   <p className="text-sm text-blue-300">
                     <strong>Примечание:</strong>
                   </p>
@@ -412,14 +412,14 @@ export const OPCUANodeModal = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-[2px] hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
               >
                 {editNode ? "Сохранить" : "Создать"}
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-5 py-2.5 bg-surface-dark text-gray-300 text-sm font-bold rounded-lg hover:bg-opacity-80 transition-all active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95"
               >
                 Отмена
               </button>

@@ -233,7 +233,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-gray-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -241,7 +241,7 @@ const Index = () => {
       header: "Имя регистра",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">{row.original.name}</p>
+          <p className="font-medium text-text-primary">{row.original.name}</p>
         </div>
       ),
     },
@@ -250,7 +250,7 @@ const Index = () => {
       header: "Имя устройства",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">{row.original.deviceName}</p>
+          <p className="font-medium text-text-primary">{row.original.deviceName}</p>
         </div>
       ),
     },
@@ -258,7 +258,7 @@ const Index = () => {
       accessorKey: "startAddress",
       header: "Адрес",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.startAddress}
         </span>
       ),
@@ -268,7 +268,7 @@ const Index = () => {
       header: "Описание",
       cell: ({ row }) => (
         <div className="max-w-[200px]">
-          <p className="font-medium text-gray-100">
+          <p className="font-medium text-text-primary">
             {row.original.description || "-"}
           </p>
         </div>
@@ -278,7 +278,7 @@ const Index = () => {
       accessorKey: "dataType",
       header: "Тип данных",
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
+        <span className="inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
           {row.original.dataType}
         </span>
       ),
@@ -287,7 +287,7 @@ const Index = () => {
       accessorKey: "byteOrder",
       header: "Порядок байтов",
       cell: ({ row }) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-primary-900/20 text-primary border border-primary-900/30">
+        <span className="inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold bg-primary-900/20 text-primary border border-primary-900/30">
           {row.original.byteOrder}
         </span>
       ),
@@ -296,7 +296,7 @@ const Index = () => {
       accessorKey: "unit",
       header: "Единица",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-300">
+        <span className="text-sm text-text-secondary">
           {row.original.unit || "-"}
         </span>
       ),
@@ -344,7 +344,7 @@ const Index = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-lg my-[20px] font-manrope border border-surface-dark bg-background-dark"
+        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
       >
         <div className="my-2 mb-6">
           <div className="flex justify-between">
@@ -356,7 +356,7 @@ const Index = () => {
                 Регистры Modbus
               </Typography>
 
-              <p className="text-gray-300 mb-4">
+              <p className="text-text-secondary mb-4">
                 Фильтрация и настройка регистров для выбранного устройства
               </p>
             </div>
@@ -365,7 +365,7 @@ const Index = () => {
             <div className="mb-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
               >
                 <span>Добавить регистр</span>
               </button>
@@ -388,7 +388,7 @@ const Index = () => {
             {selectedDeviceId && (
               <button
                 onClick={() => setSelectedDeviceId(null)}
-                className="mt-6 px-4 py-2 bg-surface-dark text-gray-300 text-sm font-medium rounded-lg hover:bg-opacity-80 transition-all active:scale-95 border border-gray-700"
+                className="mt-6 px-4 py-2 bg-surface-dark text-text-secondary text-sm font-medium rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95 border border-surface-border"
               >
                 Сбросить фильтр
               </button>
@@ -397,7 +397,7 @@ const Index = () => {
 
           {/* Results Info */}
           <div className="mt-4">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-text-muted">
               {selectedDeviceId ? (
                 <>
                   Показаны регистры для устройства:{" "}

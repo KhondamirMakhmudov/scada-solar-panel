@@ -40,16 +40,16 @@ const SectionCard = ({ icon: Icon, title, description, children, delay }) => (
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3, delay }}
-    className="rounded-xl border border-slate-700 bg-slate-800/40 p-5"
+    className="rounded-[2px] border border-surface-border bg-background-dark/40 p-5"
   >
     <div className="mb-4 flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
+      <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-blue-500/15 text-blue-300">
         <Icon fontSize="small" />
       </div>
       <div>
-        <h3 className="text-base font-semibold text-slate-100">{title}</h3>
+        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
         {description && (
-          <p className="text-xs text-slate-400">{description}</p>
+          <p className="text-xs text-text-muted">{description}</p>
         )}
       </div>
     </div>
@@ -109,12 +109,12 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout headerTitle={"Настройки"}>
-      <div className="font-manrope my-[20px] space-y-5">
+      <div className="font-ibmPlexSans my-[20px] space-y-5">
         <div>
-          <h2 className="text-xl font-semibold text-slate-100">
+          <h2 className="text-xl font-semibold text-text-primary">
             Настройки панели управления
           </h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-text-muted">
             Настройте ваш опыт мониторинга SCADA экосистемы
           </p>
         </div>
@@ -127,12 +127,12 @@ export default function SettingsPage() {
             description="Периодический опрос API без перезагрузки страницы"
             delay={0.05}
           >
-            <div className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3">
+            <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
               <div>
-                <p className="text-sm text-slate-200">
+                <p className="text-sm text-text-primary">
                   Обновлять данные автоматически
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-dim">
                   Применяется ко всем таблицам и карточкам сразу
                 </p>
               </div>
@@ -165,32 +165,32 @@ export default function SettingsPage() {
             delay={0.1}
           >
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3">
-                <span className="text-slate-400">Пользователь</span>
-                <span className="font-medium text-slate-100">
+              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
+                <span className="text-text-muted">Пользователь</span>
+                <span className="font-medium text-text-primary">
                   {session?.user?.username || session?.user?.name || "—"}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3">
-                <span className="text-slate-400">Роли</span>
+              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
+                <span className="text-text-muted">Роли</span>
                 <span className="flex flex-wrap justify-end gap-1">
                   {(session?.user?.roles || []).length ? (
                     session.user.roles.map((role) => (
                       <span
                         key={role}
-                        className="rounded-md border border-blue-400/30 bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300"
+                        className="rounded-[2px] border border-blue-400/30 bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300"
                       >
                         {role}
                       </span>
                     ))
                   ) : (
-                    <span className="text-slate-100">—</span>
+                    <span className="text-text-primary">—</span>
                   )}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3">
-                <span className="text-slate-400">Токен действителен до</span>
-                <span className="font-medium text-slate-100">
+              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
+                <span className="text-text-muted">Токен действителен до</span>
+                <span className="font-medium text-text-primary">
                   {tokenExpires}
                 </span>
               </div>
@@ -205,7 +205,7 @@ export default function SettingsPage() {
             delay={0.15}
           >
             {savedAccounts.length === 0 ? (
-              <p className="rounded-lg bg-slate-900/60 p-3 text-sm text-slate-500">
+              <p className="rounded-[2px] bg-surface-dark/60 p-3 text-sm text-text-dim">
                 Нет сохранённых входов. Они появятся после успешного входа в
                 систему.
               </p>
@@ -214,9 +214,9 @@ export default function SettingsPage() {
                 {savedAccounts.map((account) => (
                   <li
                     key={account.username}
-                    className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3"
+                    className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3"
                   >
-                    <span className="flex items-center gap-2 text-sm text-slate-200">
+                    <span className="flex items-center gap-2 text-sm text-text-primary">
                       <PersonRoundedIcon
                         fontSize="small"
                         className="text-blue-300"
@@ -226,7 +226,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveAccount(account.username)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md border border-red-400/30 bg-red-500/10 text-red-300 transition hover:bg-red-500/20"
+                      className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-red-400/30 bg-red-500/10 text-red-300 transition hover:bg-red-500/20"
                       title="Удалить сохранённый вход"
                     >
                       <CloseRoundedIcon sx={{ fontSize: 16 }} />
@@ -244,17 +244,17 @@ export default function SettingsPage() {
             description="Действия с кэшем данных панели"
             delay={0.2}
           >
-            <div className="flex items-center justify-between rounded-lg bg-slate-900/60 p-3">
+            <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
               <div>
-                <p className="text-sm text-slate-200">Обновить все данные</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm text-text-primary">Обновить все данные</p>
+                <p className="text-xs text-text-dim">
                   Принудительно перезапросить все таблицы и показатели
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleClearCache}
-                className="rounded-lg border border-blue-500/70 bg-blue-500/15 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/25"
+                className="rounded-[2px] border border-blue-500/70 bg-blue-500/15 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/25"
               >
                 Обновить
               </button>

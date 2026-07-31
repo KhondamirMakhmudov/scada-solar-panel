@@ -117,7 +117,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
 
   if (isLoadingScreen || !screen) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0e0e0e] font-manrope">
+      <div className="fixed inset-0 z-50 bg-[#0e0e0e] font-ibmPlexSans">
         <Head>
           <title>Экран | SCADA</title>
         </Head>
@@ -127,24 +127,24 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0e0e] text-[#e5e2e1] font-manrope">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0e0e0e] text-[#e5e2e1] font-ibmPlexSans">
       <Head>
         <title>{`${screen.name} — просмотр | SCADA`}</title>
       </Head>
-      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-surface-border bg-surface-dark/60 flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() =>
               canEditScreen ? router.push(`/dashboard/screens/${screenId}`) : router.back()
             }
-            className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-sm text-text-muted hover:text-text-primary transition-colors"
           >
             {canEditScreen ? "← К редактированию" : "← Назад"}
           </button>
-          <div className="h-4 w-px bg-slate-700" />
-          <span className="text-sm font-semibold text-slate-100">{screen.name}</span>
-          <div className="h-4 w-px bg-slate-700" />
+          <div className="h-4 w-px bg-surface-border" />
+          <span className="text-sm font-semibold text-text-primary">{screen.name}</span>
+          <div className="h-4 w-px bg-surface-border" />
           <ConnectionStatusBadge />
         </div>
         <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
             <button
               type="button"
               onClick={() => setIsArchiveOpen(true)}
-              className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
             >
               <HistoryRounded fontSize="small" />
               Архив

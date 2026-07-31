@@ -242,7 +242,7 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Узлы"}>
-      <div className="min-h-screen bg-[#1A132A] p-6 font-manrope my-[15px] rounded-md border border-[#555555]">
+      <div className="min-h-screen bg-[#1A132A] p-6 font-ibmPlexSans my-[15px] rounded-[2px] border border-[#555555]">
         <Button
           onClick={() => setShowCreateModal(true)}
           variant="contained"
@@ -268,13 +268,13 @@ const Index = () => {
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-2xl">
-              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 placeholder="Поиск по названию, описанию или идентификатору..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#1F2937] border border-[#6E39CB]/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-[#6E39CB] focus:ring-2 focus:ring-[#6E39CB]/20 transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-[#1F2937] border border-[#6E39CB]/30 rounded-[2px] text-white placeholder-text-muted focus:outline-none focus:border-[#6E39CB] focus:ring-2 focus:ring-[#6E39CB]/20 transition-all"
               />
             </div>
           </div>
@@ -284,7 +284,7 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-4 flex gap-4 text-sm text-gray-400"
+            className="mt-4 flex gap-4 text-sm text-text-muted"
           >
             <span>Всего узлов: {get(nodes, "data.data", [])?.length || 0}</span>
             <span>Отфильтровано: {filteredNodes?.length || 0}</span>
@@ -308,7 +308,7 @@ const Index = () => {
                   key={node.id}
                   variants={cardVariants}
                   layout
-                  className="bg-gradient-to-br from-[#2A1F3C] to-[#1F2937] rounded-xl border border-[#6E39CB]/30 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-[#6E39CB]/20 transition-shadow"
+                  className="bg-gradient-to-br from-[#2A1F3C] to-[#1F2937] rounded-[2px] border border-[#6E39CB]/30 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-[#6E39CB]/20 transition-shadow"
                 >
                   {/* Card Header */}
                   <div className="p-6 border-b border-[#6E39CB]/20 relative">
@@ -328,14 +328,14 @@ const Index = () => {
 
                     <div className="flex items-start justify-between mb-3 pr-24">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-[#6E39CB]/20 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-[#6E39CB]/20 rounded-[2px] flex items-center justify-center">
                           <StorageIcon className="text-[#6E39CB]" />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-white uppercase">
                             {node.name}
                           </h3>
-                          <span className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                          <span className="text-xs text-text-muted flex items-center gap-1 mt-1">
                             <LabelIcon style={{ fontSize: 14 }} />
                             {node.type}
                           </span>
@@ -343,7 +343,7 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-300 text-sm mb-3">
+                    <p className="text-text-secondary text-sm mb-3">
                       {node.description}
                     </p>
 
@@ -367,7 +367,7 @@ const Index = () => {
                             expandedCard === node.id ? null : node.id,
                           )
                         }
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#6E39CB]/10 hover:bg-[#6E39CB]/20 border border-[#6E39CB]/30 hover:border-[#6E39CB]/50 transition-all duration-200"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-[2px] bg-[#6E39CB]/10 hover:bg-[#6E39CB]/20 border border-[#6E39CB]/30 hover:border-[#6E39CB]/50 transition-all duration-200"
                       >
                         <span className="text-[#6E39CB] text-xs font-medium">
                           {expandedCard === node.id ? "Скрыть" : "Подробнее"}
@@ -402,11 +402,11 @@ const Index = () => {
                           <div className="space-y-2">
                             <div className="flex items-start gap-2 text-sm">
                               <TuneIcon
-                                className="text-gray-400 mt-0.5"
+                                className="text-text-muted mt-0.5"
                                 style={{ fontSize: 18 }}
                               />
                               <div>
-                                <span className="text-gray-400">
+                                <span className="text-text-muted">
                                   Идентификатор:
                                 </span>
                                 <p className="text-white font-mono text-xs break-all mt-1">
@@ -416,10 +416,10 @@ const Index = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <CalendarTodayIcon
-                                className="text-gray-400"
+                                className="text-text-muted"
                                 style={{ fontSize: 18 }}
                               />
-                              <span className="text-gray-400">Создан:</span>
+                              <span className="text-text-muted">Создан:</span>
                               <span className="text-white">
                                 {new Date(node.created_at).toLocaleDateString(
                                   "ru-RU",
@@ -442,17 +442,17 @@ const Index = () => {
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.05 }}
-                                    className="bg-[#1F2937] p-3 rounded-lg border border-[#6E39CB]/20 hover:border-[#6E39CB]/50 transition-colors"
+                                    className="bg-[#1F2937] p-3 rounded-[2px] border border-[#6E39CB]/20 hover:border-[#6E39CB]/50 transition-colors"
                                   >
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="text-white font-medium">
                                         {conn.name}
                                       </span>
-                                      <span className="text-xs text-gray-400">
+                                      <span className="text-xs text-text-muted">
                                         Port: {conn.port}
                                       </span>
                                     </div>
-                                    <div className="text-xs text-gray-400 space-y-1">
+                                    <div className="text-xs text-text-muted space-y-1">
                                       <div>IP: {conn.ip}</div>
                                       <div>User: {conn.username}</div>
                                     </div>
@@ -476,7 +476,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center py-20 text-gray-400"
+            className="flex flex-col items-center justify-center py-20 text-text-muted"
           >
             <StorageIcon style={{ fontSize: 64 }} className="mb-4 opacity-50" />
             <p className="text-xl">Узлы не найдены</p>
@@ -494,7 +494,7 @@ const Index = () => {
           }}
           title={"Добавить узел к коннекту"}
         >
-          <div className="space-y-[20px] font-manrope my-[10px]">
+          <div className="space-y-[20px] font-ibmPlexSans my-[10px]">
             <Input
               placeholder={"Название"}
               name={"name"}
@@ -593,7 +593,7 @@ const Index = () => {
           }}
           title={"Редактировать узел"}
         >
-          <div className="space-y-[20px] font-manrope my-[10px]">
+          <div className="space-y-[20px] font-ibmPlexSans my-[10px]">
             <Input
               placeholder={"Название"}
               name={"name"}

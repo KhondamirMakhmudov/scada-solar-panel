@@ -106,7 +106,7 @@ const getEnabledStyles = (enabled) => {
   if (enabled) {
     return "bg-blue-500/15 text-blue-300 border border-blue-400/30";
   }
-  return "bg-slate-500/20 text-slate-300 border border-slate-400/30";
+  return "bg-text-dim/20 text-text-secondary border border-text-muted/30";
 };
 
 const formatDate = (value) => {
@@ -125,33 +125,33 @@ const TagCard = ({ item, onView, onEdit, onDelete }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.45)]"
+      className="rounded-[2px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.45)]"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-base font-semibold text-slate-100">{item.name}</p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-base font-semibold text-text-primary">{item.name}</p>
+          <p className="text-xs text-text-muted mt-1">
             Идентификатор: {item.id}
           </p>
         </div>
-        <span className="rounded-md px-2.5 py-1 text-xs border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
+        <span className="rounded-[2px] px-2.5 py-1 text-xs border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
           {item.dataType}
         </span>
       </div>
 
       <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/70 px-3 py-2">
-          <span className="text-slate-400">Адрес / Количество</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
+          <span className="text-text-muted">Адрес / Количество</span>
           <span className="font-semibold text-blue-300">
             {item.address} / {item.count}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/70 px-3 py-2">
-          <span className="text-slate-400">Протокол</span>
-          <span className="text-slate-200">{item.protocolType}</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
+          <span className="text-text-muted">Протокол</span>
+          <span className="text-text-primary">{item.protocolType}</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/70 px-3 py-2">
-          <span className="text-slate-400">Тип регистра</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
+          <span className="text-text-muted">Тип регистра</span>
           <span
             className="max-w-[180px] truncate text-emerald-300"
             title={item.registerType}
@@ -159,8 +159,8 @@ const TagCard = ({ item, onView, onEdit, onDelete }) => {
             {item.registerType}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/70 px-3 py-2">
-          <span className="text-slate-400">Устройство</span>
+        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
+          <span className="text-text-muted">Устройство</span>
           <span
             className="max-w-[180px] truncate text-cyan-300"
             title={item.deviceName}
@@ -172,14 +172,14 @@ const TagCard = ({ item, onView, onEdit, onDelete }) => {
 
       <div className="mt-4 flex items-center justify-between text-xs">
         <span
-          className={`rounded-md px-2 py-1 ${getEnabledStyles(item.enabled)}`}
+          className={`rounded-[2px] px-2 py-1 ${getEnabledStyles(item.enabled)}`}
         >
           {item.enabled ? "Включено" : "Отключено"}
         </span>
-        <span className="text-slate-500">{item.scanRateMs} ms</span>
+        <span className="text-text-dim">{item.scanRateMs} ms</span>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-700/60">
+      <div className="mt-4 pt-4 border-t border-surface-border/60">
         <ActionButtonGroup>
           <EyeButton onClick={onView} tooltip="Детали тега" />
           <EditButton onClick={onEdit} tooltip="Изменить тег" />
@@ -671,7 +671,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-slate-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -679,8 +679,8 @@ const Index = () => {
       header: "Тег",
       cell: ({ row }) => (
         <div>
-          <p className="font-medium text-slate-100">{row.original.name}</p>
-          <p className="text-xs text-slate-400">
+          <p className="font-medium text-text-primary">{row.original.name}</p>
+          <p className="text-xs text-text-muted">
             {row.original.description || "Без описания"}
           </p>
         </div>
@@ -699,14 +699,14 @@ const Index = () => {
       accessorKey: "protocolType",
       header: "Протокол",
       cell: ({ row }) => (
-        <span className="text-slate-200">{row.original.protocolType}</span>
+        <span className="text-text-primary">{row.original.protocolType}</span>
       ),
     },
     {
       accessorKey: "registerType",
       header: "Регистр",
       cell: ({ row }) => (
-        <span className="inline-flex rounded-md px-2.5 py-1 text-xs border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+        <span className="inline-flex rounded-[2px] px-2.5 py-1 text-xs border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
           {row.original.registerType}
         </span>
       ),
@@ -715,7 +715,7 @@ const Index = () => {
       accessorKey: "address",
       header: "Адрес",
       cell: ({ row }) => (
-        <span className="text-slate-200">{row.original.address}</span>
+        <span className="text-text-primary">{row.original.address}</span>
       ),
     },
     {
@@ -723,7 +723,7 @@ const Index = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-xs ${getEnabledStyles(row.original.enabled)}`}
+          className={`inline-flex rounded-[2px] px-2.5 py-1 text-xs ${getEnabledStyles(row.original.enabled)}`}
         >
           {row.original.enabled ? "Включено" : "Отключено"}
         </span>
@@ -733,7 +733,7 @@ const Index = () => {
       accessorKey: "scanRateMs",
       header: "Интервал опроса",
       cell: ({ row }) => (
-        <span className="text-slate-300">{row.original.scanRateMs} ms</span>
+        <span className="text-text-secondary">{row.original.scanRateMs} ms</span>
       ),
     },
     {
@@ -752,7 +752,7 @@ const Index = () => {
       accessorKey: "updatedAt",
       header: "Обновлено",
       cell: ({ row }) => (
-        <span className="text-xs text-slate-300">
+        <span className="text-xs text-text-secondary">
           {formatDate(row.original.updatedAt)}
         </span>
       ),
@@ -790,11 +790,11 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Теги"}>
-      <div className="font-manrope py-6 space-y-6">
+      <div className="font-ibmPlexSans py-6 space-y-6">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
+          className="rounded-[2px] border border-surface-border/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
         >
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -802,10 +802,10 @@ const Index = () => {
                 <Memory fontSize="small" />
                 SCADA / Теги
               </p>
-              <h2 className="text-2xl font-semibold text-slate-100 mt-2">
+              <h2 className="text-2xl font-semibold text-text-primary mt-2">
                 Мониторинг тегов
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 Базовая SCADA-витрина для просмотра тегов Modbus: типы данных,
                 адреса, регистры, частота опроса и связь с устройствами.
               </p>
@@ -835,25 +835,25 @@ const Index = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-xl border border-slate-700/60 bg-slate-900/70 p-4">
-            <p className="text-sm text-slate-400">Всего тегов</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-100">
+          <div className="rounded-[2px] border border-surface-border/60 bg-surface-dark/70 p-4">
+            <p className="text-sm text-text-muted">Всего тегов</p>
+            <p className="mt-1 text-2xl font-semibold text-text-primary">
               {total}
             </p>
           </div>
-          <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-4">
+          <div className="rounded-[2px] border border-blue-500/25 bg-blue-500/10 p-4">
             <p className="text-sm text-blue-300">Включено</p>
             <p className="mt-1 text-2xl font-semibold text-blue-200">
               {stats.enabled}
             </p>
           </div>
-          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4">
+          <div className="rounded-[2px] border border-emerald-500/25 bg-emerald-500/10 p-4">
             <p className="text-sm text-emerald-300">MODBUS_TCP</p>
             <p className="mt-1 text-2xl font-semibold text-emerald-200">
               {stats.modbusTcp}
             </p>
           </div>
-          <div className="rounded-xl border border-rose-500/25 bg-rose-500/10 p-4">
+          <div className="rounded-[2px] border border-rose-500/25 bg-rose-500/10 p-4">
             <p className="text-sm text-rose-300">MODBUS_RTU_OVER_TCP</p>
             <p className="mt-1 text-2xl font-semibold text-rose-200">
               {stats.modbusRtuOverTcp}
@@ -861,19 +861,19 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 md:p-5">
+        <div className="rounded-[2px] border border-surface-border/70 bg-surface-dark/60 p-4 md:p-5">
           <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex w-full flex-col gap-3 md:flex-row">
               <div className="relative w-full md:max-w-md">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"
                   fontSize="small"
                 />
                 <input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Поиск по имени, идентификатору, описанию, устройству"
-                  className="h-11 w-full rounded-lg border border-slate-700 bg-slate-800 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-blue-500"
+                  className="h-11 w-full rounded-[2px] border border-surface-border bg-background-dark pl-10 pr-3 text-sm text-text-primary placeholder:text-text-dim outline-none transition focus:border-blue-500"
                 />
               </div>
 
@@ -918,10 +918,10 @@ const Index = () => {
                     key={item.value}
                     type="button"
                     onClick={() => setViewMode(item.value)}
-                    className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
+                    className={`inline-flex h-10 items-center gap-2 rounded-[2px] border px-3 text-sm transition ${
                       isActive
                         ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
                     <Icon fontSize="small" />
@@ -932,11 +932,11 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
+          <div className="mb-3 flex items-center justify-between text-sm text-text-muted">
             <span className="inline-flex items-center gap-2">
               <ElectricBolt fontSize="small" />
               Найдено тегов:{" "}
-              <span className="font-semibold text-slate-200">
+              <span className="font-semibold text-text-primary">
                 {filteredList.length}
               </span>
             </span>
@@ -964,8 +964,8 @@ const Index = () => {
           )}
 
           {filteredList.length > 0 && (
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-slate-700/60 pt-4 sm:flex-row">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-surface-border/60 pt-4 sm:flex-row">
+              <div className="flex items-center gap-2 text-sm text-text-muted">
                 <span>Строк на странице:</span>
                 {[10, 20, 50].map((size) => (
                   <button
@@ -975,10 +975,10 @@ const Index = () => {
                       setPageSize(size);
                       setCurrentPage(1);
                     }}
-                    className={`h-8 w-10 rounded-md border text-xs font-medium transition ${
+                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition ${
                       pageSize === size
                         ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
                     {size}
@@ -991,7 +991,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Первая"
                 >
                   «
@@ -1000,7 +1000,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Назад"
                 >
                   ‹
@@ -1024,7 +1024,7 @@ const Index = () => {
                     item === "..." ? (
                       <span
                         key={`ellipsis-${idx}`}
-                        className="flex h-8 w-8 items-center justify-center text-slate-500"
+                        className="flex h-8 w-8 items-center justify-center text-text-dim"
                       >
                         …
                       </span>
@@ -1033,10 +1033,10 @@ const Index = () => {
                         key={item}
                         type="button"
                         onClick={() => setCurrentPage(item)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition ${
                           currentPage === item
                             ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                            : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                         }`}
                       >
                         {item}
@@ -1050,7 +1050,7 @@ const Index = () => {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Вперёд"
                 >
                   ›
@@ -1059,24 +1059,24 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Последняя"
                 >
                   »
                 </button>
               </div>
 
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-text-muted">
                 Страница{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {currentPage}
                 </span>{" "}
                 из{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {totalPages}
                 </span>
                 {" · "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {filteredList.length}
                 </span>{" "}
                 записей
@@ -1208,8 +1208,8 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-700 p-3 bg-slate-900/50">
-            <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wider">
+          <div className="rounded-[2px] border border-surface-border p-3 bg-surface-dark/50">
+            <p className="text-xs text-text-muted font-semibold mb-2 uppercase tracking-wider">
               Параметры регистра
             </p>
             {/* Row 4: Protocol | RegisterType | Address | Count */}
@@ -1287,8 +1287,8 @@ const Index = () => {
               onClick={() => setShowCreateModal(false)}
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
               }}
               variant="outlined"
             >
@@ -1433,8 +1433,8 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-700 p-3 bg-slate-900/50">
-            <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wider">
+          <div className="rounded-[2px] border border-surface-border p-3 bg-surface-dark/50">
+            <p className="text-xs text-text-muted font-semibold mb-2 uppercase tracking-wider">
               Параметры регистра
             </p>
             {/* Row 4: Protocol | RegisterType | Address | Count */}
@@ -1508,8 +1508,8 @@ const Index = () => {
               onClick={() => setShowEditModal(false)}
               sx={{
                 textTransform: "none",
-                color: "#cbd5e1",
-                borderColor: "#475569",
+                color: "#bfc7d4",
+                borderColor: "#383737",
               }}
               variant="outlined"
             >
@@ -1541,71 +1541,71 @@ const Index = () => {
         width={680}
       >
         <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Имя</p>
-            <p className="text-slate-100 font-semibold">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Имя</p>
+            <p className="text-text-primary font-semibold">
               {selectedTag?.name || "—"}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Описание</p>
-            <p className="text-slate-100">{selectedTag?.description || "—"}</p>
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Описание</p>
+            <p className="text-text-primary">{selectedTag?.description || "—"}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Тип данных</p>
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Тип данных</p>
               <p className="text-cyan-200">{selectedTag?.dataType || "—"}</p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Интервал опроса</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Интервал опроса</p>
+              <p className="text-text-primary">
                 {selectedTag?.scanRateMs || "—"} ms
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Масштаб / Смещение / Deadband</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Масштаб / Смещение / Deadband</p>
+              <p className="text-text-primary">
                 {selectedTag?.scale} / {selectedTag?.offset} /{" "}
                 {selectedTag?.deadband}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Статус</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Статус</p>
+              <p className="text-text-primary">
                 {selectedTag?.enabled ? "Включено" : "Отключено"}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Протокол / Регистр</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Протокол / Регистр</p>
+              <p className="text-text-primary">
                 {selectedTag?.protocolType} / {selectedTag?.registerType}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Адрес / Количество</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Адрес / Количество</p>
+              <p className="text-text-primary">
                 {selectedTag?.address} / {selectedTag?.count}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Порядок байтов / Порядок слов</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Порядок байтов / Порядок слов</p>
+              <p className="text-text-primary">
                 {selectedTag?.byteOrder} / {selectedTag?.wordOrder}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Устройство</p>
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Устройство</p>
               <p className="text-cyan-200 break-all">
                 {selectedTag?.deviceName || "—"}
               </p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Идентификатор</p>
-            <p className="text-slate-100 break-all">{selectedTag?.id || "—"}</p>
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Идентификатор</p>
+            <p className="text-text-primary break-all">{selectedTag?.id || "—"}</p>
           </div>
         </div>
       </MethodModal>

@@ -220,7 +220,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
         value={element.dataBinding?.tagId ?? ""}
         onChange={(event) => handleChange(event.target.value)}
         disabled={isLoading}
-        className="w-full h-8 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500 disabled:opacity-50"
+        className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500 disabled:opacity-50"
       >
         <option value="">Без привязки</option>
         {groups.map((group) => (
@@ -240,7 +240,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
         </p>
       )}
       {element.dataBinding?.tagId && (
-        <p className="text-[10px] text-slate-600">
+        <p className="text-[10px] text-text-faint">
           Основной тег управляет состоянием элемента в реальном времени.
         </p>
       )}
@@ -248,16 +248,16 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
       {/* Дополнительные теги: каждый — своя строка живого значения под фигурой */}
       {element.dataBinding?.tagId && (
         <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide text-slate-500 pt-1">
+          <p className="text-[11px] uppercase tracking-wide text-text-dim pt-1">
             Доп. теги ({extraBindings.length})
           </p>
           {primaryDeviceLabel && (
-            <p className="text-[10px] text-slate-600">
+            <p className="text-[10px] text-text-faint">
               Показаны только теги устройства «{primaryDeviceLabel}»
             </p>
           )}
           {mismatchedExtraIds.length > 0 && (
-            <div className="rounded-md border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
+            <div className="rounded-[2px] border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
               <p className="text-[10px] text-amber-400">
                 ⚠ {mismatchedExtraIds.length} доп.{" "}
                 {mismatchedExtraIds.length === 1 ? "тег принадлежит" : "тега принадлежат"}{" "}
@@ -272,7 +272,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               </button>
             </div>
           )}
-          <div className="max-h-40 overflow-y-auto rounded-md border border-slate-700/60 bg-slate-800/40">
+          <div className="max-h-40 overflow-y-auto rounded-[2px] border border-surface-border/60 bg-background-dark/40">
             {extraGroups.map((group) => {
               const selectable = group.tags.filter(
                 (tag) => tag.id !== element.dataBinding?.tagId,
@@ -280,13 +280,13 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               if (!selectable.length) return null;
               return (
                 <div key={group.key}>
-                  <p className="px-2 pt-1.5 pb-0.5 text-[9px] uppercase tracking-wide text-slate-600 truncate">
+                  <p className="px-2 pt-1.5 pb-0.5 text-[9px] uppercase tracking-wide text-text-faint truncate">
                     {group.label}
                   </p>
                   {selectable.map((tag) => (
                     <label
                       key={tag.id}
-                      className="flex items-center gap-2 px-2 py-1 text-xs text-slate-300 hover:bg-slate-700/40 cursor-pointer"
+                      className="flex items-center gap-2 px-2 py-1 text-xs text-text-secondary hover:bg-surface-border/40 cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -303,7 +303,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               );
             })}
           </div>
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[10px] text-text-faint">
             Каждый выбранный тег показывается отдельной строкой под элементом.
           </p>
         </div>

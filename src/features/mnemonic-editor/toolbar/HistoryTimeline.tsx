@@ -23,10 +23,10 @@ const HistoryTimeline = () => {
   if (total === 0) {
     return (
       <div
-        className="flex items-center gap-px h-6 px-1.5 rounded-md border border-slate-800/70"
+        className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
         title="История правок пуста"
       >
-        <span className="text-[10px] text-slate-700">нет правок</span>
+        <span className="text-[10px] text-text-faint">нет правок</span>
       </div>
     );
   }
@@ -46,10 +46,10 @@ const HistoryTimeline = () => {
 
   return (
     <div
-      className="flex items-center gap-px h-6 px-1.5 rounded-md border border-slate-800/70"
+      className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
       title={`Правок: ${past.length} выполнено, ${future.length} отменено`}
     >
-      {skipped > 0 && <span className="text-[9px] text-slate-700 mr-0.5">+{skipped}</span>}
+      {skipped > 0 && <span className="text-[9px] text-text-faint mr-0.5">+{skipped}</span>}
       {ticks.map((index) => {
         const isApplied = index < past.length;
         return (
@@ -61,7 +61,7 @@ const HistoryTimeline = () => {
             onClick={() => jumpTo(index + 1)}
             title={isApplied ? `Откатить до шага ${index + 1}` : `Повторить до шага ${index + 1}`}
             className={`w-1 h-3 rounded-sm transition-colors hover:h-4 ${
-              isApplied ? "bg-blue-500/70 hover:bg-blue-400" : "bg-slate-700 hover:bg-slate-500"
+              isApplied ? "bg-blue-500/70 hover:bg-blue-400" : "bg-surface-border hover:bg-text-dim"
             }`}
           />
         );

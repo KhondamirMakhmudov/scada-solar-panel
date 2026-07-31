@@ -81,7 +81,7 @@ const formatDate = (value) => {
 
 const TagChipList = ({ names, max = 3 }) => {
   if (!names.length) {
-    return <span className="text-xs text-slate-600">Нет тегов</span>;
+    return <span className="text-xs text-text-faint">Нет тегов</span>;
   }
 
   const visible = names.slice(0, max);
@@ -92,14 +92,14 @@ const TagChipList = ({ names, max = 3 }) => {
       {visible.map((name) => (
         <span
           key={name}
-          className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
+          className="inline-flex items-center gap-1 rounded-[2px] bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
         >
           <Sell sx={{ fontSize: 11 }} />
           {name}
         </span>
       ))}
       {overflow > 0 && (
-        <span className="inline-flex items-center rounded-md bg-slate-700/40 border border-slate-600/50 text-slate-400 text-xs px-2 py-0.5">
+        <span className="inline-flex items-center rounded-[2px] bg-surface-border/40 border border-surface-border-hover/50 text-text-muted text-xs px-2 py-0.5">
           +{overflow}
         </span>
       )}
@@ -186,8 +186,8 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
   return (
     <div className="w-full">
       <div className="mb-[4px] flex items-center justify-between">
-        {label && <label className="text-sm text-gray-200">{label}</label>}
-        <span className="text-xs text-slate-500">
+        {label && <label className="text-sm text-text-primary">{label}</label>}
+        <span className="text-xs text-text-dim">
           Выбрано: {value.length}
           {value.length > 0 && (
             <button
@@ -207,7 +207,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
           {value.map((id) => (
             <span
               key={id}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
+              className="inline-flex items-center gap-1 rounded-[2px] bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
             >
               {labelById.get(id) || id}
               <button
@@ -223,18 +223,18 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
         </div>
       )}
 
-      <div className="rounded-md border border-primary/30 bg-surface-dark text-gray-100">
-        <div className="p-2 border-b border-slate-700/60">
+      <div className="rounded-[2px] border border-primary/30 bg-surface-dark text-text-primary">
+        <div className="p-2 border-b border-surface-border/60">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск: подключение, устройство или тег..."
-            className="w-full h-9 rounded-md bg-slate-800 border border-slate-700 px-2 text-sm text-slate-100 outline-none focus:border-blue-500"
+            className="w-full h-9 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           />
         </div>
         <div className="h-56 overflow-auto py-1">
           {visibleTree.length === 0 && (
-            <p className="px-4 py-2 text-sm text-slate-500">
+            <p className="px-4 py-2 text-sm text-text-dim">
               {tree.length === 0 ? "Теги загружаются..." : "Ничего не найдено"}
             </p>
           )}
@@ -248,15 +248,15 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
               >
                 <KeyboardArrowDown
                   sx={{ fontSize: 18 }}
-                  className={`text-slate-500 transition-transform ${
+                  className={`text-text-dim transition-transform ${
                     isExpanded(conn.id) ? "" : "-rotate-90"
                   }`}
                 />
                 <Cable sx={{ fontSize: 15 }} className="text-blue-300" />
-                <span className="flex-1 text-left font-medium text-slate-200 truncate">
+                <span className="flex-1 text-left font-medium text-text-primary truncate">
                   {conn.label}
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-text-dim">
                   {conn.devices.reduce(
                     (acc, dev) => acc + countSelected(dev.tags),
                     0,
@@ -281,7 +281,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
                       >
                         <KeyboardArrowDown
                           sx={{ fontSize: 18 }}
-                          className={`text-slate-500 transition-transform ${
+                          className={`text-text-dim transition-transform ${
                             isExpanded(dev.id) ? "" : "-rotate-90"
                           }`}
                         />
@@ -299,10 +299,10 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
                           sx={{ fontSize: 15 }}
                           className="text-emerald-300"
                         />
-                        <span className="flex-1 text-left text-slate-300 truncate">
+                        <span className="flex-1 text-left text-text-secondary truncate">
                           {dev.label}
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-text-dim">
                           {selectedCount}/{dev.tags.length}
                         </span>
                       </div>
@@ -352,14 +352,14 @@ const ScreenCard = ({
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.45)]"
+    className="rounded-[2px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.45)]"
   >
     <div className="mb-4 flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-base font-semibold text-slate-100 truncate">
+        <p className="text-base font-semibold text-text-primary truncate">
           {screen.name}
         </p>
-        <p className="text-xs text-slate-400 mt-1 truncate">
+        <p className="text-xs text-text-muted mt-1 truncate">
           {screen.description || "Без описания"}
         </p>
       </div>
@@ -369,7 +369,7 @@ const ScreenCard = ({
           Активен
         </span>
       ) : (
-        <span className="flex items-center gap-1 text-gray-500 text-xs flex-shrink-0">
+        <span className="flex items-center gap-1 text-text-dim text-xs flex-shrink-0">
           <Circle sx={{ fontSize: 12 }} />
           Неактивен
         </span>
@@ -380,11 +380,11 @@ const ScreenCard = ({
       <TagChipList names={screen.tagNames} />
     </div>
 
-    <p className="text-gray-600 text-xs mt-3">
+    <p className="text-text-faint text-xs mt-3">
       Изм. {formatDate(screen.updatedAt)}
     </p>
 
-    <div className="mt-4 pt-4 border-t border-slate-700/60">
+    <div className="mt-4 pt-4 border-t border-surface-border/60">
       <ActionButtonGroup>
         {canUpdate && <DiagramButton onClick={onOpen} tooltip="Открыть схему" />}
         {canRead && <PreviewButton onClick={onOpenRuntime} tooltip="Открыть просмотр" />}
@@ -784,7 +784,7 @@ const Index = () => {
     {
       header: "№",
       cell: ({ row }) => (
-        <span className="font-medium text-slate-300">{row.index + 1}</span>
+        <span className="font-medium text-text-secondary">{row.index + 1}</span>
       ),
     },
     {
@@ -792,8 +792,8 @@ const Index = () => {
       header: "Экран",
       cell: ({ row }) => (
         <div>
-          <p className="font-medium text-slate-100">{row.original.name}</p>
-          <p className="text-xs text-slate-400">
+          <p className="font-medium text-text-primary">{row.original.name}</p>
+          <p className="text-xs text-text-muted">
             {row.original.description || "Без описания"}
           </p>
         </div>
@@ -813,10 +813,10 @@ const Index = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-xs ${
+          className={`inline-flex rounded-[2px] px-2.5 py-1 text-xs ${
             row.original.isActive
               ? "bg-green-500/15 text-green-300 border border-green-400/30"
-              : "bg-slate-500/20 text-slate-300 border border-slate-400/30"
+              : "bg-text-dim/20 text-text-secondary border border-text-muted/30"
           }`}
         >
           {row.original.isActive ? "Активен" : "Неактивен"}
@@ -827,7 +827,7 @@ const Index = () => {
       accessorKey: "updatedAt",
       header: "Обновлено",
       cell: ({ row }) => (
-        <span className="text-xs text-slate-300">
+        <span className="text-xs text-text-secondary">
           {formatDate(row.original.updatedAt)}
         </span>
       ),
@@ -883,11 +883,11 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Экраны"}>
-      <div className="font-manrope py-6 space-y-6">
+      <div className="font-ibmPlexSans py-6 space-y-6">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
+          className="rounded-[2px] border border-surface-border/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
         >
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -895,10 +895,10 @@ const Index = () => {
                 <Dashboard fontSize="small" />
                 SCADA / Экраны
               </p>
-              <h2 className="text-2xl font-semibold text-slate-100 mt-2">
+              <h2 className="text-2xl font-semibold text-text-primary mt-2">
                 Экраны мнемосхем
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 Управление экранами визуализации: создание, привязка тегов и
                 параметров отображения.
               </p>
@@ -930,39 +930,39 @@ const Index = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-700/60 bg-slate-900/70 p-4">
-            <p className="text-sm text-slate-400">Всего экранов</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-100">
+          <div className="rounded-[2px] border border-surface-border/60 bg-surface-dark/70 p-4">
+            <p className="text-sm text-text-muted">Всего экранов</p>
+            <p className="mt-1 text-2xl font-semibold text-text-primary">
               {stats.total}
             </p>
           </div>
-          <div className="rounded-xl border border-green-500/25 bg-green-500/10 p-4">
+          <div className="rounded-[2px] border border-green-500/25 bg-green-500/10 p-4">
             <p className="text-sm text-green-300">Активных</p>
             <p className="mt-1 text-2xl font-semibold text-green-200">
               {stats.active}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-500/25 bg-slate-500/10 p-4">
-            <p className="text-sm text-slate-300">Неактивных</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-200">
+          <div className="rounded-[2px] border border-surface-border-hover/25 bg-text-dim/10 p-4">
+            <p className="text-sm text-text-secondary">Неактивных</p>
+            <p className="mt-1 text-2xl font-semibold text-text-primary">
               {stats.inactive}
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 md:p-5">
+        <div className="rounded-[2px] border border-surface-border/70 bg-surface-dark/60 p-4 md:p-5">
           <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex w-full flex-col gap-3 md:flex-row">
               <div className="relative w-full md:max-w-md">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"
                   fontSize="small"
                 />
                 <input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Поиск по названию, описанию, тегам"
-                  className="h-11 w-full rounded-lg border border-slate-700 bg-slate-800 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-blue-500"
+                  className="h-11 w-full rounded-[2px] border border-surface-border bg-background-dark pl-10 pr-3 text-sm text-text-primary placeholder:text-text-dim outline-none transition focus:border-blue-500"
                 />
               </div>
 
@@ -987,10 +987,10 @@ const Index = () => {
                     key={item.value}
                     type="button"
                     onClick={() => setViewMode(item.value)}
-                    className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm transition ${
+                    className={`inline-flex h-10 items-center gap-2 rounded-[2px] border px-3 text-sm transition ${
                       isActive
                         ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
                     <Icon fontSize="small" />
@@ -1001,11 +1001,11 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
+          <div className="mb-3 flex items-center justify-between text-sm text-text-muted">
             <span className="inline-flex items-center gap-2">
               <Dashboard fontSize="small" />
               Найдено экранов:{" "}
-              <span className="font-semibold text-slate-200">
+              <span className="font-semibold text-text-primary">
                 {filteredList.length}
               </span>
             </span>
@@ -1038,8 +1038,8 @@ const Index = () => {
           )}
 
           {filteredList.length > 0 && (
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-slate-700/60 pt-4 sm:flex-row">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-surface-border/60 pt-4 sm:flex-row">
+              <div className="flex items-center gap-2 text-sm text-text-muted">
                 <span>Строк на странице:</span>
                 {[10, 20, 50].map((size) => (
                   <button
@@ -1049,10 +1049,10 @@ const Index = () => {
                       setPageSize(size);
                       setCurrentPage(1);
                     }}
-                    className={`h-8 w-10 rounded-md border text-xs font-medium transition ${
+                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition ${
                       pageSize === size
                         ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
                     {size}
@@ -1065,7 +1065,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Первая"
                 >
                   «
@@ -1074,7 +1074,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Назад"
                 >
                   ‹
@@ -1098,7 +1098,7 @@ const Index = () => {
                     item === "..." ? (
                       <span
                         key={`ellipsis-${idx}`}
-                        className="flex h-8 w-8 items-center justify-center text-slate-500"
+                        className="flex h-8 w-8 items-center justify-center text-text-dim"
                       >
                         …
                       </span>
@@ -1107,10 +1107,10 @@ const Index = () => {
                         key={item}
                         type="button"
                         onClick={() => setCurrentPage(item)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition ${
                           currentPage === item
                             ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                            : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                         }`}
                       >
                         {item}
@@ -1124,7 +1124,7 @@ const Index = () => {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Вперёд"
                 >
                   ›
@@ -1133,24 +1133,24 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Последняя"
                 >
                   »
                 </button>
               </div>
 
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-text-muted">
                 Страница{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {currentPage}
                 </span>{" "}
                 из{" "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {totalPages}
                 </span>
                 {" · "}
-                <span className="font-semibold text-slate-200">
+                <span className="font-semibold text-text-primary">
                   {filteredList.length}
                 </span>{" "}
                 записей
@@ -1323,68 +1323,68 @@ const Index = () => {
         width={680}
       >
         <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Название</p>
-            <p className="text-slate-100 font-semibold">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Название</p>
+            <p className="text-text-primary font-semibold">
               {selectedScreen?.name || "—"}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Описание</p>
-            <p className="text-slate-100">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Описание</p>
+            <p className="text-text-primary">
               {selectedScreen?.description || "—"}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Статус</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Статус</p>
+              <p className="text-text-primary">
                 {selectedScreen?.isActive ? "Активен" : "Неактивен"}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-              <p className="text-slate-400">Обновлено</p>
-              <p className="text-slate-100">
+            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+              <p className="text-text-muted">Обновлено</p>
+              <p className="text-text-primary">
                 {formatDate(selectedScreen?.updatedAt)}
               </p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400 mb-2">Теги</p>
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted mb-2">Теги</p>
             <div className="flex flex-wrap gap-1.5">
               {selectedScreen?.tagNames?.length ? (
                 selectedScreen.tagNames.map((name) => (
                   <span
                     key={name}
-                    className="inline-flex rounded-md px-2 py-0.5 text-xs border border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
+                    className="inline-flex rounded-[2px] px-2 py-0.5 text-xs border border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
                   >
                     {name}
                   </span>
                 ))
               ) : (
-                <span className="text-slate-500">—</span>
+                <span className="text-text-dim">—</span>
               )}
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 overflow-hidden">
-            <p className="text-slate-400 mb-2">Параметры</p>
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3 overflow-hidden">
+            <p className="text-text-muted mb-2">Параметры</p>
             {selectedScreen?.params &&
             Object.keys(selectedScreen.params).length ? (
               <div className="space-y-2">
                 {Object.entries(selectedScreen.params).map(([key, value]) => (
                   <div key={key} className="text-xs min-w-0">
-                    <p className="text-slate-500 mb-1">{key}</p>
+                    <p className="text-text-dim mb-1">{key}</p>
                     {key === "canvas" && value && typeof value === "object" ? (
-                      <p className="text-slate-200">
+                      <p className="text-text-primary">
                         {(value.nodes || []).length} узлов,{" "}
                         {(value.edges || []).length} связей
                       </p>
                     ) : (
-                      <pre className="text-slate-200 bg-slate-950/60 rounded-md p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
+                      <pre className="text-text-primary bg-background-dark/60 rounded-[2px] p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
                         {typeof value === "string"
                           ? value
                           : JSON.stringify(value, null, 2)}
@@ -1394,13 +1394,13 @@ const Index = () => {
                 ))}
               </div>
             ) : (
-              <span className="text-slate-500 text-xs">—</span>
+              <span className="text-text-dim text-xs">—</span>
             )}
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-3">
-            <p className="text-slate-400">Идентификатор</p>
-            <p className="text-slate-100 break-all">
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <p className="text-text-muted">Идентификатор</p>
+            <p className="text-text-primary break-all">
               {selectedScreen?.id || "—"}
             </p>
           </div>

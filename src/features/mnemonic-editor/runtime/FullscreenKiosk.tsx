@@ -22,7 +22,7 @@ const FullscreenKiosk = () => {
       type="button"
       onClick={toggle}
       title={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
-      className="w-8 h-8 flex items-center justify-center rounded-md text-slate-300 hover:bg-slate-800 text-lg"
+      className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-secondary hover:bg-background-dark text-lg"
     >
       {isFullscreen ? "⤡" : "⤢"}
     </button>

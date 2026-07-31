@@ -72,35 +72,35 @@ const ContextMenu = () => {
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-[180px] rounded-lg border border-slate-700 bg-slate-900 shadow-xl py-1 text-sm text-slate-200"
+      className="fixed z-50 min-w-[180px] rounded-[2px] border border-surface-border bg-surface-dark shadow-xl py-1 text-sm text-text-primary"
       style={{ left: contextMenu.x, top: contextMenu.y }}
     >
       <button
         type="button"
         onClick={handleBringToFront}
-        className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
+        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
       >
         На передний план
       </button>
       <button
         type="button"
         onClick={handleSendToBack}
-        className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
+        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
       >
         На задний план
       </button>
       <button
         type="button"
         onClick={handleDuplicate}
-        className="w-full text-left px-3 py-1.5 hover:bg-slate-800"
+        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
       >
         Дублировать
       </button>
-      <div className="my-1 border-t border-slate-700" />
+      <div className="my-1 border-t border-surface-border" />
       <button
         type="button"
         onClick={handleDelete}
-        className="w-full text-left px-3 py-1.5 text-rose-400 hover:bg-slate-800"
+        className="w-full text-left px-3 py-1.5 text-rose-400 hover:bg-background-dark"
       >
         Удалить
       </button>

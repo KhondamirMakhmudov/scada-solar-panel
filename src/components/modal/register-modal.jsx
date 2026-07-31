@@ -151,14 +151,14 @@ const RegisterModal = ({
   }));
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-noto-sans">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-ibmPlexSans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-background-dark border border-surface-dark rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-3xl w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-100 mb-6">
+          <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-6">
             {editRegister ? "Редактировать регистр" : "Добавить регистр"}
           </h2>
 
@@ -180,7 +180,7 @@ const RegisterModal = ({
                 type="text"
                 label="Имя регистра"
                 value={formData.name}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Например: Активная мощность"
                 required
@@ -190,7 +190,7 @@ const RegisterModal = ({
                 type="number"
                 label="Адрес начала"
                 value={formData.startAddress}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("startAddress", e.target.value)}
                 placeholder="40001"
                 required
@@ -202,7 +202,7 @@ const RegisterModal = ({
               type="text"
               label="Описание"
               value={formData.description}
-              inputClass="!h-[45px] text-sm"
+              inputClass="text-[12.5px]"
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Текущая активная мощность инвертора"
             />
@@ -248,7 +248,7 @@ const RegisterModal = ({
                 step="any"
                 label="Множитель"
                 value={formData.multiplier}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("multiplier", e.target.value)}
                 placeholder="0.1"
                 required
@@ -259,7 +259,7 @@ const RegisterModal = ({
                 step="any"
                 label="Смещение"
                 value={formData.offsetValue}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("offsetValue", e.target.value)}
                 placeholder="0"
                 required
@@ -269,7 +269,7 @@ const RegisterModal = ({
                 type="text"
                 label="Единица измерения"
                 value={formData.unit}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("unit", e.target.value)}
                 placeholder="кВт"
               />
@@ -281,7 +281,7 @@ const RegisterModal = ({
                 type="text"
                 label="Минимальное значение"
                 value={formData.minValue}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("minValue", e.target.value)}
                 placeholder="0"
               />
@@ -290,7 +290,7 @@ const RegisterModal = ({
                 type="text"
                 label="Максимальное значение"
                 value={formData.maxValue}
-                inputClass="!h-[45px] text-sm"
+                inputClass="text-[12.5px]"
                 onChange={(e) => handleChange("maxValue", e.target.value)}
                 placeholder="100000"
               />
@@ -303,9 +303,9 @@ const RegisterModal = ({
                   type="checkbox"
                   checked={formData.saveToDb}
                   onChange={(e) => handleChange("saveToDb", e.target.checked)}
-                  className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                  className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
                 />
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-text-secondary">
                   Сохранить в БД
                 </label>
               </div>
@@ -317,9 +317,9 @@ const RegisterModal = ({
                   onChange={(e) =>
                     handleChange("sendToClient", e.target.checked)
                   }
-                  className="w-4 h-4 text-primary bg-surface-dark border-gray-700 rounded focus:ring-primary"
+                  className="w-4 h-4 text-primary bg-surface-dark border-surface-border rounded focus:ring-primary"
                 />
-                <label className="text-sm font-medium text-gray-300">
+                <label className="text-sm font-medium text-text-secondary">
                   Отправить клиенту
                 </label>
               </div>
@@ -329,14 +329,14 @@ const RegisterModal = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-[2px] hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
               >
                 {editRegister ? "Сохранить" : "Создать"}
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-5 py-2.5 bg-surface-dark text-gray-300 text-sm font-bold rounded-lg hover:bg-opacity-80 transition-all active:scale-95"
+                className="flex-1 px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95"
               >
                 Отмена
               </button>
