@@ -29,7 +29,7 @@ const Panel = ({
   children,
 }: PanelProps) => (
   <section
-    className={`rounded-xl border border-surface-border bg-surface-2 ${className}`}
+    className={`rounded-[2px] border border-surface-border bg-surface-2 ${className}`}
   >
     {(title || toolbar) && (
       <header className="flex items-start gap-3 px-4 py-3 border-b border-surface-border">

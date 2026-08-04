@@ -1,45 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { get } from "lodash";
-import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { translateApiError } from "@/lib/apiErrorTranslation";
-import {
-  Add,
-  ElectricBolt,
-  Memory,
-  Search,
-  TableRows,
-  ViewModule,
-} from "@mui/icons-material";
 import { Button } from "@mui/material";
+import { KeyboardArrowDown, Cable, Memory } from "@mui/icons-material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
-import NoData from "@/components/no-data";
-import CustomTable from "@/components/table";
 import CustomSelect from "@/components/select";
 import Input from "@/components/input";
 import MethodModal from "@/components/modal/method-modal";
 import DeleteModal from "@/components/modal/delete-modal";
-import {
-  ActionButtonGroup,
-  DeleteButton,
-  EditButton,
-  EyeButton,
-} from "@/components/button";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
-import { requestPython } from "@/services/api";
-
-const STATUS_OPTIONS = [
-  { label: "Все статусы", value: "all" },
-  { label: "Включено", value: "enabled" },
-  { label: "Отключено", value: "disabled" },
-];
+import { requestPython, requestScreens } from "@/services/api";
 
 const ENABLED_OPTIONS = [
   { label: "Включено", value: true },
@@ -78,11 +56,6 @@ const ENDIAN_OPTIONS = [
   { label: "little", value: "little" },
 ];
 
-const VIEW_MODE_OPTIONS = [
-  { label: "Таблица", value: "table", icon: TableRows },
-  { label: "Карточки", value: "grid", icon: ViewModule },
-];
-
 const DEFAULT_FORM = {
   name: "",
   description: "",
@@ -102,105 +75,9 @@ const DEFAULT_FORM = {
   register_type: "HOLDING_REGISTER",
 };
 
-const getEnabledStyles = (enabled) => {
-  if (enabled) {
-    return "bg-blue-500/15 text-blue-300 border border-blue-400/30";
-  }
-  return "bg-text-dim/20 text-text-secondary border border-text-muted/30";
-};
-
-const formatDate = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-};
-
-const TagCard = ({ item, onView, onEdit, onDelete }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-[2px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.45)]"
-    >
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-base font-semibold text-text-primary">{item.name}</p>
-          <p className="text-xs text-text-muted mt-1">
-            Идентификатор: {item.id}
-          </p>
-        </div>
-        <span className="rounded-[2px] px-2.5 py-1 text-xs border border-cyan-400/30 bg-cyan-500/15 text-cyan-300">
-          {item.dataType}
-        </span>
-      </div>
-
-      <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
-          <span className="text-text-muted">Адрес / Количество</span>
-          <span className="font-semibold text-blue-300">
-            {item.address} / {item.count}
-          </span>
-        </div>
-        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
-          <span className="text-text-muted">Протокол</span>
-          <span className="text-text-primary">{item.protocolType}</span>
-        </div>
-        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
-          <span className="text-text-muted">Тип регистра</span>
-          <span
-            className="max-w-[180px] truncate text-emerald-300"
-            title={item.registerType}
-          >
-            {item.registerType}
-          </span>
-        </div>
-        <div className="flex items-center justify-between rounded-[2px] border border-surface-border/60 bg-background-dark/70 px-3 py-2">
-          <span className="text-text-muted">Устройство</span>
-          <span
-            className="max-w-[180px] truncate text-cyan-300"
-            title={item.deviceName}
-          >
-            {item.deviceName}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between text-xs">
-        <span
-          className={`rounded-[2px] px-2 py-1 ${getEnabledStyles(item.enabled)}`}
-        >
-          {item.enabled ? "Включено" : "Отключено"}
-        </span>
-        <span className="text-text-dim">{item.scanRateMs} ms</span>
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-surface-border/60">
-        <ActionButtonGroup>
-          <EyeButton onClick={onView} tooltip="Детали тега" />
-          <EditButton onClick={onEdit} tooltip="Изменить тег" />
-          <DeleteButton onClick={onDelete} tooltip="Удалить тег" />
-        </ActionButtonGroup>
-      </div>
-    </motion.div>
-  );
-};
-
 const Index = () => {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
-
-  const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dataTypeFilter, setDataTypeFilter] = useState("all");
-  const [protocolFilter, setProtocolFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("table");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -233,6 +110,17 @@ const Index = () => {
   const { data: devices } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+  });
+
+  // Только для дерева «Подключение → Устройство → Тег» ниже — та же связка,
+  // что уже строит TagTreeSelect на странице «Экраны».
+  const { data: connectsForTree } = useGetQuery({
+    key: [KEYS.connects, "tags-tree"],
+    url: URLS.connects,
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -324,21 +212,175 @@ const Index = () => {
     [devicesList],
   );
 
-  const protocolFilterOptions = useMemo(() => {
-    const dynamic = Array.from(
-      new Set(list.map((item) => item.protocolType).filter(Boolean)),
-    ).map((value) => ({ label: value, value }));
+  // ── Живой браузер значений: дерево «Подключение → Устройство → Теги» +
+  // текущие значения/агрегаты/статистика по /tag-values/*. Отдельно от
+  // CRUD-формы тегов ниже — просмотр значений и управление определением
+  // тега решают разные задачи и не должны делить состояние выбора.
+  const [browserDeviceId, setBrowserDeviceId] = useState(null);
+  const [browserTagId, setBrowserTagId] = useState(null);
+  const [expandedConnIds, setExpandedConnIds] = useState(() => new Set());
 
-    return [{ label: "Все протоколы", value: "all" }].concat(dynamic);
-  }, [list]);
+  const connectsList = get(connectsForTree, "data.data", []);
+  const connNameById = useMemo(
+    () => new Map(connectsList.map((c) => [c.id, c.name || c.id])),
+    [connectsList],
+  );
+  const connIdByDeviceId = useMemo(
+    () => new Map(devicesList.map((d) => [d.id, d.connectionId || null])),
+    [devicesList],
+  );
 
-  const dataTypeFilterOptions = useMemo(() => {
-    const dynamic = Array.from(
-      new Set(list.map((item) => item.dataType).filter(Boolean)),
-    ).map((value) => ({ label: value, value }));
+  // Дерево «Подключение → Устройство → Теги» — та же группировка, что
+  // TagTreeSelect на «Экранах», только для навигации, а не для выбора.
+  const connTree = useMemo(() => {
+    const deviceGroups = new Map();
+    list.forEach((tag) => {
+      const deviceKey = tag.deviceId || "__no_device__";
+      if (!deviceGroups.has(deviceKey)) {
+        deviceGroups.set(deviceKey, { deviceId: tag.deviceId, deviceName: tag.deviceName, tags: [] });
+      }
+      deviceGroups.get(deviceKey).tags.push(tag);
+    });
 
-    return [{ label: "Все типы", value: "all" }].concat(dynamic);
-  }, [list]);
+    const connGroups = new Map();
+    for (const device of deviceGroups.values()) {
+      const connId = device.deviceId ? connIdByDeviceId.get(device.deviceId) : null;
+      const connKey = connId || "__no_connection__";
+      if (!connGroups.has(connKey)) {
+        connGroups.set(connKey, {
+          connId: connKey,
+          connName: connId ? connNameById.get(connId) || connId : "Без подключения",
+          devices: [],
+          tagCount: 0,
+        });
+      }
+      const group = connGroups.get(connKey);
+      group.devices.push(device);
+      group.tagCount += device.tags.length;
+    }
+
+    return [...connGroups.values()];
+  }, [list, connIdByDeviceId, connNameById]);
+
+  const toggleConn = (connId) => {
+    setExpandedConnIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(connId)) next.delete(connId);
+      else next.add(connId);
+      return next;
+    });
+  };
+
+  const visibleTags = useMemo(() => {
+    if (!browserDeviceId) return [];
+    for (const connGroup of connTree) {
+      const device = connGroup.devices.find((d) => d.deviceId === browserDeviceId);
+      if (device) return device.tags;
+    }
+    return [];
+  }, [browserDeviceId, connTree]);
+  const visibleTagIds = useMemo(
+    () => visibleTags.map((t) => t.id).slice(0, 100).sort().join(","),
+    [visibleTags],
+  );
+
+  const rangeTo = useMemo(() => new Date(), []);
+  const rangeFrom = useMemo(() => new Date(rangeTo.getTime() - 60 * 60 * 1000), [rangeTo]);
+
+  const authHeadersBrowser = {
+    Authorization: `Bearer ${session?.accessToken}`,
+    Accept: "application/json",
+  };
+
+  const { data: latestValuesResp } = useGetQuery({
+    key: [KEYS.tagValuesLatest, "browser", visibleTagIds],
+    url: URLS.tagValuesLatest,
+    apiClient: requestScreens,
+    params: { tagIds: visibleTagIds },
+    headers: authHeadersBrowser,
+    enabled: !!session?.accessToken && visibleTagIds.length > 0,
+  });
+
+  const { data: aggregatesResp } = useGetQuery({
+    key: [KEYS.tagValuesAggregates, "browser", visibleTagIds],
+    url: URLS.tagValuesAggregates,
+    apiClient: requestScreens,
+    params: {
+      tagIds: visibleTagIds,
+      timeFrom: rangeFrom.toISOString(),
+      timeTo: rangeTo.toISOString(),
+      interval: "PT5M",
+      fill: "locf",
+    },
+    headers: authHeadersBrowser,
+    enabled: !!session?.accessToken && visibleTagIds.length > 0,
+  });
+
+  const { data: statisticsResp } = useGetQuery({
+    key: [KEYS.tagValuesStatistics, "browser", browserTagId],
+    url: URLS.tagValuesStatistics,
+    apiClient: requestScreens,
+    params: {
+      tagIds: browserTagId,
+      timeFrom: rangeFrom.toISOString(),
+      timeTo: rangeTo.toISOString(),
+    },
+    headers: authHeadersBrowser,
+    enabled: !!session?.accessToken && !!browserTagId,
+  });
+
+  const latestByTagId = useMemo(() => {
+    const map = new Map();
+    (get(latestValuesResp, "data.data", []) || []).forEach((item) => {
+      if (item?.tagId) map.set(item.tagId, item);
+    });
+    return map;
+  }, [latestValuesResp]);
+
+  const aggregatesByTagId = useMemo(() => {
+    const map = new Map();
+    (get(aggregatesResp, "data.data", []) || []).forEach((item) => {
+      if (item?.tagId) map.set(item.tagId, item.buckets || []);
+    });
+    return map;
+  }, [aggregatesResp]);
+
+  const statisticsForSelectedTag = get(statisticsResp, "data.data", [])[0] || null;
+
+  const sparklinePoints = (buckets) => {
+    const values = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
+    if (values.length < 2) return "";
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = max - min || 1;
+    const w = 72;
+    const h = 16;
+    return values
+      .map((v, i) => {
+        const x = (i / (values.length - 1)) * w;
+        const y = h - ((v - min) / span) * h;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  };
+
+  const browserRows = visibleTags.map((tag) => {
+    const live = latestByTagId.get(tag.id);
+    const buckets = aggregatesByTagId.get(tag.id) || [];
+    const mins = buckets.map((b) => b.min).filter((v) => v !== null && v !== undefined);
+    const maxs = buckets.map((b) => b.max).filter((v) => v !== null && v !== undefined);
+    const avgs = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
+    return {
+      tag,
+      live,
+      spark: sparklinePoints(buckets),
+      min: mins.length ? Math.min(...mins) : null,
+      max: maxs.length ? Math.max(...maxs) : null,
+      avg: avgs.length ? avgs.reduce((a, b) => a + b, 0) / avgs.length : null,
+    };
+  });
+
+  const fmt = (v) => (v === null || v === undefined ? "—" : Number(v).toFixed(2));
 
   const dataTypeFormOptions = useMemo(() => {
     const dynamic = Array.from(
@@ -607,179 +649,6 @@ const Index = () => {
     setShowDeleteModal(true);
   };
 
-  const filteredList = useMemo(() => {
-    const query = searchValue.trim().toLowerCase();
-
-    return list.filter((item) => {
-      const matchesSearch =
-        !query ||
-        item.name?.toLowerCase().includes(query) ||
-        item.id?.toLowerCase().includes(query) ||
-        item.description?.toLowerCase().includes(query) ||
-        String(item.registerType || "")
-          .toLowerCase()
-          .includes(query) ||
-        String(item.deviceName || "")
-          .toLowerCase()
-          .includes(query);
-
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "enabled" ? item.enabled : !item.enabled);
-
-      const matchesDataType =
-        dataTypeFilter === "all" || item.dataType === dataTypeFilter;
-
-      const matchesProtocol =
-        protocolFilter === "all" || item.protocolType === protocolFilter;
-
-      return (
-        matchesSearch && matchesStatus && matchesDataType && matchesProtocol
-      );
-    });
-  }, [list, searchValue, statusFilter, dataTypeFilter, protocolFilter]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchValue, statusFilter, dataTypeFilter, protocolFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
-  const paginatedList = filteredList.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  const stats = useMemo(() => {
-    const enabled = list.filter((item) => item.enabled).length;
-    const disabled = list.length - enabled;
-    const modbusTcp = list.filter(
-      (item) => item.protocolType === "MODBUS_TCP",
-    ).length;
-    const modbusRtuOverTcp = list.filter(
-      (item) => item.protocolType === "MODBUS_RTU_OVER_TCP",
-    ).length;
-
-    return {
-      enabled,
-      disabled,
-      modbusTcp,
-      modbusRtuOverTcp,
-    };
-  }, [list]);
-
-  const columns = [
-    {
-      header: "№",
-      cell: ({ row }) => (
-        <span className="font-medium text-text-secondary">{row.index + 1}</span>
-      ),
-    },
-    {
-      accessorKey: "name",
-      header: "Тег",
-      cell: ({ row }) => (
-        <div>
-          <p className="font-medium text-text-primary">{row.original.name}</p>
-          <p className="text-xs text-text-muted">
-            {row.original.description || "Без описания"}
-          </p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "dataType",
-      header: "Тип данных",
-      cell: ({ row }) => (
-        <span className="text-blue-300 font-semibold">
-          {row.original.dataType}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "protocolType",
-      header: "Протокол",
-      cell: ({ row }) => (
-        <span className="text-text-primary">{row.original.protocolType}</span>
-      ),
-    },
-    {
-      accessorKey: "registerType",
-      header: "Регистр",
-      cell: ({ row }) => (
-        <span className="inline-flex rounded-[2px] px-2.5 py-1 text-xs border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
-          {row.original.registerType}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "address",
-      header: "Адрес",
-      cell: ({ row }) => (
-        <span className="text-text-primary">{row.original.address}</span>
-      ),
-    },
-    {
-      accessorKey: "enabled",
-      header: "Статус",
-      cell: ({ row }) => (
-        <span
-          className={`inline-flex rounded-[2px] px-2.5 py-1 text-xs ${getEnabledStyles(row.original.enabled)}`}
-        >
-          {row.original.enabled ? "Включено" : "Отключено"}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "scanRateMs",
-      header: "Интервал опроса",
-      cell: ({ row }) => (
-        <span className="text-text-secondary">{row.original.scanRateMs} ms</span>
-      ),
-    },
-    {
-      accessorKey: "deviceName",
-      header: "Устройство",
-      cell: ({ row }) => (
-        <span
-          className="inline-flex max-w-[220px] truncate text-cyan-300"
-          title={row.original.deviceName}
-        >
-          {row.original.deviceName}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "updatedAt",
-      header: "Обновлено",
-      cell: ({ row }) => (
-        <span className="text-xs text-text-secondary">
-          {formatDate(row.original.updatedAt)}
-        </span>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Действия",
-      cell: ({ row }) => (
-        <ActionButtonGroup>
-          <EyeButton
-            onClick={() => openViewModal(row.original)}
-            tooltip="Детали тега"
-          />
-          <EditButton
-            onClick={() => openEditModal(row.original)}
-            tooltip="Изменить тег"
-          />
-          <DeleteButton
-            onClick={() => openDeleteModal(row.original)}
-            tooltip="Удалить тег"
-          />
-        </ActionButtonGroup>
-      ),
-      enableSorting: false,
-    },
-  ];
-
   if (isLoadingTags || isFetchingTags) {
     return (
       <DashboardLayout headerTitle={"Теги"}>
@@ -790,299 +659,400 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Теги"}>
-      <div className="font-ibmPlexSans py-6 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-[2px] border border-surface-border/70 bg-gradient-to-r from-slate-900 to-slate-800 p-6"
-        >
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                <Memory fontSize="small" />
-                SCADA / Теги
-              </p>
-              <h2 className="text-2xl font-semibold text-text-primary mt-2">
-                Мониторинг тегов
-              </h2>
-              <p className="text-sm text-text-muted mt-1">
-                Базовая SCADA-витрина для просмотра тегов Modbus: типы данных,
-                адреса, регистры, частота опроса и связь с устройствами.
-              </p>
-            </div>
-
-            <Button
-              onClick={() => {
-                resetCreateForm();
-                setShowCreateModal(true);
-              }}
-              startIcon={<Add />}
-              sx={{
-                height: "44px",
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 700,
-                color: "#00111f",
-                background: "linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%)",
-                "&:hover": {
-                  opacity: 0.9,
-                },
+      <div style={{ fontFamily: "'IBM Plex Sans'" }} className="space-y-2.5">
+        <div style={{ display: "grid", gridTemplateColumns: "230px 1fr 250px", gap: 10, alignItems: "start" }}>
+          <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+            <div
+              style={{
+                padding: "7px 10px",
+                borderBottom: "1px solid #2a2a2a",
+                font: "600 11px/1 'IBM Plex Sans'",
+                letterSpacing: ".06em",
+                textTransform: "uppercase",
+                color: "#bfc7d4",
               }}
             >
-              Добавить тег
-            </Button>
-          </div>
-        </motion.div>
+              Дерево тегов
+            </div>
+            {connTree.length === 0 ? (
+              <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                Теги не найдены
+              </p>
+            ) : (
+              connTree.map((connGroup) => {
+                const isOpen = expandedConnIds.has(connGroup.connId);
+                return (
+                  <div key={connGroup.connId}>
+                    <div
+                      onClick={() => toggleConn(connGroup.connId)}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "4px 10px",
+                        borderBottom: "1px solid #232222",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <KeyboardArrowDown
+                        sx={{
+                          fontSize: 15,
+                          color: "#5c6270",
+                          flexShrink: 0,
+                          transform: isOpen ? "none" : "rotate(-90deg)",
+                          transition: "transform 0.15s",
+                        }}
+                      />
+                      <Cable sx={{ fontSize: 13, color: "#3b82f6", flexShrink: 0 }} />
+                      <span
+                        style={{
+                          font: "400 11px/1.4 'IBM Plex Mono'",
+                          color: "#bfc7d4",
+                          flex: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {connGroup.connName}
+                      </span>
+                      <span style={{ font: "400 9.5px/1.4 'IBM Plex Mono'", color: "#7c8290" }}>{connGroup.tagCount}</span>
+                    </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[2px] border border-surface-border/60 bg-surface-dark/70 p-4">
-            <p className="text-sm text-text-muted">Всего тегов</p>
-            <p className="mt-1 text-2xl font-semibold text-text-primary">
-              {total}
-            </p>
+                    {isOpen &&
+                      connGroup.devices.map((device) => (
+                        <div
+                          key={device.deviceId || "none"}
+                          onClick={() => {
+                            setBrowserDeviceId(device.deviceId);
+                            setBrowserTagId(null);
+                          }}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "4px 10px 4px 28px",
+                            borderBottom: "1px solid #232222",
+                            cursor: "pointer",
+                            background: device.deviceId === browserDeviceId ? "rgba(59,130,246,0.08)" : "transparent",
+                          }}
+                        >
+                          <Memory sx={{ fontSize: 13, color: "#22c55e", flexShrink: 0 }} />
+                          <span
+                            style={{
+                              font: "400 11px/1.4 'IBM Plex Mono'",
+                              color: "#bfc7d4",
+                              flex: 1,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {device.deviceName || "Без устройства"}
+                          </span>
+                          <span style={{ font: "400 9.5px/1.4 'IBM Plex Mono'", color: "#7c8290" }}>{device.tags.length}</span>
+                        </div>
+                      ))}
+                  </div>
+                );
+              })
+            )}
           </div>
-          <div className="rounded-[2px] border border-blue-500/25 bg-blue-500/10 p-4">
-            <p className="text-sm text-blue-300">Включено</p>
-            <p className="mt-1 text-2xl font-semibold text-blue-200">
-              {stats.enabled}
-            </p>
+
+          <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "7px 10px",
+                borderBottom: "1px solid #2a2a2a",
+              }}
+            >
+              <span
+                style={{
+                  font: "600 11px/1 'IBM Plex Sans'",
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  color: "#bfc7d4",
+                }}
+              >
+                {browserDeviceId
+                  ? `${visibleTags[0]?.deviceName || ""} · ${visibleTags.length} тегов`
+                  : "Выберите устройство слева"}
+              </span>
+              {browserDeviceId && (
+                <span style={{ font: "400 10px/1 'IBM Plex Mono'", color: "#7c8290" }}>/tag-values/latest</span>
+              )}
+            </div>
+            {!browserDeviceId ? (
+              <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                Выберите устройство, чтобы увидеть текущие значения его тегов
+              </p>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                    {["Тег", "Значение", "Ед.", "Тренд", "Мин", "Сред", "Макс", "Качество", "Действия"].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: "6px 10px",
+                          textAlign: "left",
+                          font: "600 9.5px/1.2 'IBM Plex Sans'",
+                          letterSpacing: ".09em",
+                          textTransform: "uppercase",
+                          color: "#7c8290",
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {browserRows.map(({ tag, live, spark, min, max, avg }) => {
+                    const hasError = live?.isError;
+                    const quality = hasError ? "ОШИБКА" : live ? "НОРМА" : "—";
+                    return (
+                      <tr
+                        key={tag.id}
+                        onClick={() => setBrowserTagId(tag.id)}
+                        style={{
+                          borderBottom: "1px solid #232222",
+                          cursor: "pointer",
+                          background: tag.id === browserTagId ? "rgba(59,130,246,0.08)" : "transparent",
+                        }}
+                      >
+                        <td
+                          style={{
+                            padding: "5px 10px",
+                            font: "400 11.5px/1.3 'IBM Plex Mono'",
+                            color: "#e5e2e1",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: 160,
+                          }}
+                        >
+                          {tag.name}
+                        </td>
+                        <td
+                          style={{
+                            padding: "5px 10px",
+                            textAlign: "right",
+                            font: "500 11.5px/1.3 'IBM Plex Mono'",
+                            color: hasError ? "#ef4444" : "#e5e2e1",
+                          }}
+                        >
+                          {live ? (hasError ? "ОШБК" : fmt(live.value)) : "—"}
+                        </td>
+                        <td style={{ padding: "5px 10px", font: "400 10.5px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {tag.unit || live?.unit || ""}
+                        </td>
+                        <td style={{ padding: "5px 10px" }}>
+                          {spark ? (
+                            <svg width="72" height="16" style={{ display: "block" }}>
+                              <polyline fill="none" stroke="#3b82f6" strokeWidth="1" points={spark} />
+                            </svg>
+                          ) : (
+                            <span style={{ color: "#5c6270", fontSize: 10 }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {fmt(min)}
+                        </td>
+                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+                          {fmt(avg)}
+                        </td>
+                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {fmt(max)}
+                        </td>
+                        <td
+                          style={{
+                            padding: "5px 10px",
+                            font: "500 10px/1.3 'IBM Plex Mono'",
+                            color: quality === "НОРМА" ? "#22c55e" : quality === "ОШИБКА" ? "#ef4444" : "#7c8290",
+                          }}
+                        >
+                          {quality}
+                        </td>
+                        <td style={{ padding: "5px 10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, font: "500 9.5px/1.2 'IBM Plex Mono'" }}>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openViewModal(tag);
+                              }}
+                              style={{ color: "#3b82f6", cursor: "pointer" }}
+                            >
+                              ПРОСМОТР
+                            </span>
+                            <span style={{ color: "#5c6270" }}>·</span>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(tag);
+                              }}
+                              style={{ color: "#3b82f6", cursor: "pointer" }}
+                            >
+                              ИЗМЕНИТЬ
+                            </span>
+                            <span style={{ color: "#5c6270" }}>·</span>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteModal(tag);
+                              }}
+                              style={{ color: "#ef4444", cursor: "pointer" }}
+                            >
+                              УДАЛИТЬ
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
-          <div className="rounded-[2px] border border-emerald-500/25 bg-emerald-500/10 p-4">
-            <p className="text-sm text-emerald-300">MODBUS_TCP</p>
-            <p className="mt-1 text-2xl font-semibold text-emerald-200">
-              {stats.modbusTcp}
-            </p>
-          </div>
-          <div className="rounded-[2px] border border-rose-500/25 bg-rose-500/10 p-4">
-            <p className="text-sm text-rose-300">MODBUS_RTU_OVER_TCP</p>
-            <p className="mt-1 text-2xl font-semibold text-rose-200">
-              {stats.modbusRtuOverTcp}
-            </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+              <div
+                style={{
+                  padding: "7px 10px",
+                  borderBottom: "1px solid #2a2a2a",
+                  font: "600 11px/1 'IBM Plex Sans'",
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  color: "#bfc7d4",
+                }}
+              >
+                Статистика {browserTagId ? `· ${visibleTags.find((t) => t.id === browserTagId)?.name}` : ""}
+              </div>
+              {!browserTagId ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                  Выберите тег в таблице
+                </p>
+              ) : !statisticsForSelectedTag ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#7c8290", padding: "16px 10px" }}>Загрузка…</p>
+              ) : (
+                <div style={{ padding: "8px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
+                  {[
+                    ["Отсчётов (1ч)", statisticsForSelectedTag.count],
+                    ["Среднее", fmt(statisticsForSelectedTag.avg)],
+                    ["Минимум", fmt(statisticsForSelectedTag.min)],
+                    ["Максимум", fmt(statisticsForSelectedTag.max)],
+                    ["Первое значение", fmt(statisticsForSelectedTag.firstValue)],
+                    ["Последнее значение", fmt(statisticsForSelectedTag.lastValue)],
+                  ].map(([k, v]) => (
+                    <div
+                      key={k}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "3px 0",
+                        borderBottom: "1px solid #232222",
+                      }}
+                    >
+                      <span style={{ font: "400 10.5px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>{k}</span>
+                      <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+              <div
+                style={{
+                  padding: "7px 10px",
+                  borderBottom: "1px solid #2a2a2a",
+                  font: "600 11px/1 'IBM Plex Sans'",
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  color: "#bfc7d4",
+                }}
+              >
+                Агрегаты · бакеты 5 мин
+              </div>
+              {!browserTagId ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                  Выберите тег в таблице
+                </p>
+              ) : (
+                (() => {
+                  const buckets = aggregatesByTagId.get(browserTagId) || [];
+                  const avgs = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
+                  const maxs = buckets.map((b) => b.max).filter((v) => v !== null && v !== undefined);
+                  if (avgs.length < 2) {
+                    return (
+                      <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                        Недостаточно данных
+                      </p>
+                    );
+                  }
+                  const all = [...avgs, ...maxs];
+                  const min = Math.min(...all);
+                  const max = Math.max(...all);
+                  const span = max - min || 1;
+                  const w = 220;
+                  const h = 88;
+                  const toPoints = (values) =>
+                    values
+                      .map((v, i) => {
+                        const x = (i / (values.length - 1)) * w;
+                        const y = h - ((v - min) / span) * h;
+                        return `${x.toFixed(1)},${y.toFixed(1)}`;
+                      })
+                      .join(" ");
+                  return (
+                    <div style={{ padding: 10 }}>
+                      <svg width="100%" height="90" viewBox="0 0 220 90" preserveAspectRatio="none">
+                        <line x1="0" y1="88" x2="220" y2="88" stroke="#2a2a2a" />
+                        <line x1="0" y1="44" x2="220" y2="44" stroke="#232222" strokeDasharray="3 3" />
+                        <polyline fill="none" stroke="#3b82f6" strokeWidth="1.4" points={toPoints(avgs)} />
+                        <polyline fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 2" points={toPoints(maxs)} />
+                      </svg>
+                      <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, font: "400 9.5px/1 'IBM Plex Mono'", color: "#7c8290" }}>
+                          <span style={{ width: 10, height: 2, background: "#3b82f6", display: "inline-block" }} />
+                          сред.
+                        </span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, font: "400 9.5px/1 'IBM Plex Mono'", color: "#7c8290" }}>
+                          <span style={{ width: 10, height: 2, background: "#f59e0b", display: "inline-block" }} />
+                          макс.
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-[2px] border border-surface-border/70 bg-surface-dark/60 p-4 md:p-5">
-          <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex w-full flex-col gap-3 md:flex-row">
-              <div className="relative w-full md:max-w-md">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"
-                  fontSize="small"
-                />
-                <input
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder="Поиск по имени, идентификатору, описанию, устройству"
-                  className="h-11 w-full rounded-[2px] border border-surface-border bg-background-dark pl-10 pr-3 text-sm text-text-primary placeholder:text-text-dim outline-none transition focus:border-blue-500"
-                />
-              </div>
-
-              <div className="w-full md:w-[220px]">
-                <CustomSelect
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value)}
-                  options={STATUS_OPTIONS}
-                  placeholder="Статус"
-                  sortOptions={false}
-                />
-              </div>
-
-              <div className="w-full md:w-[220px]">
-                <CustomSelect
-                  value={dataTypeFilter}
-                  onChange={(value) => setDataTypeFilter(value)}
-                  options={dataTypeFilterOptions}
-                  placeholder="Тип данных"
-                  sortOptions={false}
-                />
-              </div>
-
-              <div className="w-full md:w-[240px]">
-                <CustomSelect
-                  value={protocolFilter}
-                  onChange={(value) => setProtocolFilter(value)}
-                  options={protocolFilterOptions}
-                  placeholder="Протокол"
-                  sortOptions={false}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {VIEW_MODE_OPTIONS.map((item) => {
-                const Icon = item.icon;
-                const isActive = viewMode === item.value;
-
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setViewMode(item.value)}
-                    className={`inline-flex h-10 items-center gap-2 rounded-[2px] border px-3 text-sm transition ${
-                      isActive
-                        ? "border-blue-500/70 bg-blue-500/15 text-blue-200"
-                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
-                    }`}
-                  >
-                    <Icon fontSize="small" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-3 flex items-center justify-between text-sm text-text-muted">
-            <span className="inline-flex items-center gap-2">
-              <ElectricBolt fontSize="small" />
-              Найдено тегов:{" "}
-              <span className="font-semibold text-text-primary">
-                {filteredList.length}
-              </span>
-            </span>
-          </div>
-
-          {filteredList.length === 0 ? (
-            <NoData
-              title="Теги не найдены"
-              description="Измените фильтры или добавьте новый тег."
-            />
-          ) : viewMode === "table" ? (
-            <CustomTable columns={columns} data={paginatedList} />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-              {paginatedList.map((item) => (
-                <TagCard
-                  key={item.id}
-                  item={item}
-                  onView={() => openViewModal(item)}
-                  onEdit={() => openEditModal(item)}
-                  onDelete={() => openDeleteModal(item)}
-                />
-              ))}
-            </div>
-          )}
-
-          {filteredList.length > 0 && (
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-surface-border/60 pt-4 sm:flex-row">
-              <div className="flex items-center gap-2 text-sm text-text-muted">
-                <span>Строк на странице:</span>
-                {[10, 20, 50].map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => {
-                      setPageSize(size);
-                      setCurrentPage(1);
-                    }}
-                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition ${
-                      pageSize === size
-                        ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                        : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Первая"
-                >
-                  «
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Назад"
-                >
-                  ‹
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(
-                    (page) =>
-                      page === 1 ||
-                      page === totalPages ||
-                      Math.abs(page - currentPage) <= 1,
-                  )
-                  .reduce((acc, page, idx, arr) => {
-                    if (idx > 0 && page - arr[idx - 1] > 1) {
-                      acc.push("...");
-                    }
-                    acc.push(page);
-                    return acc;
-                  }, [])
-                  .map((item, idx) =>
-                    item === "..." ? (
-                      <span
-                        key={`ellipsis-${idx}`}
-                        className="flex h-8 w-8 items-center justify-center text-text-dim"
-                      >
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setCurrentPage(item)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition ${
-                          currentPage === item
-                            ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
-                            : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    ),
-                  )}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Вперёд"
-                >
-                  ›
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Последняя"
-                >
-                  »
-                </button>
-              </div>
-
-              <span className="text-sm text-text-muted">
-                Страница{" "}
-                <span className="font-semibold text-text-primary">
-                  {currentPage}
-                </span>{" "}
-                из{" "}
-                <span className="font-semibold text-text-primary">
-                  {totalPages}
-                </span>
-                {" · "}
-                <span className="font-semibold text-text-primary">
-                  {filteredList.length}
-                </span>{" "}
-                записей
-              </span>
-            </div>
-          )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 4 }}>
+          <span
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: "6px 11px",
+              border: "1px solid #3b82f6",
+              color: "#3b82f6",
+              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              cursor: "pointer",
+            }}
+          >
+            + ТЕГ
+          </span>
+          <span style={{ font: "400 10.5px/1.2 'IBM Plex Mono'", color: "#5c6270" }}>
+            {list.length} тегов зарегистрировано · нажмите на тег в таблице для статистики
+          </span>
         </div>
       </div>
 

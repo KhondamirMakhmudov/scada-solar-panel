@@ -7,8 +7,6 @@ import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import RouterRoundedIcon from "@mui/icons-material/RouterRounded";
-import DnsRoundedIcon from "@mui/icons-material/DnsRounded";
 
 /**
  * Единственное описание навигации: из него строятся боковое меню, глобальный
@@ -82,20 +80,6 @@ export const NAV_GROUPS = [
         Icon: PeopleAltRoundedIcon,
         path: "/dashboard/users",
         hint: "Учётные записи и роли",
-        roles: ["admin", "super_admin"],
-      },
-      {
-        text: "Modbus",
-        Icon: RouterRoundedIcon,
-        path: "/dashboard/modbus/devices",
-        hint: "Устройства, регистры, показания",
-        roles: ["admin", "super_admin"],
-      },
-      {
-        text: "OPC UA",
-        Icon: DnsRoundedIcon,
-        path: "/dashboard/opc/servers",
-        hint: "Серверы, узлы, показания",
         roles: ["admin", "super_admin"],
       },
     ],

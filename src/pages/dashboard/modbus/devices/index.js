@@ -1,18 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useGetQuery from "@/hooks/java/useGetQuery";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import { useSession } from "next-auth/react";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
-import { motion } from "framer-motion";
-import CustomTable from "@/components/table";
 import { get } from "lodash";
 import ContentLoader from "@/components/loader";
-import {
-  EditButton,
-  DeleteButton,
-  ActionButtonGroup,
-} from "@/components/button";
 import usePostQuery from "@/hooks/java/usePostQuery";
 import usePutQuery from "@/hooks/java/usePutQuery";
 import { config } from "@/config";
@@ -20,10 +13,68 @@ import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import DeleteModal from "@/components/modal/delete-modal";
 import { DeviceModal } from "@/components/modal/device-modal";
-import { Tooltip } from "@mui/material";
-import ToggleButton from "@/components/button/toggle-button";
 import Link from "next/link";
 import usePostPythonQuery from "@/hooks/python/usePostQuery";
+
+const QUALITY_COLOR = {
+  GOOD: "#22c55e",
+  BAD: "#ef4444",
+};
+
+const DeviceRow = ({ device, registerCount, isSelected, onClick, onEdit, onDelete }) => (
+  <div
+    onClick={onClick}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "6px 10px",
+      borderBottom: "1px solid #232222",
+      cursor: "pointer",
+      background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
+    }}
+    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "#232222"; }}
+    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: device.status === "CONNECTED" ? "#22c55e" : "#ef4444",
+      }}
+    />
+    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+      <span
+        style={{
+          font: "500 11.5px/1.2 'IBM Plex Mono'",
+          color: "#e5e2e1",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {device.name}
+      </span>
+      <span style={{ font: "400 9.5px/1.2 'IBM Plex Mono'", color: "#7c8290" }}>
+        {device.protocolType} · адрес {get(JSON.parse(device.connectionParams || "{}"), "slaveId", "—")}
+      </span>
+    </div>
+    <span style={{ font: "400 10px/1.2 'IBM Plex Mono'", color: "#7c8290", textAlign: "right", flexShrink: 0 }}>
+      {registerCount} рег.
+    </span>
+    <div style={{ display: "flex", alignItems: "center", gap: 5, font: "500 9.5px/1.2 'IBM Plex Mono'", flexShrink: 0 }}>
+      <span onClick={(e) => { e.stopPropagation(); onEdit(); }} style={{ color: "#3b82f6", cursor: "pointer" }}>
+        ИЗМЕНИТЬ
+      </span>
+      <span style={{ color: "#5c6270" }}>·</span>
+      <span onClick={(e) => { e.stopPropagation(); onDelete(); }} style={{ color: "#ef4444", cursor: "pointer" }}>
+        УДАЛИТЬ
+      </span>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -32,79 +83,46 @@ const Index = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectDeviceId, setSelectDeviceId] = useState(null);
   const [editingDevice, setEditingDevice] = useState(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
+  const [selectedRegisterId, setSelectedRegisterId] = useState(null);
 
-  const {
-    data: devices,
-    isLoading,
-    isFetching,
-  } = useGetQuery({
+  const authHeaders = {
+    Authorization: `Bearer ${session?.accessToken}`,
+    Accept: "application/json",
+  };
+
+  const { data: devicesResp, isLoading, isFetching } = useGetQuery({
     key: KEYS.MODBUSDevices,
     url: URLS.MODBUSDevices,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
+    headers: authHeaders,
     enabled: !!session?.accessToken,
   });
 
-  // create device
-  const { mutate: createDevice } = usePostQuery({
-    listKeyId: KEYS.MODBUSDevices,
+  // Все регистры разом — чтобы посчитать «N reg» в списке устройств без
+  // отдельного запроса на каждое устройство.
+  const { data: allRegistersResp } = useGetQuery({
+    key: KEYS.MODBUSRegisters,
+    url: URLS.MODBUSRegisters,
+    headers: authHeaders,
+    enabled: !!session?.accessToken,
   });
 
-  const handleCreate = (deviceData) => {
-    if (editingDevice) {
-      // Update existing device
-      updateDevice(
-        {
-          url: `${URLS.MODBUSDevices}/${editingDevice.id}`,
-          attributes: deviceData,
-          config: {
-            headers: {
-              Authorization: `Bearer ${session?.accessToken}`,
-            },
-          },
-        },
-        {
-          onSuccess: () => {
-            setIsModalOpen(false);
-            setEditingDevice(null);
-            toast.success("Устройство успешно обновлено");
-          },
-          onError: (error) => {
-            console.error("Update error:", error);
-            toast.error("Не удалось обновить устройство");
-          },
-        },
-      );
-    } else {
-      // Create new device
-      createDevice(
-        {
-          url: URLS.MODBUSDevices,
-          attributes: deviceData,
-          config: {
-            headers: {
-              Authorization: `Bearer ${session?.accessToken}`,
-            },
-          },
-        },
-        {
-          onSuccess: () => {
-            setIsModalOpen(false);
-            toast.success("Устройство успешно создано");
-          },
-          onError: (error) => {
-            console.error("Create error:", error);
-            toast.error("Не удалось создать устройство");
-          },
-        },
-      );
-    }
-  };
+  const { data: deviceRegistersResp, isLoading: isLoadingDeviceRegisters } = useGetQuery({
+    key: [KEYS.MODBUSRegistersByDeviceId, selectedDeviceId],
+    url: `${URLS.MODBUSRegistersByDeviceId}/${selectedDeviceId}`,
+    headers: authHeaders,
+    enabled: !!session?.accessToken && !!selectedDeviceId,
+  });
 
-  // after creating, the user should sync the devices to add it in modbus
+  const { data: readingsResp, isFetching: isFetchingReadings } = useGetQuery({
+    key: [KEYS.MODBUSreadingsByRegisterId, selectedRegisterId],
+    url: `${URLS.MODBUSreadingsByRegisterId}/${selectedRegisterId}`,
+    headers: authHeaders,
+    enabled: !!session?.accessToken && !!selectedRegisterId,
+  });
 
+  const { mutate: createDevice } = usePostQuery({ listKeyId: KEYS.MODBUSDevices });
+  const { mutate: updateDevice } = usePutQuery({ listKeyId: KEYS.MODBUSDevices });
   const { mutate: syncDevices } = usePostPythonQuery({
     listKeyId: "sync-devices",
     hideSuccessToast: true,
@@ -112,29 +130,65 @@ const Index = () => {
 
   const handleSyncronize = () => {
     syncDevices(
+      { url: URLS.syncDevices, config: { headers: authHeaders } },
       {
-        url: URLS.syncDevices,
-        config: {
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        },
-      },
-      {
-        onSuccess: () => {
-          toast.success("Данные успешно синхронизированы");
-        },
-        onError: () => {
-          toast.error("Синхронизация устройства не удалась");
-        },
+        onSuccess: () => toast.success("Данные успешно синхронизированы"),
+        onError: () => toast.error("Синхронизация устройства не удалась"),
       },
     );
   };
 
-  // edit device
-  const { mutate: updateDevice } = usePutQuery({
-    listKeyId: KEYS.MODBUSDevices,
-  });
+  const devices = get(devicesResp, "data.content", []);
+  const allRegisters = get(allRegistersResp, "data.content", []);
+  const deviceRegisters = get(deviceRegistersResp, "data", []);
+  const readings = get(readingsResp, "data.content", []);
+
+  const registerCountByDevice = useMemo(() => {
+    const map = new Map();
+    allRegisters.forEach((r) => {
+      map.set(r.deviceId, (map.get(r.deviceId) || 0) + 1);
+    });
+    return map;
+  }, [allRegisters]);
+
+  const selectedDevice = devices.find((d) => d.id === selectedDeviceId);
+  const selectedRegister = deviceRegisters.find((r) => r.id === selectedRegisterId);
+
+  const handleCreate = (deviceData) => {
+    if (editingDevice) {
+      updateDevice(
+        {
+          url: `${URLS.MODBUSDevices}/${editingDevice.id}`,
+          attributes: deviceData,
+          config: { headers: authHeaders },
+        },
+        {
+          onSuccess: () => {
+            setIsModalOpen(false);
+            setEditingDevice(null);
+            toast.success("Устройство успешно обновлено");
+          },
+          onError: () => toast.error("Не удалось обновить устройство"),
+        },
+      );
+    } else {
+      createDevice(
+        {
+          url: URLS.MODBUSDevices,
+          attributes: deviceData,
+          config: { headers: authHeaders },
+        },
+        {
+          onSuccess: () => {
+            setIsModalOpen(false);
+            toast.success("Устройство успешно создано");
+          },
+          onError: () => toast.error("Не удалось создать устройство"),
+        },
+      );
+    }
+  };
+
   const handleEdit = (device) => {
     setEditingDevice(device);
     setIsModalOpen(true);
@@ -144,271 +198,241 @@ const Index = () => {
     setIsModalOpen(false);
     setEditingDevice(null);
   };
-  // delete device
+
   const handleDelete = async () => {
     try {
-      const response = await fetch(
-        `${config.JAVA_API_URL}${URLS.MODBUSDevices}/${selectDeviceId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-          body: JSON.stringify({ selectDeviceId }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Ошибка при удалении");
-      }
-
-      let result = null;
-
-      if (response.status !== 204) {
-        result = await response.json();
-        console.log("Deleted:", result);
-      }
+      const response = await fetch(`${config.JAVA_API_URL}${URLS.MODBUSDevices}/${selectDeviceId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+      });
+      if (!response.ok) throw new Error("Ошибка при удалении");
       setDeleteModal(false);
       setSelectDeviceId(null);
+      if (selectedDeviceId === selectDeviceId) setSelectedDeviceId(null);
       queryClient.invalidateQueries(KEYS.MODBUSDevices);
       toast.success("Устройство успешно удалено");
     } catch (error) {
-      console.error(error);
       toast.error("Не удалось удалить");
     }
   };
 
-  // toggle enabled
-  const handleToggleEnabled = async (deviceId) => {
-    try {
-      const response = await fetch(
-        `${config.JAVA_API_URL}${URLS.MODBUSDevices}/${deviceId}/toggle`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Ошибка при переключении статуса");
-      }
-
-      queryClient.invalidateQueries(KEYS.MODBUSDevices);
-      toast.success("Статус устройства успешно изменен");
-    } catch (error) {
-      console.error(error);
-      toast.error("Не удалось изменить статус устройства");
-    }
-  };
-
-  const formatConnectionParams = (paramsString) => {
-    try {
-      const params = JSON.parse(paramsString);
-      return (
-        <div className="flex flex-wrap gap-2">
-          {params.host && (
-            <Tooltip title="IP-адрес целевого устройства:сетевой порт для установления соединения">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
-                {params.host}:{params.port}
-              </span>
-            </Tooltip>
-          )}
-          {params.timeout && (
-            <Tooltip title="допустимое время ожидания ответа">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
-                {params.timeout}
-              </span>
-            </Tooltip>
-          )}
-          {params.comPort && (
-            <Tooltip title="последовательный интерфейс подключения (COM-порт)">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-primary/20 text-primary">
-                {params.comPort}
-              </span>
-            </Tooltip>
-          )}
-          {params.baudRate && (
-            <Tooltip title="скорость передачи данных ">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-purple-500/20 text-purple-400">
-                {params.baudRate}
-              </span>
-            </Tooltip>
-          )}
-          {params.dataBits && (
-            <Tooltip title="количество информационных бит / количество стоп-битов кадра">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-orange-500/20 text-orange-400">
-                {params.dataBits}/{params.stopBits}
-              </span>
-            </Tooltip>
-          )}
-          {params.parity && (
-            <Tooltip title="тип контроля чётности">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-blue-500/20 text-blue-400">
-                {params.parity}
-              </span>
-            </Tooltip>
-          )}
-          <Tooltip title="сетевой адрес ведомого устройства (Modbus ID)">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-[2px] text-xs font-medium bg-surface-dark border border-pink-500/20 text-pink-400">
-              Slave: {params.slaveId}
-            </span>
-          </Tooltip>
-        </div>
-      );
-    } catch (error) {
-      return <span className="text-red-400 text-sm">Ошибка парсинга</span>;
-    }
-  };
-
-  const columns = [
-    {
-      header: "№",
-      cell: ({ row }) => (
-        <span className="font-medium text-text-secondary">{row.index + 1}</span>
-      ),
-    },
-    {
-      accessorKey: "name",
-      header: "Имя",
-      cell: ({ row }) => (
-        <div className="max-w-[200px]">
-          <p className="font-medium text-text-primary">{row.original.name}</p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "protocolType",
-      header: "Тип протокола",
-      cell: ({ row }) => (
-        <span className="inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold bg-primary/10 text-primary border border-primary/30">
-          {row.original.protocolType}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "connectionParams",
-      header: "Параметры подключения",
-      cell: ({ row }) => (
-        <div className="min-w-[300px]">
-          {formatConnectionParams(row.original.connectionParams)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "pollInterval",
-      header: "Интервал опроса",
-      cell: ({ row }) => (
-        <span className="text-sm text-text-secondary">
-          {row.original.pollInterval} мс
-        </span>
-      ),
-    },
-    {
-      accessorKey: "enabled", // Add this column for enabled status
-      header: "Активно",
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <ToggleButton
-            enabled={row.original.enabled}
-            onClick={() => handleToggleEnabled(row.original.id)}
-            tooltip={
-              row.original.enabled
-                ? "Отключить устройство"
-                : "Включить устройство"
-            }
-          />
-        </div>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Статус",
-      cell: ({ row }) => (
-        <span
-          className={`inline-flex items-center px-3 py-1 rounded-[2px] text-xs font-semibold ${
-            row.original.status === "CONNECTED"
-              ? "bg-primary/10 text-primary border border-primary/30"
-              : "bg-red-500/10 text-red-400 border border-red-500/30"
-          }`}
-        >
-          {row.original.status === "CONNECTED" ? "Подключено" : "Отключено"}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "actions",
-      header: "Действия",
-      cell: ({ row }) => (
-        <ActionButtonGroup>
-          <EditButton
-            onClick={() => handleEdit(row.original)}
-            tooltip="Изменить устройство"
-          />
-          <DeleteButton
-            onClick={() => {
-              setSelectDeviceId(row.original.id);
-              setDeleteModal(true);
-            }}
-            tooltip="Удалить устройство"
-          />
-        </ActionButtonGroup>
-      ),
-      enableSorting: false,
-    },
-  ];
-
   if (isLoading || isFetching) {
     return (
-      <DashboardLayout headerTitle={"Устройства"}>
+      <DashboardLayout headerTitle={"Modbus"}>
         <ContentLoader />
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout headerTitle={"Устройства"}>
-      <motion.div
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 50 }}
-        transition={{ duration: 0.3 }}
-        className="p-[15px] rounded-[2px] my-[20px] font-ibmPlexSans border border-surface-dark bg-background-dark"
-      >
-        <div className="mb-2 flex justify-between">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+    <DashboardLayout headerTitle={"Modbus"}>
+      <div style={{ fontFamily: "'IBM Plex Sans'" }} className="space-y-2.5">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            onClick={() => {
+              setEditingDevice(null);
+              setIsModalOpen(true);
+            }}
+            style={{
+              padding: "6px 11px",
+              border: "1px solid #3b82f6",
+              color: "#3b82f6",
+              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              cursor: "pointer",
+            }}
           >
-            <span>Добавить устройство</span>
-          </button>
+            + УСТРОЙСТВО
+          </span>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleSyncronize}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
-            >
-              <span className="material-symbols-outlined">sync</span>
-              <span>Синхронизировать</span>
-            </button>
+          <div style={{ flex: 1 }} />
 
-            <Link
-              href={"/dashboard/modbus/devices/status"}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-[2px] transition-colors duration-200 font-medium text-sm"
+          <span
+            onClick={handleSyncronize}
+            style={{
+              padding: "6px 11px",
+              border: "1px solid #2a2a2a",
+              color: "#bfc7d4",
+              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              cursor: "pointer",
+            }}
+          >
+            СИНХРОНИЗИРОВАТЬ
+          </span>
+
+          <Link
+            href="/dashboard/modbus/devices/status"
+            style={{
+              padding: "6px 11px",
+              border: "1px solid #2a2a2a",
+              color: "#bfc7d4",
+              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            СТАТУС ОПРОСА
+          </Link>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 10, alignItems: "start" }}>
+          <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+            <div
+              style={{
+                padding: "7px 10px",
+                borderBottom: "1px solid #2a2a2a",
+                font: "600 11px/1 'IBM Plex Sans'",
+                letterSpacing: ".06em",
+                textTransform: "uppercase",
+                color: "#bfc7d4",
+              }}
             >
-              <span className="material-symbols-outlined">bar_chart</span>
-              Статус устройств
-            </Link>
+              Устройства Modbus
+            </div>
+            {devices.length === 0 ? (
+              <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                Устройства не найдены
+              </p>
+            ) : (
+              devices.map((device) => (
+                <DeviceRow
+                  key={device.id}
+                  device={device}
+                  registerCount={registerCountByDevice.get(device.id) || 0}
+                  isSelected={device.id === selectedDeviceId}
+                  onClick={() => {
+                    setSelectedDeviceId(device.id);
+                    setSelectedRegisterId(null);
+                  }}
+                  onEdit={() => handleEdit(device)}
+                  onDelete={() => {
+                    setSelectDeviceId(device.id);
+                    setDeleteModal(true);
+                  }}
+                />
+              ))
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+              <div
+                style={{
+                  padding: "7px 10px",
+                  borderBottom: "1px solid #2a2a2a",
+                  font: "600 11px/1 'IBM Plex Sans'",
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  color: "#bfc7d4",
+                }}
+              >
+                Регистры {selectedDevice ? `· ${selectedDevice.name}` : ""}
+              </div>
+              {!selectedDeviceId ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                  Выберите устройство слева
+                </p>
+              ) : isLoadingDeviceRegisters ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#7c8290", padding: "16px 10px" }}>Загрузка…</p>
+              ) : deviceRegisters.length === 0 ? (
+                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+                  Регистры не найдены
+                </p>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                      {["Адрес", "Название", "Тип", "Порядок байт", "Ед."].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            padding: "6px 10px",
+                            textAlign: "left",
+                            font: "600 9.5px/1.2 'IBM Plex Sans'",
+                            letterSpacing: ".05em",
+                            textTransform: "uppercase",
+                            color: "#7c8290",
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deviceRegisters.map((register) => (
+                      <tr
+                        key={register.id}
+                        onClick={() => setSelectedRegisterId(register.id)}
+                        style={{
+                          borderBottom: "1px solid #232222",
+                          cursor: "pointer",
+                          background: register.id === selectedRegisterId ? "rgba(59,130,246,0.08)" : "transparent",
+                        }}
+                      >
+                        <td style={{ padding: "5px 10px", font: "500 11px/1.2 'IBM Plex Mono'", color: "#bfc7d4" }}>
+                          {register.startAddress}
+                        </td>
+                        <td style={{ padding: "5px 10px", font: "500 11.5px/1.2 'IBM Plex Sans'", color: "#e5e2e1" }}>
+                          {register.name}
+                        </td>
+                        <td style={{ padding: "5px 10px", font: "400 10.5px/1.2 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {register.dataType}
+                        </td>
+                        <td style={{ padding: "5px 10px", font: "400 10.5px/1.2 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {register.byteOrder}
+                        </td>
+                        <td style={{ padding: "5px 10px", font: "400 10.5px/1.2 'IBM Plex Mono'", color: "#7c8290" }}>
+                          {register.unit || "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+              <div
+                style={{
+                  padding: "7px 10px",
+                  borderBottom: "1px solid #2a2a2a",
+                  font: "600 11px/1 'IBM Plex Sans'",
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  color: "#bfc7d4",
+                }}
+              >
+                Текущие показания {selectedRegister ? `· ${selectedRegister.name}` : ""}
+              </div>
+              <div style={{ padding: "6px 10px", maxHeight: 220, overflowY: "auto", font: "400 11px/1.4 'IBM Plex Mono'" }}>
+                {!selectedRegisterId ? (
+                  <p style={{ color: "#5c6270", fontStyle: "italic", padding: "10px 0" }}>Выберите регистр выше</p>
+                ) : isFetchingReadings ? (
+                  <p style={{ color: "#7c8290", padding: "10px 0" }}>Загрузка…</p>
+                ) : readings.length === 0 ? (
+                  <p style={{ color: "#5c6270", fontStyle: "italic", padding: "10px 0" }}>Показаний пока нет</p>
+                ) : (
+                  readings.slice(0, 30).map((reading, index) => (
+                    <div key={index} style={{ display: "flex", gap: 10, padding: "2px 0" }}>
+                      <span style={{ color: "#5c6270", width: 150, flexShrink: 0 }}>
+                        {new Date(reading.timestamp).toLocaleString("ru-RU")}
+                      </span>
+                      <span
+                        style={{ width: 48, flexShrink: 0, fontWeight: 600, color: QUALITY_COLOR[reading.quality] || "#f59e0b" }}
+                      >
+                        {reading.quality}
+                      </span>
+                      <span style={{ color: "#bfc7d4" }}>
+                        {reading.value?.toFixed?.(2) ?? reading.value} {reading.unit}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <CustomTable
-          data={get(devices, "data.content", [])}
-          columns={columns}
-        />
-      </motion.div>
+      </div>
 
       <DeviceModal
         isOpen={isModalOpen}
@@ -423,9 +447,7 @@ const Index = () => {
           setDeleteModal(false);
           setSelectDeviceId(null);
         }}
-        deleting={() => {
-          handleDelete();
-        }}
+        deleting={handleDelete}
         title="Вы уверены, что хотите удалить это устройство?"
       />
     </DashboardLayout>

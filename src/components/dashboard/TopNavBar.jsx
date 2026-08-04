@@ -12,7 +12,6 @@ import { motion } from "framer-motion";
 import ExitModal from "../modal/exit-modal";
 import Brand from "@/components/brand";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
-import useGetJavaQuery from "@/hooks/java/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import storage from "@/services/storage";
@@ -84,24 +83,24 @@ export default function TopNavBar() {
     Accept: "application/json",
   };
 
-  // Счётчики-бейджи у вкладок: те же ключи запросов, что уже используют
-  // «Обзор» (systemOverview) и страницы Modbus/OPC UA — общий кэш
-  // react-query, лишнего сетевого запроса это не добавляет.
+  // Счётчики-бейджи у вкладок: тот же ключ запроса, что уже использует
+  // «Обзор» (systemOverview) — общий кэш react-query, лишнего сетевого
+  // запроса это не добавляет.
+  //
+  // Только Python-бэкенд (connections/devices/tags) — Modbus/OPC UA раньше
+  // намеренно не запрашивались здесь: это Java-бэкенд с отдельной, более
+  // строгой моделью прав, и в шапке (в отличие от их собственных страниц)
+  // запрос шёл бы на каждой странице для каждого пользователя. Для аккаунта
+  // без доступа к этим двум ручкам это давало 401 на глобальном axios-
+  // интерцепторе (services/api/index.js), который на любой 401 разлогинивает
+  // всё приложение, — то есть один пользователь без прав на Modbus/OPC UA
+  // не мог зайти вообще никуда. Бейджи для этих двух вкладок сознательно не
+  // показываем, а не чиним подсчётом с проверкой роли: сам интерцептор всё
+  // ещё слишком грубый, и полагаться на «эта роль обычно имеет доступ»
+  // рискованно.
   const { data: systemOverview } = useGetPythonQuery({
     key: KEYS.systemOverview,
     url: URLS.systemOverview,
-    headers: authHeaders,
-    enabled: !!session?.accessToken,
-  });
-  const { data: modbusDevicesResp } = useGetJavaQuery({
-    key: KEYS.MODBUSDevices,
-    url: URLS.MODBUSDevices,
-    headers: authHeaders,
-    enabled: !!session?.accessToken,
-  });
-  const { data: opcServersResp } = useGetJavaQuery({
-    key: KEYS.OPCServers,
-    url: URLS.OPCServers,
     headers: authHeaders,
     enabled: !!session?.accessToken,
   });
@@ -111,8 +110,6 @@ export default function TopNavBar() {
     "/dashboard/connects": get(overviewData, "connections.total"),
     "/dashboard/devices": get(overviewData, "devices.total"),
     "/dashboard/tags": get(overviewData, "tags.total"),
-    "/dashboard/modbus/devices": get(modbusDevicesResp, "data.content", []).length,
-    "/dashboard/opc/servers": get(opcServersResp, "data", []).length,
   };
 
   const visibleItems = useMemo(() => {

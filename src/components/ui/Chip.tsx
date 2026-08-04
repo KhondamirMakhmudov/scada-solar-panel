@@ -23,7 +23,7 @@ const Chip = ({ children, selected = false, onClick, meta, dotColor, title }: Ch
     onClick={onClick}
     title={title}
     aria-pressed={selected}
-    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] transition-colors ${
+    className={`inline-flex items-center gap-1.5 rounded-[2px] border px-2.5 py-1.5 text-[12px] transition-colors ${
       selected
         ? "border-primary/60 bg-primary/15 text-[#bfdbfe]"
         : "border-surface-border bg-surface-1 text-[#bfc7d4] hover:border-[#475569] hover:text-[#e5e2e1]"

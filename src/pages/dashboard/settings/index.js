@@ -5,12 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Switch } from "@mui/material";
 import toast from "react-hot-toast";
-import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
-import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
-import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
-import CachedRoundedIcon from "@mui/icons-material/CachedRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CustomSelect from "@/components/select";
 import {
   getAppSettings,
@@ -35,26 +29,64 @@ const SWITCH_SX = {
   },
 };
 
-const SectionCard = ({ icon: Icon, title, description, children, delay }) => (
+const SectionCard = ({ title, children, delay }) => (
   <motion.section
-    initial={{ opacity: 0, y: 16 }}
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay }}
-    className="rounded-[2px] border border-surface-border bg-background-dark/40 p-5"
+    transition={{ duration: 0.25, delay }}
+    style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}
   >
-    <div className="mb-4 flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-blue-500/15 text-blue-300">
-        <Icon fontSize="small" />
-      </div>
-      <div>
-        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
-        {description && (
-          <p className="text-xs text-text-muted">{description}</p>
-        )}
-      </div>
+    <div
+      style={{
+        padding: "7px 10px",
+        borderBottom: "1px solid #2a2a2a",
+        font: "600 11px/1 'IBM Plex Sans'",
+        letterSpacing: ".06em",
+        textTransform: "uppercase",
+        color: "#bfc7d4",
+      }}
+    >
+      {title}
     </div>
-    {children}
+    <div style={{ padding: "4px 10px 8px" }}>{children}</div>
   </motion.section>
+);
+
+const SettingsRow = ({ label, hint, children }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+      padding: "6px 0",
+      borderBottom: "1px solid #232222",
+    }}
+  >
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+      <span style={{ font: "500 11.5px/1.2 'IBM Plex Sans'", color: "#e5e2e1" }}>{label}</span>
+      {hint && (
+        <span style={{ font: "400 10px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>{hint}</span>
+      )}
+    </div>
+    <div style={{ flexShrink: 0 }}>{children}</div>
+  </div>
+);
+
+const RowValue = ({ children, color }) => (
+  <span
+    style={{
+      display: "inline-block",
+      padding: "3px 7px",
+      background: "#131313",
+      border: "1px solid #2a2a2a",
+      font: "500 11px/1.3 'IBM Plex Mono'",
+      color: color || "#e5e2e1",
+      whiteSpace: "nowrap",
+    }}
+  >
+    {children}
+  </span>
 );
 
 export default function SettingsPage() {
@@ -109,42 +141,30 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout headerTitle={"Настройки"}>
-      <div className="font-ibmPlexSans my-[20px] space-y-5">
-        <div>
-          <h2 className="text-xl font-semibold text-text-primary">
-            Настройки панели управления
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Настройте ваш опыт мониторинга SCADA экосистемы
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          {/* Автообновление данных */}
-          <SectionCard
-            icon={AutorenewRoundedIcon}
-            title="Автообновление данных"
-            description="Периодический опрос API без перезагрузки страницы"
-            delay={0.05}
-          >
-            <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
-              <div>
-                <p className="text-sm text-text-primary">
-                  Обновлять данные автоматически
-                </p>
-                <p className="text-xs text-text-dim">
-                  Применяется ко всем таблицам и карточкам сразу
-                </p>
-              </div>
+      <div style={{ fontFamily: "'IBM Plex Sans'" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))",
+            gap: 10,
+            alignItems: "start",
+          }}
+        >
+          <SectionCard title="Автообновление данных" delay={0.02}>
+            <SettingsRow
+              label="Обновлять данные автоматически"
+              hint="Применяется ко всем таблицам и карточкам сразу"
+            >
               <Switch
                 checked={settings.autoRefreshEnabled}
                 onChange={handleToggleAutoRefresh}
                 sx={SWITCH_SX}
+                size="small"
               />
-            </div>
+            </SettingsRow>
 
             {settings.autoRefreshEnabled && (
-              <div className="mt-3">
+              <div className="py-2">
                 <CustomSelect
                   label="Интервал обновления"
                   options={REFRESH_INTERVAL_OPTIONS}
@@ -157,108 +177,66 @@ export default function SettingsPage() {
             )}
           </SectionCard>
 
-          {/* Сессия */}
-          <SectionCard
-            icon={BadgeRoundedIcon}
-            title="Текущая сессия"
-            description="Данные активного пользователя"
-            delay={0.1}
-          >
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
-                <span className="text-text-muted">Пользователь</span>
-                <span className="font-medium text-text-primary">
-                  {session?.user?.username || session?.user?.name || "—"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
-                <span className="text-text-muted">Роли</span>
-                <span className="flex flex-wrap justify-end gap-1">
-                  {(session?.user?.roles || []).length ? (
-                    session.user.roles.map((role) => (
-                      <span
-                        key={role}
-                        className="rounded-[2px] border border-blue-400/30 bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300"
-                      >
-                        {role}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-text-primary">—</span>
-                  )}
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
-                <span className="text-text-muted">Токен действителен до</span>
-                <span className="font-medium text-text-primary">
-                  {tokenExpires}
-                </span>
-              </div>
-            </div>
+          <SectionCard title="Текущая сессия" delay={0.04}>
+            <SettingsRow label="Пользователь">
+              <RowValue>{session?.user?.username || session?.user?.name || "—"}</RowValue>
+            </SettingsRow>
+            <SettingsRow label="Роли">
+              <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 4 }}>
+                {(session?.user?.roles || []).length ? (
+                  session.user.roles.map((role) => (
+                    <RowValue key={role} color="#3b82f6">
+                      {role}
+                    </RowValue>
+                  ))
+                ) : (
+                  <RowValue>—</RowValue>
+                )}
+              </span>
+            </SettingsRow>
+            <SettingsRow label="Токен действителен до">
+              <RowValue>{tokenExpires}</RowValue>
+            </SettingsRow>
           </SectionCard>
 
-          {/* Сохранённые входы */}
-          <SectionCard
-            icon={ManageAccountsRoundedIcon}
-            title="Сохранённые входы"
-            description="Аккаунты для быстрого входа на странице логина"
-            delay={0.15}
-          >
+          <SectionCard title="Сохранённые входы" delay={0.06}>
             {savedAccounts.length === 0 ? (
-              <p className="rounded-[2px] bg-surface-dark/60 p-3 text-sm text-text-dim">
-                Нет сохранённых входов. Они появятся после успешного входа в
-                систему.
+              <p style={{ padding: "10px 0", font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic" }}>
+                Нет сохранённых входов. Они появятся после успешного входа в систему.
               </p>
             ) : (
-              <ul className="space-y-2">
-                {savedAccounts.map((account) => (
-                  <li
-                    key={account.username}
-                    className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3"
+              savedAccounts.map((account) => (
+                <SettingsRow key={account.username} label={account.username}>
+                  <span
+                    onClick={() => handleRemoveAccount(account.username)}
+                    style={{ font: "500 10px/1.4 'IBM Plex Mono'", color: "#ef4444", cursor: "pointer" }}
+                    title="Удалить сохранённый вход"
                   >
-                    <span className="flex items-center gap-2 text-sm text-text-primary">
-                      <PersonRoundedIcon
-                        fontSize="small"
-                        className="text-blue-300"
-                      />
-                      {account.username}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAccount(account.username)}
-                      className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-red-400/30 bg-red-500/10 text-red-300 transition hover:bg-red-500/20"
-                      title="Удалить сохранённый вход"
-                    >
-                      <CloseRoundedIcon sx={{ fontSize: 16 }} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                    УДАЛИТЬ
+                  </span>
+                </SettingsRow>
+              ))
             )}
           </SectionCard>
 
-          {/* Обслуживание */}
-          <SectionCard
-            icon={CachedRoundedIcon}
-            title="Обслуживание"
-            description="Действия с кэшем данных панели"
-            delay={0.2}
-          >
-            <div className="flex items-center justify-between rounded-[2px] bg-surface-dark/60 p-3">
-              <div>
-                <p className="text-sm text-text-primary">Обновить все данные</p>
-                <p className="text-xs text-text-dim">
-                  Принудительно перезапросить все таблицы и показатели
-                </p>
-              </div>
-              <button
-                type="button"
+          <SectionCard title="Обслуживание" delay={0.08}>
+            <SettingsRow
+              label="Обновить все данные"
+              hint="Принудительно перезапросить все таблицы и показатели"
+            >
+              <span
                 onClick={handleClearCache}
-                className="rounded-[2px] border border-blue-500/70 bg-blue-500/15 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/25"
+                style={{
+                  padding: "5px 9px",
+                  border: "1px solid #3b82f6",
+                  color: "#3b82f6",
+                  font: "500 10.5px/1.2 'IBM Plex Mono'",
+                  cursor: "pointer",
+                }}
               >
-                Обновить
-              </button>
-            </div>
+                ОБНОВИТЬ
+              </span>
+            </SettingsRow>
           </SectionCard>
         </div>
       </div>

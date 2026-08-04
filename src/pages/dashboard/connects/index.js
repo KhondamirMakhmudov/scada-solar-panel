@@ -17,6 +17,7 @@ import MethodModal from "@/components/modal/method-modal";
 import DeleteModal from "@/components/modal/delete-modal";
 import Input from "@/components/input";
 import CustomSelect from "@/components/select";
+import ChipSelect from "@/components/chip-select";
 import { Button } from "@mui/material";
 import {
   Add,
@@ -85,6 +86,18 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
+  // Только для колонки «Устройства» в таблице ниже — реального счётчика
+  // на бэкенде подключений нет, считаем на клиенте по connectionId.
+  const { data: devicesForCount } = useGetQuery({
+    key: [KEYS.devices, "connects-count"],
+    url: URLS.devices,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
+  });
+
   const { mutate: createConnection, isLoading: isCreatingConnection } =
     usePostQuery({
       listKeyId: KEYS.connects,
@@ -100,6 +113,13 @@ const Index = () => {
     });
 
   const connections = get(connects, "data.data", []);
+
+  const deviceCountByConnection = new Map();
+  get(devicesForCount, "data.data", []).forEach((device) => {
+    const connId = device.connectionId;
+    if (!connId) return;
+    deviceCountByConnection.set(connId, (deviceCountByConnection.get(connId) || 0) + 1);
+  });
 
   const filteredConnections = connections.filter((item) => {
     const query = searchValue.trim().toLowerCase();
@@ -510,25 +530,31 @@ const Index = () => {
   const columns = [
     {
       accessorKey: "name",
-      header: "Name",
+      header: "Название",
       cell: ({ row }) => (
-        <span className="font-medium text-text-primary">{row.original.name}</span>
+        <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+          {row.original.name}
+        </span>
       ),
     },
     {
       accessorKey: "type",
-      header: "Protocol",
-      cell: ({ row }) => <span className="text-text-secondary">{row.original.type}</span>,
+      header: "Протокол",
+      cell: ({ row }) => (
+        <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+          {row.original.type}
+        </span>
+      ),
     },
     {
       id: "endpoint",
-      header: "Endpoint",
+      header: "Адрес",
       cell: ({ row }) => {
         const host = get(row.original, "params.host");
         const port = get(row.original, "params.port");
         const serialPort = get(row.original, "params.serial_port");
         return (
-          <span className="text-text-muted">
+          <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
             {host ? `${host}${port ? `:${port}` : ""}` : serialPort || "—"}
           </span>
         );
@@ -536,49 +562,70 @@ const Index = () => {
     },
     {
       accessorKey: "enabled",
-      header: "Status",
+      header: "Статус",
+      cell: ({ row }) => {
+        const color = row.original.enabled ? "#22c55e" : "#ef4444";
+        return (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "1px 6px",
+              border: `1px solid ${color}`,
+              borderRadius: 2,
+              font: "600 9.5px/1.6 'IBM Plex Mono'",
+              color,
+            }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />
+            {row.original.enabled ? "ВКЛЮЧЕНО" : "ОТКЛЮЧЕНО"}
+          </span>
+        );
+      },
+    },
+    {
+      id: "devices",
+      header: "Устройства",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
-            row.original.enabled
-              ? "border-status-ok text-status-ok"
-              : "border-status-fault text-status-fault"
-          }`}
+          className="block text-right"
+          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
         >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${row.original.enabled ? "bg-status-ok" : "bg-status-fault"}`}
-          />
-          {row.original.enabled ? "ONLINE" : "OFFLINE"}
+          {deviceCountByConnection.get(row.original.id) || 0}
         </span>
       ),
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+        <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
           <button
             type="button"
             onClick={() => setSelectedConnection(row.original)}
-            className="text-primary hover:underline"
+            style={{ color: "#3b82f6" }}
+            className="hover:underline"
           >
-            VIEW
+            ПРОСМОТР
           </button>
-          <span className="text-text-faint">·</span>
+          <span style={{ color: "#3b82f6" }}> · </span>
           <button
             type="button"
             onClick={() => handleOpenEditModal(row.original)}
-            className="text-primary hover:underline"
+            style={{ color: "#3b82f6" }}
+            className="hover:underline"
           >
-            EDIT
+            ИЗМЕНИТЬ
           </button>
-          <span className="text-text-faint">·</span>
+          <span style={{ color: "#3b82f6" }}> · </span>
           <button
             type="button"
             onClick={() => handleOpenDeleteModal(row.original)}
-            className="text-status-fault hover:underline"
+            style={{ color: "#3b82f6" }}
+            className="hover:underline"
           >
-            DEL
+            УДАЛИТЬ
           </button>
         </div>
       ),
@@ -599,31 +646,34 @@ const Index = () => {
         <input
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
-          placeholder="filter connections…"
-          className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+          placeholder="поиск подключений…"
+          style={{
+            width: 230,
+            padding: "5px 8px",
+            background: "#1c1b1b",
+            border: "1px solid #2a2a2a",
+            borderRadius: 2,
+            color: "#e5e2e1",
+            font: "400 11.5px/1.3 'IBM Plex Mono'",
+            outline: "none",
+          }}
         />
-        <div className="w-[190px]">
-          <CustomSelect
-            value={protocolFilter}
-            onChange={(value) => setProtocolFilter(value)}
-            options={[{ label: "Все протоколы", value: "all" }, ...CONNECTION_TYPE_OPTIONS]}
-            placeholder="Протокол"
-            sortOptions={false}
-          />
-        </div>
-        <div className="w-[160px]">
-          <CustomSelect
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
-            options={[
-              { label: "Все статусы", value: "all" },
-              { label: "Включено", value: "enabled" },
-              { label: "Отключено", value: "disabled" },
-            ]}
-            placeholder="Статус"
-            sortOptions={false}
-          />
-        </div>
+        <ChipSelect
+          value={protocolFilter}
+          onChange={setProtocolFilter}
+          label="ПРОТОКОЛ"
+          options={[{ label: "ВСЕ", value: "all" }, ...CONNECTION_TYPE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))]}
+        />
+        <ChipSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          label="СТАТУС"
+          options={[
+            { label: "ВСЕ", value: "all" },
+            { label: "ВКЛЮЧЕНО", value: "enabled" },
+            { label: "ОТКЛЮЧЕНО", value: "disabled" },
+          ]}
+        />
 
         <div className="flex-1" />
 
@@ -637,7 +687,7 @@ const Index = () => {
             }`}
           >
             <TableRows sx={{ fontSize: 14 }} />
-            Table
+            Таблица
           </button>
           <button
             onClick={() => setActiveTab("card")}
@@ -648,7 +698,7 @@ const Index = () => {
             }`}
           >
             <GridView sx={{ fontSize: 14 }} />
-            Cards
+            Карточки
           </button>
         </div>
 
@@ -657,7 +707,7 @@ const Index = () => {
           onClick={handleOpenCreateModal}
           className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
         >
-          + NEW CONNECTION
+          + ПОДКЛЮЧЕНИЕ
         </button>
       </div>
 
@@ -694,7 +744,7 @@ const Index = () => {
                             : "border-status-fault text-status-fault"
                         }`}
                       >
-                        {connection.enabled ? "ONLINE" : "OFFLINE"}
+                        {connection.enabled ? "ВКЛЮЧЕНО" : "ОТКЛЮЧЕНО"}
                       </span>
                     </div>
 
@@ -728,7 +778,7 @@ const Index = () => {
                         onClick={() => setSelectedConnection(connection)}
                         className="text-primary hover:underline"
                       >
-                        VIEW
+                        ПРОСМОТР
                       </button>
                       <span className="text-text-faint">·</span>
                       <button
@@ -736,7 +786,7 @@ const Index = () => {
                         onClick={() => handleOpenEditModal(connection)}
                         className="text-primary hover:underline"
                       >
-                        EDIT
+                        ИЗМЕНИТЬ
                       </button>
                       <span className="text-text-faint">·</span>
                       <button
@@ -744,7 +794,7 @@ const Index = () => {
                         onClick={() => handleOpenDeleteModal(connection)}
                         className="text-status-fault hover:underline"
                       >
-                        DEL
+                        УДАЛИТЬ
                       </button>
                     </div>
                   </div>

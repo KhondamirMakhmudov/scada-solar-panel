@@ -73,7 +73,7 @@ function DataTable<Row>({
                 <td
                   key={column.key}
                   className={`px-3 py-1.5 text-[#bfc7d4] ${
-                    column.numeric ? "text-right font-mono tabular-nums" : "text-left"
+                    column.numeric ? "text-right font-ibmPlexMono tabular-nums" : "text-left"
                   }`}
                 >
                   {column.render(row, index)}

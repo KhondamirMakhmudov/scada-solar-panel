@@ -25,7 +25,7 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
 
   return (
     <div
-      className={`rounded-lg border border-surface-border bg-surface-1 ${
+      className={`rounded-[2px] border border-surface-border bg-surface-1 ${
         dense ? "px-3 py-2" : "p-3.5"
       }`}
     >
@@ -39,7 +39,7 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
         <p className="text-[10px] uppercase tracking-wide text-[#6b7280] truncate">{label}</p>
       </div>
       <p
-        className={`font-mono tabular-nums leading-none text-[#e5e2e1] ${
+        className={`font-ibmPlexMono tabular-nums leading-none text-[#e5e2e1] ${
           dense ? "text-[15px]" : "text-xl"
         }`}
         style={color ? { color } : undefined}

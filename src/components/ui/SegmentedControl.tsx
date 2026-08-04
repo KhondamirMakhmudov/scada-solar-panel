@@ -31,7 +31,7 @@ function SegmentedControl<T extends string>({
 
   return (
     <div
-      className={`inline-flex flex-shrink-0 rounded-lg border border-surface-border bg-surface-1 p-0.5 ${className}`}
+      className={`inline-flex flex-shrink-0 rounded-[2px] border border-surface-border bg-surface-1 p-0.5 ${className}`}
       role="group"
     >
       {options.map((option) => {

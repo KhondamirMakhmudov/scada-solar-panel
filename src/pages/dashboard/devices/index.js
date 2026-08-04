@@ -9,6 +9,7 @@ import ContentLoader from "@/components/loader";
 import NoData from "@/components/no-data";
 import CustomTable from "@/components/table";
 import CustomSelect from "@/components/select";
+import ChipSelect from "@/components/chip-select";
 import Input from "@/components/input";
 import MethodModal from "@/components/modal/method-modal";
 import DeleteModal from "@/components/modal/delete-modal";
@@ -188,6 +189,17 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
+  // Только для колонки «Теги» в таблице ниже.
+  const { data: tagsForCount } = useGetQuery({
+    key: [KEYS.tags, "devices-count"],
+    url: URLS.tags,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
+  });
+
   const { mutate: createDevice, isLoading: isCreatingDevice } = usePostQuery({
     listKeyId: KEYS.devices,
     hideErrorToast: true,
@@ -202,6 +214,14 @@ const Index = () => {
 
   const list = get(devices, "data.data", []);
   const connections = get(connects, "data.data", []);
+  const connectionNameById = new Map(connections.map((c) => [c.id, c.name || c.id]));
+
+  const tagCountByDevice = new Map();
+  get(tagsForCount, "data.data", []).forEach((tag) => {
+    const deviceId = tag.deviceId || get(tag, "device.id", "");
+    if (!deviceId) return;
+    tagCountByDevice.set(deviceId, (tagCountByDevice.get(deviceId) || 0) + 1);
+  });
 
   const protocolOptions = useMemo(() => {
     const unique = Array.from(
@@ -456,47 +476,40 @@ const Index = () => {
 
   const columns = [
     {
-      header: "№",
-      cell: ({ row }) => (
-        <span className="font-medium text-text-secondary">{row.index + 1}</span>
-      ),
-    },
-    {
       accessorKey: "name",
       header: "Устройство",
       cell: ({ row }) => (
-        <div>
-          <p className="font-medium text-text-primary">{row.original.name}</p>
-          <p className="text-xs text-text-muted">
-            {row.original.description || "Без описания"}
-          </p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "connectionId",
-      header: "Connection",
-      cell: ({ row }) => (
-        <span
-          className="block max-w-[220px] truncate text-text-secondary"
-          title={row.original.connectionId}
-        >
-          {row.original.connectionId || "—"}
+        <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+          {row.original.name}
         </span>
       ),
     },
     {
-      id: "protocol",
-      header: "Протокол",
+      accessorKey: "connectionId",
+      header: "Подключение",
       cell: ({ row }) => (
-        <span className="text-text-muted">{get(row.original, "params.type", "—")}</span>
+        <span
+          className="block max-w-[160px] truncate"
+          style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+          title={row.original.connectionId}
+        >
+          {connectionNameById.get(row.original.connectionId) || row.original.connectionId || "—"}
+        </span>
       ),
     },
     {
+      id: "model",
+      header: "Модель",
+      cell: () => <span style={{ font: "400 11px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>—</span>,
+    },
+    {
       id: "slaveAddress",
-      header: "Unit",
+      header: "Адрес",
       cell: ({ row }) => (
-        <span className="text-text-secondary">
+        <span
+          className="block text-right"
+          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+        >
           {get(row.original, "params.slave_address", "—")}
         </span>
       ),
@@ -504,50 +517,63 @@ const Index = () => {
     {
       accessorKey: "enabled",
       header: "Статус",
+      cell: ({ row }) => {
+        const color = row.original.enabled ? "#22c55e" : "#ef4444";
+        return (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "1px 6px",
+              border: `1px solid ${color}`,
+              borderRadius: 2,
+              font: "600 9.5px/1.6 'IBM Plex Mono'",
+              color,
+            }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />
+            {row.original.enabled ? "ВКЛЮЧЕНО" : "ОТКЛЮЧЕНО"}
+          </span>
+        );
+      },
+    },
+    {
+      id: "tags",
+      header: "Теги",
       cell: ({ row }) => (
         <span
-          className={`inline-flex rounded-[2px] px-2.5 py-1 text-xs font-medium ${getStatusStyles(row.original.enabled)}`}
+          className="block text-right"
+          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
         >
-          {row.original.enabled ? "Включено" : "Отключено"}
+          {tagCountByDevice.get(row.original.id) || 0}
         </span>
       ),
     },
     {
-      accessorKey: "updatedAt",
-      header: "Обновлено",
-      cell: ({ row }) => (
-        <span className="text-xs text-text-secondary">
-          {formatDate(row.original.updatedAt)}
+      id: "poll",
+      header: "Опрос",
+      cell: () => (
+        <span className="block text-right" style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
+          —
         </span>
       ),
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
-          <button
-            type="button"
-            onClick={() => openViewModal(row.original)}
-            className="text-primary hover:underline"
-          >
-            VIEW
+        <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
+          <button type="button" onClick={() => openViewModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+            ПРОСМОТР
           </button>
-          <span className="text-text-faint">·</span>
-          <button
-            type="button"
-            onClick={() => openEditModal(row.original)}
-            className="text-primary hover:underline"
-          >
-            EDIT
+          <span style={{ color: "#3b82f6" }}> · </span>
+          <button type="button" onClick={() => openEditModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+            ИЗМЕНИТЬ
           </button>
-          <span className="text-text-faint">·</span>
-          <button
-            type="button"
-            onClick={() => openDeleteModal(row.original)}
-            className="text-status-fault hover:underline"
-          >
-            DEL
+          <span style={{ color: "#3b82f6" }}> · </span>
+          <button type="button" onClick={() => openDeleteModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+            УДАЛИТЬ
           </button>
         </div>
       ),
@@ -570,62 +596,62 @@ const Index = () => {
           <input
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="filter devices…"
-            className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+            placeholder="поиск устройств…"
+            style={{
+              width: 230,
+              padding: "5px 8px",
+              background: "#1c1b1b",
+              border: "1px solid #2a2a2a",
+              borderRadius: 2,
+              color: "#e5e2e1",
+              font: "400 11.5px/1.3 'IBM Plex Mono'",
+              outline: "none",
+            }}
           />
-          <div className="w-[180px]">
-            <CustomSelect
-              value={statusFilter}
-              onChange={(value) => setStatusFilter(value)}
-              options={STATUS_OPTIONS}
-              placeholder="Статус"
-              sortOptions={false}
-            />
-          </div>
-          <div className="w-[200px]">
-            <CustomSelect
-              value={protocolFilter}
-              onChange={(value) => setProtocolFilter(value)}
-              options={protocolOptions}
-              placeholder="Протокол"
-            />
-          </div>
+          <ChipSelect value={statusFilter} onChange={setStatusFilter} label="СТАТУС" options={STATUS_OPTIONS} />
+          <ChipSelect value={protocolFilter} onChange={setProtocolFilter} label="ПРОТОКОЛ" options={protocolOptions} />
 
           <div className="flex-1" />
 
-          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
-            {VIEW_MODE_OPTIONS.map((item) => {
-              const Icon = item.icon;
+          <div style={{ display: "flex", border: "1px solid #2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+            {VIEW_MODE_OPTIONS.map((item, idx) => {
               const isActive = viewMode === item.value;
-
               return (
-                <button
+                <div
                   key={item.value}
-                  type="button"
                   onClick={() => setViewMode(item.value)}
-                  className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
-                    isActive
-                      ? "bg-primary/15 text-primary"
-                      : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
-                  }`}
+                  style={{
+                    padding: "4px 9px",
+                    cursor: "pointer",
+                    font: "500 10px/1.5 'IBM Plex Mono'",
+                    borderLeft: idx > 0 ? "1px solid #2a2a2a" : "none",
+                    background: isActive ? "#3b82f6" : "#1c1b1b",
+                    color: isActive ? "#fff" : "#7c8290",
+                    textTransform: "uppercase",
+                  }}
                 >
-                  <Icon sx={{ fontSize: 14 }} />
-                  {item.label}
-                </button>
+                  {item.value === "table" ? "ТАБЛИЦА" : "КАРТОЧКИ"}
+                </div>
               );
             })}
           </div>
 
-          <button
-            type="button"
+          <span
             onClick={() => {
               resetCreateForm();
               setShowCreateModal(true);
             }}
-            className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
+            style={{
+              padding: "5px 10px",
+              border: "1px solid #3b82f6",
+              borderRadius: 2,
+              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              color: "#3b82f6",
+              cursor: "pointer",
+            }}
           >
-            + NEW DEVICE
-          </button>
+            + УСТРОЙСТВО
+          </span>
         </div>
 
         <div className="rounded-[2px] border border-surface-border bg-surface-dark">

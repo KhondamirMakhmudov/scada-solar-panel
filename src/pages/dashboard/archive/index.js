@@ -248,10 +248,17 @@ const Index = () => {
 
               <div className="mt-4">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <p className="text-[11px] uppercase tracking-wide text-[#6b7280]">
+                  <p
+                    style={{
+                      font: "600 9.5px/1 'IBM Plex Sans'",
+                      letterSpacing: ".09em",
+                      textTransform: "uppercase",
+                      color: "#7c8290",
+                    }}
+                  >
                     Теги
                   </p>
-                  <span className="text-[11px] text-[#475569]">
+                  <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#5c6270" }}>
                     {selectedTagIds.length} из {visibleTags.length}
                   </span>
                   <input
@@ -259,29 +266,43 @@ const Index = () => {
                     value={tagQuery}
                     onChange={(event) => setTagQuery(event.target.value)}
                     placeholder="Фильтр по имени"
-                    className="h-7 w-44 rounded-md border border-surface-border bg-surface-1 px-2 text-[11px] text-[#e5e2e1] placeholder:text-[#6b7280] focus:border-primary/60 focus:outline-none"
+                    style={{
+                      height: 28,
+                      width: 176,
+                      padding: "4px 7px",
+                      background: "#131313",
+                      border: "1px solid #2a2a2a",
+                      color: "#e5e2e1",
+                      font: "400 11px/1.3 'IBM Plex Mono'",
+                      outline: "none",
+                    }}
                   />
                   <div className="ml-auto flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={visibleTags.length === 0}
+                    <span
                       onClick={() =>
+                        visibleTags.length > 0 &&
                         setSelectedTagIds((prev) =>
                           Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
                         )
                       }
-                      className="text-[11px] text-[#6b7280] hover:text-[#e5e2e1] disabled:opacity-40 transition-colors"
+                      style={{
+                        font: "500 10.5px/1.2 'IBM Plex Mono'",
+                        color: visibleTags.length === 0 ? "#3a3a3a" : "#3b82f6",
+                        cursor: visibleTags.length === 0 ? "default" : "pointer",
+                      }}
                     >
-                      Выбрать все
-                    </button>
-                    <button
-                      type="button"
-                      disabled={selectedTagIds.length === 0}
-                      onClick={() => setSelectedTagIds([])}
-                      className="text-[11px] text-[#6b7280] hover:text-[#e5e2e1] disabled:opacity-40 transition-colors"
+                      ВЫБРАТЬ ВСЕ
+                    </span>
+                    <span
+                      onClick={() => selectedTagIds.length > 0 && setSelectedTagIds([])}
+                      style={{
+                        font: "500 10.5px/1.2 'IBM Plex Mono'",
+                        color: selectedTagIds.length === 0 ? "#3a3a3a" : "#ef4444",
+                        cursor: selectedTagIds.length === 0 ? "default" : "pointer",
+                      }}
                     >
-                      Очистить
-                    </button>
+                      ОЧИСТИТЬ
+                    </span>
                   </div>
                 </div>
 

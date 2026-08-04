@@ -12,13 +12,12 @@ import usePostPythonQuery from "@/hooks/python/usePostQuery";
 import MethodModal from "@/components/modal/method-modal";
 import Input from "@/components/input";
 import CustomSelect from "@/components/select";
+import ChipSelect from "@/components/chip-select";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { config } from "@/config";
 import DeleteModal from "@/components/modal/delete-modal";
 import { useRouter } from "next/router";
-import { TableRows, GridView } from "@mui/icons-material";
-import { motion } from "framer-motion";
 import UserCard from "@/components/card/UserCard";
 const Index = () => {
   const router = useRouter();
@@ -169,44 +168,74 @@ const Index = () => {
   const columns = [
     {
       id: "user",
-      header: "User",
+      header: "Пользователь",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-[2px] bg-surface-border flex items-center justify-center text-[9px] font-ibmPlexMono font-semibold text-text-primary">
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <span
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 2,
+              background: "#2a2a2a",
+              display: "grid",
+              placeItems: "center",
+              font: "600 9px/1 'IBM Plex Mono'",
+              color: "#e5e2e1",
+              flexShrink: 0,
+            }}
+          >
             {`${row.original.first_name?.[0] || ""}${row.original.last_name?.[0] || ""}`.toUpperCase() || "U"}
           </span>
-          <span className="font-medium text-text-primary">
+          <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
             {row.original.first_name} {row.original.last_name}
+            <span style={{ color: "#7c8290" }}> @{row.original.username}</span>
           </span>
         </div>
       ),
     },
-    { accessorKey: "username", header: "Username", cell: ({ row }) => (
-      <span className="text-text-muted">@{row.original.username}</span>
-    ) },
     {
       accessorKey: "role",
-      header: "Role",
+      header: "Роль",
       cell: ({ row }) => (
-        <span className="inline-block px-1.5 py-0.5 border border-surface-border rounded-[2px] text-[9.5px] font-semibold uppercase tracking-wide text-text-secondary">
-          {row.original.role === "admin" ? "Admin" : "User"}
+        <span
+          style={{
+            display: "inline-block",
+            padding: "1px 5px",
+            border: "1px solid #2a2a2a",
+            borderRadius: 2,
+            font: "600 9.5px/1.5 'IBM Plex Mono'",
+            color: "#bfc7d4",
+          }}
+        >
+          {row.original.role === "admin" ? "АДМИНИСТРАТОР" : "ПОЛЬЗОВАТЕЛЬ"}
         </span>
       ),
     },
     {
+      id: "permissions",
+      header: "Права",
+      cell: () => <span style={{ font: "400 10.5px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>—</span>,
+    },
+    {
+      id: "lastSeen",
+      header: "Был в сети",
+      cell: () => <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>—</span>,
+    },
+    {
       accessorKey: "actions",
-      header: "Actions",
+      header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+        <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
           <button
             type="button"
             onClick={() => {
               setSelectUser(row?.original.id);
               setDeleteModal(true);
             }}
-            className="text-status-fault hover:underline"
+            style={{ color: "#ef4444" }}
+            className="hover:underline"
           >
-            DEL
+            УДАЛИТЬ
           </button>
         </div>
       ),
@@ -247,46 +276,53 @@ const Index = () => {
           <input
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="filter users…"
-            className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+            placeholder="поиск пользователей…"
+            style={{
+              width: 230,
+              padding: "5px 8px",
+              background: "#1c1b1b",
+              border: "1px solid #2a2a2a",
+              borderRadius: 2,
+              color: "#e5e2e1",
+              font: "400 11.5px/1.3 'IBM Plex Mono'",
+              outline: "none",
+            }}
           />
-          <div className="w-[170px]">
-            <CustomSelect
-              value={roleFilter}
-              onChange={(value) => setRoleFilter(value)}
-              options={[{ label: "Все роли", value: "all" }, ...roleOptions]}
-              placeholder="Роль"
-              sortOptions={false}
-            />
-          </div>
+          <ChipSelect
+            value={roleFilter}
+            onChange={setRoleFilter}
+            label="РОЛЬ"
+            options={[{ label: "ВСЕ", value: "all" }, ...roleOptions.map((o) => ({ label: o.label.toUpperCase(), value: o.value }))]}
+          />
 
           <div className="flex-1" />
 
-          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
-            <button
-              type="button"
+          <div style={{ display: "flex", border: "1px solid #2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+            <div
               onClick={() => setActiveTab("table")}
-              className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
-                activeTab === "table"
-                  ? "bg-primary/15 text-primary"
-                  : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
-              }`}
+              style={{
+                padding: "4px 9px",
+                cursor: "pointer",
+                font: "500 10px/1.5 'IBM Plex Mono'",
+                background: activeTab === "table" ? "#3b82f6" : "#1c1b1b",
+                color: activeTab === "table" ? "#fff" : "#7c8290",
+              }}
             >
-              <TableRows sx={{ fontSize: 14 }} />
-              Table
-            </button>
-            <button
-              type="button"
+              ТАБЛИЦА
+            </div>
+            <div
               onClick={() => setActiveTab("card")}
-              className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-surface-border transition-colors ${
-                activeTab === "card"
-                  ? "bg-primary/15 text-primary"
-                  : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
-              }`}
+              style={{
+                padding: "4px 9px",
+                cursor: "pointer",
+                font: "500 10px/1.5 'IBM Plex Mono'",
+                borderLeft: "1px solid #2a2a2a",
+                background: activeTab === "card" ? "#3b82f6" : "#1c1b1b",
+                color: activeTab === "card" ? "#fff" : "#7c8290",
+              }}
             >
-              <GridView sx={{ fontSize: 14 }} />
-              Cards
-            </button>
+              КАРТОЧКИ
+            </div>
           </div>
 
           <button
@@ -294,7 +330,7 @@ const Index = () => {
             onClick={() => setCreateModal(true)}
             className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
           >
-            + NEW USER
+            + ПОЛЬЗОВАТЕЛЬ
           </button>
         </div>
 
