@@ -60,7 +60,7 @@ export default function App({
   const isHomePage = router.pathname === "/";
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchInterval={60} refetchOnWindowFocus={true}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Hydrate state={pageProps?.dehydratedState}>

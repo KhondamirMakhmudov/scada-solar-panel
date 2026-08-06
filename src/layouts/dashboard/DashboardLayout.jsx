@@ -21,7 +21,7 @@ export default function DashboardLayout({ children, headerTitle, actions }) {
 
       <TopNavBar />
 
-      <main className="flex-1 min-w-0 p-6 overflow-auto bg-[#0e0e0e]">
+      <main className="flex-1 min-w-0 p-2.5 overflow-auto bg-background-dark">
         <MainContentHeader actions={actions}>{headerTitle}</MainContentHeader>
         {children}
       </main>

@@ -48,7 +48,11 @@ function useClock() {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  return now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return now.toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 /**
@@ -117,7 +121,8 @@ export default function TopNavBar() {
     if (!Array.isArray(userRoles) || userRoles.length === 0) return [];
     return NAV_GROUPS.flatMap((group) =>
       group.items.filter(
-        (item) => !item.hiddenInSidebar && hasRequiredRole(item.roles, userRoles),
+        (item) =>
+          !item.hiddenInSidebar && hasRequiredRole(item.roles, userRoles),
       ),
     );
   }, [session?.user?.roles]);
@@ -139,7 +144,10 @@ export default function TopNavBar() {
     <div className="flex-shrink-0 flex flex-col bg-surface-dark border-b border-surface-border font-ibmPlexSans">
       {/* Ярус 1 — организация, живая сводка, часы, профиль */}
       <div className="flex items-center gap-3 h-11 px-3 border-b border-surface-border">
-        <Link href="/dashboard/main" className="flex items-center gap-2 flex-shrink-0">
+        <Link
+          href="/dashboard/main"
+          className="flex items-center gap-2 flex-shrink-0"
+        >
           <Brand title="" iconSize={22} />
         </Link>
 
@@ -163,7 +171,10 @@ export default function TopNavBar() {
             onClick={() => setIsProfileMenuOpen((prev) => !prev)}
             className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-[2px] border border-transparent hover:border-surface-border transition-colors"
           >
-            <Avatar {...stringAvatar(userFullName)} sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 600 }} />
+            <Avatar
+              {...stringAvatar(userFullName)}
+              sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 600 }}
+            />
             <span className="hidden md:flex flex-col items-start leading-none">
               <span className="text-[11px] font-medium text-text-secondary">
                 {userFullName || username || "Пользователь"}
@@ -184,7 +195,9 @@ export default function TopNavBar() {
                   onClick={() => setIsProfileMenuOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] border-b border-surface-border transition-colors"
                 >
-                  <SettingsRoundedIcon sx={{ fontSize: 15, color: "#bfc7d4" }} />
+                  <SettingsRoundedIcon
+                    sx={{ fontSize: 15, color: "#bfc7d4" }}
+                  />
                   Настройки
                 </Link>
                 <button
@@ -238,7 +251,11 @@ export default function TopNavBar() {
         )}
       </div>
 
-      <ExitModal open={openExitModal} onClose={() => setOpenExitModal(false)} handleLogout={handleLogout} />
+      <ExitModal
+        open={openExitModal}
+        onClose={() => setOpenExitModal(false)}
+        handleLogout={handleLogout}
+      />
     </div>
   );
 }

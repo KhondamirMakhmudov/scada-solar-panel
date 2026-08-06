@@ -12,14 +12,14 @@ const MainContentHeader = ({ children, actions }) => {
   const navItem = findNavItem(router.pathname);
 
   return (
-    <header className="sticky top-0 z-30 -mx-6 -mt-6 mb-6 flex items-center gap-3 px-6 h-11 border-b border-surface-border bg-background-dark">
-      <div className="min-w-0 flex-1">
+    <header className="top-0 z-30 -mx-2.5 -mt-2.5  flex items-center gap-3 px-2.5 h-8 border-b border-surface-border bg-surface-dark my-3">
+      <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
         {navItem?.groupLabel && (
-          <p className="text-[9.5px] uppercase tracking-wider text-text-faint leading-none mb-1">
-            {navItem.groupLabel}
+          <p className="text-[9.5px] uppercase tracking-wider text-text-faint leading-none flex-shrink-0 ">
+            {navItem.groupLabel} ·
           </p>
         )}
-        <h1 className="text-[14px] font-semibold font-ibmPlexSans text-text-primary truncate leading-none">
+        <h1 className="text-[12px] font-semibold font-ibmPlexSans text-text-primary truncate leading-none">
           {children}
         </h1>
       </div>
