@@ -365,7 +365,7 @@ const Index = () => {
             <div className="mb-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-[2px] h-10 px-5 bg-primary text-background-dark text-sm font-bold font-display hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
               >
                 <span>Добавить регистр</span>
               </button>
@@ -388,7 +388,7 @@ const Index = () => {
             {selectedDeviceId && (
               <button
                 onClick={() => setSelectedDeviceId(null)}
-                className="mt-6 px-4 py-2 bg-surface-dark text-text-secondary text-sm font-medium rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95 border border-surface-border"
+                className="mt-6 px-4 py-2 bg-surface-dark text-text-secondary text-sm font-medium rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95 border border-surface-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-border-hover focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
               >
                 Сбросить фильтр
               </button>

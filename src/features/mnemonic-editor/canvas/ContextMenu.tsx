@@ -78,21 +78,21 @@ const ContextMenu = () => {
       <button
         type="button"
         onClick={handleBringToFront}
-        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
+        className="w-full text-left px-3 py-1.5 transition-colors hover:bg-background-dark active:bg-surface-border focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
       >
         На передний план
       </button>
       <button
         type="button"
         onClick={handleSendToBack}
-        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
+        className="w-full text-left px-3 py-1.5 transition-colors hover:bg-background-dark active:bg-surface-border focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
       >
         На задний план
       </button>
       <button
         type="button"
         onClick={handleDuplicate}
-        className="w-full text-left px-3 py-1.5 hover:bg-background-dark"
+        className="w-full text-left px-3 py-1.5 transition-colors hover:bg-background-dark active:bg-surface-border focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
       >
         Дублировать
       </button>
@@ -100,7 +100,7 @@ const ContextMenu = () => {
       <button
         type="button"
         onClick={handleDelete}
-        className="w-full text-left px-3 py-1.5 text-rose-400 hover:bg-background-dark"
+        className="w-full text-left px-3 py-1.5 text-rose-400 transition-colors hover:bg-rose-500/10 active:bg-rose-500/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-500/60 focus-visible:ring-inset"
       >
         Удалить
       </button>

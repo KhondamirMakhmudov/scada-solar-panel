@@ -179,7 +179,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
             <button
               type="button"
               onClick={() => onChange([])}
-              className="ml-2 text-red-300/80 hover:text-red-300 transition-colors"
+              className="ml-2 text-red-300/80 hover:text-red-300 active:opacity-70 rounded-[2px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60"
             >
               Очистить
             </button>
@@ -199,7 +199,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
               <button
                 type="button"
                 onClick={() => toggleTag(id)}
-                className="text-blue-300/60 hover:text-red-300 transition-colors leading-none"
+                className="text-blue-300/60 hover:text-red-300 active:opacity-70 transition-colors leading-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60 rounded-[2px]"
                 title="Убрать тег"
               >
                 ×
@@ -230,7 +230,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
               <button
                 type="button"
                 onClick={() => toggleExpand(conn.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-background-dark transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-background-dark active:bg-surface-border/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
               >
                 <KeyboardArrowDown
                   sx={{ fontSize: 18 }}
@@ -367,7 +367,7 @@ const ScreenCard = ({
   canDelete,
 }) => {
   const stateColor = screen.isActive ? "#22c55e" : "#f59e0b";
-  const actionBtnStyle = "flex-1 text-center py-[3px] border font-ibmPlexMono text-[9.5px] font-medium transition-colors";
+  const actionBtnStyle = "flex-1 text-center py-[3px] border font-ibmPlexMono text-[9.5px] font-medium transition-colors enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
 
   return (
     <div
@@ -926,7 +926,7 @@ const Index = () => {
             <button
               type="button"
               onClick={() => openRuntime(row.original)}
-              className="text-primary hover:underline"
+              className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
             >
               ПРОСМОТР
             </button>
@@ -937,7 +937,7 @@ const Index = () => {
               <button
                 type="button"
                 onClick={() => openDiagram(row.original)}
-                className="text-primary hover:underline"
+                className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
               >
                 ИЗМЕНИТЬ
               </button>
@@ -945,7 +945,7 @@ const Index = () => {
               <button
                 type="button"
                 onClick={() => handleCloneScreen(row.original)}
-                className="text-primary hover:underline"
+                className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
               >
                 КЛОН
               </button>
@@ -957,7 +957,7 @@ const Index = () => {
               <button
                 type="button"
                 onClick={() => openDeleteModal(row.original)}
-                className="text-status-fault hover:underline"
+                className="text-status-fault hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
               >
                 УДАЛИТЬ
               </button>
@@ -985,9 +985,9 @@ const Index = () => {
             <button
               type="button"
               onClick={() => setScreenTab("runtime")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium transition-colors ${
+              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "runtime"
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
               }`}
             >
@@ -996,9 +996,9 @@ const Index = () => {
             <button
               type="button"
               onClick={() => setScreenTab("gallery")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors ${
+              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "gallery"
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
               }`}
             >
@@ -1012,7 +1012,7 @@ const Index = () => {
             <button
               type="button"
               onClick={() => openDiagram(activeScreen)}
-              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[10.5px] font-ibmPlexMono hover:border-surface-border-hover transition-colors"
+              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[10.5px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               ОТКРЫТЬ РЕДАКТОР
             </button>
@@ -1024,7 +1024,7 @@ const Index = () => {
                 resetCreateForm();
                 setShowCreateModal(true);
               }}
-              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary/90 transition-colors"
+              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               + ЭКРАН
             </button>
@@ -1100,26 +1100,27 @@ const Index = () => {
                 >
                   Экраны · {filteredList.length}
                 </span>
-                <div style={{ display: "flex", border: "1px solid #2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+                <div className="flex rounded-lg border border-white/15 overflow-hidden">
                   {VIEW_MODE_OPTIONS.map((item, idx) => {
                     const isActive = viewMode === item.value;
                     return (
-                      <div
+                      <button
                         key={item.value}
+                        type="button"
                         onClick={() => setViewMode(item.value)}
-                        className="font-ibmPlexMono"
+                        className="font-ibmPlexMono transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
                         style={{
-                          padding: "3px 9px",
+                          padding: "5px 11px",
                           cursor: "pointer",
                           fontSize: 10,
                           fontWeight: 500,
-                          borderLeft: idx > 0 ? "1px solid #2a2a2a" : "none",
-                          background: isActive ? "#3b82f6" : "#1c1b1b",
+                          borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
+                          background: isActive ? "#3b82f6" : "transparent",
                           color: isActive ? "#fff" : "#8b9099",
                         }}
                       >
                         {item.value === "grid" ? "ПЛИТКА" : "ТАБЛИЦА"}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -1173,9 +1174,9 @@ const Index = () => {
                         setPageSize(size);
                         setCurrentPage(1);
                       }}
-                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors ${
+                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                         pageSize === size
-                          ? "border-primary/70 bg-primary/20 text-primary"
+                          ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                           : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                       }`}
                     >
@@ -1189,7 +1190,7 @@ const Index = () => {
                     type="button"
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Первая"
                   >
                     «
@@ -1198,7 +1199,7 @@ const Index = () => {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Назад"
                   >
                     ‹
@@ -1231,9 +1232,9 @@ const Index = () => {
                           key={item}
                           type="button"
                           onClick={() => setCurrentPage(item)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors ${
+                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                             currentPage === item
-                              ? "border-primary/70 bg-primary/20 text-primary"
+                              ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                               : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                           }`}
                         >
@@ -1248,7 +1249,7 @@ const Index = () => {
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Вперёд"
                   >
                     ›
@@ -1257,7 +1258,7 @@ const Index = () => {
                     type="button"
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Последняя"
                   >
                     »

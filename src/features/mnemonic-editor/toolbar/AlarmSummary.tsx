@@ -39,9 +39,9 @@ const Counter = ({ kind, label, count, onClick }: CounterProps) => {
       onClick={onClick}
       disabled={!isActive}
       title={label}
-      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[11px] font-medium transition-colors ${
+      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
         isActive ? styles.active : styles.idle
-      } ${isActive ? "hover:brightness-125 cursor-pointer" : "cursor-default"}`}
+      } ${isActive ? "hover:brightness-125 active:scale-95 cursor-pointer" : "cursor-default"}`}
     >
       <span
         className={`w-1.5 h-1.5 rounded-full ${isActive ? styles.dot : "bg-surface-border"} ${
@@ -109,7 +109,7 @@ const AlarmSummary = () => {
                 requestFocus(alarm.elementId);
                 setIsOpen(false);
               }}
-              className="w-full flex items-start gap-2 px-3 py-2 border-b border-surface-border/70 last:border-b-0 hover:bg-background-dark/60 text-left transition-colors"
+              className="w-full flex items-start gap-2 px-3 py-2 border-b border-surface-border/70 last:border-b-0 hover:bg-background-dark/60 active:bg-background-dark text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
             >
               <span
                 className={`mt-1.5 w-1.5 h-1.5 flex-shrink-0 rounded-full ${

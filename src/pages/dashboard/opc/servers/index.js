@@ -159,41 +159,49 @@ const Index = () => {
     <DashboardLayout headerTitle={"OPC UA"}>
       <div style={{ fontFamily: "'IBM Plex Sans'" }} className="space-y-2.5">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
+          <button
+            type="button"
             onClick={() => {
               setEditingServer(null);
               setIsServerModalOpen(true);
             }}
+            className="transition-colors hover:bg-primary/10 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             style={{
-              padding: "6px 11px",
+              padding: "7px 13px",
               border: "1px solid #3b82f6",
+              borderRadius: 8,
               color: "#3b82f6",
-              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              font: "600 10.5px/1.2 'IBM Plex Mono'",
               cursor: "pointer",
             }}
           >
             + СЕРВЕР
-          </span>
+          </button>
 
           <div style={{ flex: 1 }} />
 
-          <span
+          <button
+            type="button"
             onClick={handleSyncronize}
+            className="transition-colors hover:border-primary/40 hover:text-text-primary active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             style={{
-              padding: "6px 11px",
-              border: "1px solid #2a2a2a",
+              padding: "7px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
               color: "#bfc7d4",
               font: "500 10.5px/1.2 'IBM Plex Mono'",
               cursor: "pointer",
             }}
           >
             СИНХРОНИЗИРОВАТЬ
-          </span>
+          </button>
           <Link
             href="/dashboard/opc/servers/status"
+            className="transition-colors hover:border-primary/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             style={{
-              padding: "6px 11px",
-              border: "1px solid #2a2a2a",
+              padding: "7px 13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
               color: "#bfc7d4",
               font: "500 10.5px/1.2 'IBM Plex Mono'",
               display: "flex",

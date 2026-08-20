@@ -26,7 +26,7 @@ const PropertyGroup = ({ title, badge, defaultOpen = true, children }: PropertyG
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[11px] uppercase tracking-wide text-text-muted hover:text-text-primary transition-colors"
+        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[11px] uppercase tracking-wide text-text-muted hover:text-text-primary hover:bg-background-dark/40 active:bg-background-dark/70 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
       >
         <span
           className="text-[9px] text-text-faint transition-transform duration-150"

@@ -87,7 +87,7 @@ const ShapePalette = () => {
           type="button"
           onClick={togglePalette}
           title="Развернуть палитру оборудования"
-          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           »
         </button>
@@ -104,7 +104,7 @@ const ShapePalette = () => {
                 onDragStart={handleDragStart(kind)}
                 onClick={() => handleAdd(kind)}
                 title={definition.label}
-                className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
+                className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-blue-500/10 hover:text-blue-300 transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
               >
                 <ShapeThumbnail kind={kind} size={20} />
               </button>
@@ -123,7 +123,7 @@ const ShapePalette = () => {
           type="button"
           onClick={togglePalette}
           title="Свернуть палитру"
-          className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors"
+          className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           «
         </button>
@@ -161,7 +161,7 @@ const ShapePalette = () => {
                       : [...ids, category.id],
                   )
                 }
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[2px] text-[11px] uppercase tracking-wide text-text-muted hover:bg-background-dark/60 hover:text-text-primary transition-colors"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[2px] text-[11px] uppercase tracking-wide text-text-muted hover:bg-background-dark/60 hover:text-text-primary transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
               >
                 <span
                   className="text-[9px] text-text-faint transition-transform duration-150"
@@ -188,7 +188,7 @@ const ShapePalette = () => {
                         onDragStart={handleDragStart(kind)}
                         onClick={() => handleAdd(kind)}
                         title={SHAPE_HINTS[kind] ?? definition.label}
-                        className="group w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[2px] border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:cursor-grabbing text-left transition-colors"
+                        className="group w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[2px] border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:cursor-grabbing active:scale-[0.98] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                       >
                         <span className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[2px] bg-background-dark/50 border border-surface-border text-text-dim group-hover:border-blue-500/30 group-hover:text-blue-300 transition-colors">
                           <ShapeThumbnail kind={kind} size={22} />

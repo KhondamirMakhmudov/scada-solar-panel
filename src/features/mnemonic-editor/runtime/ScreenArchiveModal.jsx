@@ -55,7 +55,7 @@ const ScreenArchiveModal = ({ onClose, screenName, groups }) => {
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-text-muted transition hover:bg-background-dark hover:text-text-primary"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-text-muted transition hover:bg-background-dark hover:text-text-primary active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             <Close fontSize="small" />
           </button>

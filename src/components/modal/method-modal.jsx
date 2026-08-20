@@ -21,11 +21,12 @@ const MethodModal = ({
           transform: "translate(-50%, -50%)",
           width: width,
           height: height,
-          bgcolor: "#1c1b1b",
+          bgcolor: "#131315",
+          border: "1px solid rgba(255,255,255,0.08)",
           color: "white",
-          boxShadow: 24,
+          boxShadow: "0 24px 60px rgba(0,0,0,0.55)",
           p: padding,
-          borderRadius: "2px",
+          borderRadius: "16px",
           fontFamily: "IBM Plex Sans",
         }}
       >

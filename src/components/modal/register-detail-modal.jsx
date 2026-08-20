@@ -132,7 +132,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.2 }}
-        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+        className="bg-[#131315] border border-white/[0.08] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.55)]"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-surface-dark p-6">
@@ -150,7 +150,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-surface-dark rounded-[2px] transition-all text-text-muted hover:text-text-primary active:scale-95"
+              className="p-2 hover:bg-surface-dark rounded-[2px] transition-all text-text-muted hover:text-text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <CloseIcon fontSize="medium" />
             </button>
@@ -243,7 +243,7 @@ const RegisterDetailsModal = ({ isOpen, onClose, register }) => {
         <div className="border-t border-surface-dark p-4 bg-surface-dark/20">
           <button
             onClick={onClose}
-            className="w-full px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="w-full h-11 px-6 bg-surface-3 border border-surface-border-hover text-text-secondary text-sm font-bold rounded-lg hover:border-primary/40 hover:text-text-primary transition-all active:scale-95 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-border-hover focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
           >
             <CloseIcon fontSize="small" />
             Закрыть

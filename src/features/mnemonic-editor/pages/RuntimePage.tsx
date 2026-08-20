@@ -138,7 +138,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
             onClick={() =>
               canEditScreen ? router.push(`/dashboard/screens/${screenId}`) : router.back()
             }
-            className="text-sm text-text-muted hover:text-text-primary transition-colors"
+            className="text-sm text-text-muted hover:text-text-primary active:scale-95 transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             {canEditScreen ? "← К редактированию" : "← Назад"}
           </button>
@@ -152,7 +152,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
             <button
               type="button"
               onClick={() => setIsArchiveOpen(true)}
-              className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+              className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary active:scale-95 transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
             >
               <HistoryRounded fontSize="small" />
               Архив

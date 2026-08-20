@@ -1,24 +1,16 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
+import toast from "react-hot-toast";
 import { config } from "@/config";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 
-import { buildScadaWsUrl, useWebSocket } from "@/hooks/useWebsoket";
+import { buildScadaWsUrl } from "@/hooks/useWebsoket";
+import { useMultiWebSocket } from "@/hooks/useMultiWebSocket";
 import useGetQuery from "@/hooks/all/useGetQuery";
-import CustomSelect from "@/components/select";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { requestScreens } from "@/services/api";
+import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import WifiTetheringOutlinedIcon from "@mui/icons-material/WifiTetheringOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
@@ -28,11 +20,11 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
+import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useSession } from "next-auth/react";
 
 /* ---------- Visual constants ---------------------------------------------- */
-// Cycle of saturated indicator colors used for tag accents + sparklines.
 const TAG_PALETTE = [
   "#ff6b3d",
   "#3ee08f",
@@ -44,7 +36,6 @@ const TAG_PALETTE = [
   "#6affb8",
 ];
 
-// Stable color from any tag_id (or name) — same id always picks same color.
 function colorFor(seed) {
   if (!seed) return TAG_PALETTE[0];
   let h = 0;
@@ -52,43 +43,25 @@ function colorFor(seed) {
   return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
 }
 
-const RANGE_META = {
-  "15m": { label: "15 мин", windowMs: 15 * 60 * 1000, interval: "PT5S" },
-  "1h": { label: "1 час", windowMs: 60 * 60 * 1000, interval: "PT30S" },
-  "6h": { label: "6 часов", windowMs: 6 * 60 * 60 * 1000, interval: "PT5M" },
-  "24h": { label: "24 часа", windowMs: 24 * 60 * 60 * 1000, interval: "PT15M" },
-};
-
 const CHANNEL_META = {
   devices: {
     label: "Устройства",
     icon: SettingsOutlinedIcon,
-    description: "Получить данные конкретного устройства SCADA",
+    description: "Один сокет на устройство — /ws/devices/{id}",
   },
   tags: {
     label: "Теги",
     icon: WifiTetheringOutlinedIcon,
-    description: "Получить данные конкретного тега (датчика)",
+    description: "Один сокет на тег — /ws/tags/{id}",
   },
   screens: {
     label: "Экраны",
     icon: DashboardOutlinedIcon,
-    description: "Один сокет на все теги экрана (screen.tag_ids)",
+    description: "Один сокет на экран (все теги экрана) — /ws/screens/{id}",
   },
 };
 
 /* ---------- Helpers ------------------------------------------------------- */
-function parsePayload(text) {
-  if (!text) return null;
-  if (typeof text === "object") return text;
-  if (typeof text !== "string") return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
@@ -101,48 +74,40 @@ function formatTimeMs(t) {
   ).padStart(3, "0")}`;
 }
 
-function formatAxisTime(ms) {
-  if (!Number.isFinite(ms)) return "";
-  const d = new Date(ms);
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+function formatUptime(sec) {
+  return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}:${pad2(sec % 60)}`;
 }
 
-function formatUptime(sec) {
-  return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}:${pad2(
-    sec % 60,
-  )}`;
+function byteLength(text) {
+  if (typeof text !== "string") return 0;
+  return new TextEncoder().encode(text).length;
+}
+
+function toHexDump(text) {
+  const bytes = Array.from(new TextEncoder().encode(text ?? ""));
+  const rows = [];
+  for (let i = 0; i < bytes.length; i += 16) {
+    const chunk = bytes.slice(i, i + 16);
+    const hex = chunk.map((b) => b.toString(16).padStart(2, "0")).join(" ");
+    const ascii = chunk.map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : ".")).join("");
+    rows.push({ offset: i, hex, ascii });
+  }
+  return rows;
 }
 
 /* ---------- Sparkline (inline SVG, no deps) ------------------------------- */
-function Sparkline({
-  data,
-  color = "#3ee08f",
-  width = 200,
-  height = 28,
-  area = true,
-}) {
-  if (!data || data.length < 2) {
-    return <div style={{ width, height }} />;
-  }
+function Sparkline({ data, color = "#3ee08f", width = 200, height = 24, area = true }) {
+  if (!data || data.length < 2) return <div style={{ width, height }} />;
   const vals = data.map((d) => d.v);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const range = max - min || 1;
   const step = width / (data.length - 1);
-  const pts = data.map((d, i) => [
-    i * step,
-    height - ((d.v - min) / range) * (height - 4) - 2,
-  ]);
-  const line = pts
-    .map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`))
-    .join(" ");
+  const pts = data.map((d, i) => [i * step, height - ((d.v - min) / range) * (height - 4) - 2]);
+  const line = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
   const gradId = `spark-${color.replace(/[^a-z0-9]/gi, "")}`;
   return (
-    <svg
-      width={width}
-      height={height}
-      style={{ display: "block", overflow: "visible" }}
-    >
+    <svg width={width} height={height} style={{ display: "block", overflow: "visible" }}>
       {area && (
         <>
           <defs>
@@ -151,28 +116,91 @@ function Sparkline({
               <stop offset="100%" stopColor={color} stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path
-            d={`${line} L${width},${height} L0,${height} Z`}
-            fill={`url(#${gradId})`}
-          />
+          <path d={`${line} L${width},${height} L0,${height} Z`} fill={`url(#${gradId})`} />
         </>
       )}
-      <path
-        d={line}
-        fill="none"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      <circle
-        cx={pts[pts.length - 1][0]}
-        cy={pts[pts.length - 1][1]}
-        r="2.2"
-        fill={color}
-      />
+      <path d={line} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2.2" fill={color} />
     </svg>
   );
+}
+
+/* ---------- Bar sparkline for RX/s -----------------------------------------*/
+function RateBars({ buckets, width = 90, height = 22, color = "#3ee08f" }) {
+  if (!buckets || buckets.length === 0) return <div style={{ width, height }} />;
+  const max = Math.max(...buckets, 1);
+  const barW = width / buckets.length;
+  return (
+    <svg width={width} height={height}>
+      {buckets.map((v, i) => {
+        const h = Math.max(1, (v / max) * height);
+        return (
+          <rect
+            key={i}
+            x={i * barW + 0.5}
+            y={height - h}
+            width={Math.max(1, barW - 1)}
+            height={h}
+            fill={color}
+            opacity={0.35 + 0.65 * (i / buckets.length)}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ---------- JSON pretty view (real, derived from the actual parsed frame) -*/
+function JsonNode({ value, depth }) {
+  if (value === null || value === undefined) return <span style={{ color: "#6b7280" }}>null</span>;
+  if (typeof value === "boolean") return <span style={{ color: "#c084fc" }}>{String(value)}</span>;
+  if (typeof value === "number") return <span style={{ color: "#4dd6ff" }}>{value}</span>;
+  if (typeof value === "string") return <span style={{ color: "#3ee08f" }}>&quot;{value}&quot;</span>;
+
+  const indent = "  ".repeat(depth + 1);
+  const closeIndent = "  ".repeat(depth);
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <span style={{ color: "#8b9099" }}>[]</span>;
+    return (
+      <span>
+        {"[\n"}
+        {value.map((v, i) => (
+          <span key={i}>
+            {indent}
+            <JsonNode value={v} depth={depth + 1} />
+            {i < value.length - 1 ? "," : ""}
+            {"\n"}
+          </span>
+        ))}
+        {closeIndent}]
+      </span>
+    );
+  }
+
+  if (typeof value === "object") {
+    const keys = Object.keys(value);
+    if (keys.length === 0) return <span style={{ color: "#8b9099" }}>{"{}"}</span>;
+    return (
+      <span>
+        {"{\n"}
+        {keys.map((k, i) => (
+          <span key={k}>
+            {indent}
+            <span style={{ color: "#ffc857" }}>&quot;{k}&quot;</span>
+            {": "}
+            <JsonNode value={value[k]} depth={depth + 1} />
+            {i < keys.length - 1 ? "," : ""}
+            {"\n"}
+          </span>
+        ))}
+        {closeIndent}
+        {"}"}
+      </span>
+    );
+  }
+
+  return <span>{String(value)}</span>;
 }
 
 /* ---------- Page --------------------------------------------------------- */
@@ -180,37 +208,34 @@ export default function WebSocketTestPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [channel, setChannel] = useState("devices");
-  const [entityId, setEntityId] = useState("");
-  const [filter, setFilter] = useState("all"); // all | recv | sent | err
-  const [tagSearch, setTagSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [isRunning, setIsRunning] = useState(false);
+  const [entitySearch, setEntitySearch] = useState("");
+  const [filter, setFilter] = useState("all"); // all | recv | ping | err
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [selectedFrameSeq, setSelectedFrameSeq] = useState(null);
+  const [frameTab, setFrameTab] = useState("json"); // json | raw | hex
+  const [sendText, setSendText] = useState("ping");
   const baseHttpUrl = config.WEBSOCKET_URL;
+  const streamRef = useRef(null);
 
   const { data: devicesData, isLoading: isLoadingDevices } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
+    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
     enabled: !!session?.accessToken,
   });
   const { data: tagsData, isLoading: isLoadingTags } = useGetQuery({
     key: KEYS.tags,
     url: URLS.tags,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
+    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
     enabled: !!session?.accessToken,
   });
   const { data: screensData, isLoading: isLoadingScreens } = useGetQuery({
     key: KEYS.screens,
     url: URLS.screens,
     apiClient: requestScreens,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
+    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
     enabled: !!session?.accessToken,
   });
 
@@ -220,6 +245,7 @@ export default function WebSocketTestPage() {
     const raw = get(screensData, "data.data", get(screensData, "data", []));
     return Array.isArray(raw) ? raw : [];
   }, [screensData]);
+  const deviceNameById = useMemo(() => new Map(deviceList.map((d) => [d.id, d.name || d.id])), [deviceList]);
 
   const currentList = useMemo(() => {
     if (channel === "devices") return deviceList;
@@ -228,202 +254,188 @@ export default function WebSocketTestPage() {
   }, [channel, deviceList, tagList, screenList]);
 
   const isLoadingList =
-    channel === "devices"
-      ? isLoadingDevices
-      : channel === "tags"
-        ? isLoadingTags
-        : isLoadingScreens;
+    channel === "devices" ? isLoadingDevices : channel === "tags" ? isLoadingTags : isLoadingScreens;
 
+  // Selection is scoped to the current channel — a device id and a tag id
+  // can collide, and a stale cross-channel selection would silently open
+  // sockets against the wrong endpoint.
   useEffect(() => {
-    setEntityId("");
-    setTagSearch("");
+    setSelectedIds(new Set());
+    setEntitySearch("");
   }, [channel]);
 
-  const entityOptions = useMemo(
+  const filteredEntities = useMemo(() => {
+    if (!entitySearch) return currentList;
+    const q = entitySearch.toLowerCase();
+    return currentList.filter((e) => {
+      const name = (e.name || "").toLowerCase();
+      const deviceName = channel === "tags" ? (deviceNameById.get(e.deviceId) || "").toLowerCase() : "";
+      return name.includes(q) || deviceName.includes(q);
+    });
+  }, [currentList, entitySearch, channel, deviceNameById]);
+
+  const toggleEntity = (id) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const selectAll = () => setSelectedIds(new Set(filteredEntities.map((e) => e.id)));
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const selectedEntities = useMemo(
     () =>
-      currentList.map((item) => ({
-        label: item.name || "Без названия",
-        value: item.id,
-      })),
-    [currentList],
+      currentList
+        .filter((e) => selectedIds.has(e.id))
+        .map((e) => ({ id: e.id, name: e.name || e.id })),
+    [currentList, selectedIds],
   );
 
-  const wsUrl = useMemo(() => {
-    try {
-      return buildScadaWsUrl({
-        baseHttpUrl,
-        channel,
-        id: entityId,
-        token: session?.accessToken,
-      });
-    } catch {
-      return "";
-    }
-  }, [baseHttpUrl, channel, entityId, session?.accessToken]);
-
-  const { status, messages, connect, disconnect, clearMessages } = useWebSocket(
-    wsUrl,
-    {
-      autoConnect: false,
-      autoReconnect: true,
-      heartbeatInterval: 25000,
-      heartbeatMessage: "ping",
-      maxMessages: 150,
+  const buildUrl = useMemo(
+    () => (entityId) => {
+      if (!entityId) return null;
+      try {
+        return buildScadaWsUrl({ baseHttpUrl, channel, id: entityId, token: session?.accessToken });
+      } catch {
+        return null;
+      }
     },
+    [baseHttpUrl, channel, session?.accessToken],
   );
 
-  const isConnected = status === "open";
-  const isConnecting = status === "connecting";
-  const isError = status === "error";
+  const { connStatus, openCount, messages, reconnectCount, sendToAll, clearMessages } = useMultiWebSocket({
+    entities: selectedEntities,
+    buildUrl,
+    enabled: isRunning,
+    heartbeatInterval: 25000,
+    heartbeatMessage: "ping",
+    maxMessages: 600,
+  });
 
-  /* Aggregate the most recent value + a short history per tag, fed from the
-     real message stream. Same map drives the live-values grid and the log. */
+  const isSecure = /^wss:/i.test(buildUrl(selectedEntities[0]?.id) || (baseHttpUrl?.startsWith("https") ? "wss:" : "ws:"));
+
+  /* Uptime counts from the moment at least one socket has ever opened while running. */
+  const [uptime, setUptime] = useState(0);
+  useEffect(() => {
+    if (!isRunning || openCount === 0) return undefined;
+    const id = setInterval(() => setUptime((u) => u + 1), 1000);
+    return () => clearInterval(id);
+  }, [isRunning, openCount]);
+  useEffect(() => {
+    if (!isRunning) setUptime(0);
+  }, [isRunning]);
+
+  /* Aggregate latest value + short history per tag, across every connected
+     entity. WEBSOCKET_API.md: initial snapshot arrives newest-first, so
+     "last received" isn't "current" — sort by the server's own `time`. */
   const tagState = useMemo(() => {
-    const m = {};
+    const byTag = {};
     for (const msg of messages) {
-      if (msg.direction !== "in") continue;
-      const data = parsePayload(msg.text);
-      if (!data || !data.tag_id) continue;
-      if (!m[data.tag_id]) {
-        m[data.tag_id] = { history: [], last: null };
-      }
-      const t = m[data.tag_id];
-      t.last = data;
-      const v =
-        typeof data.value === "number" ? data.value : Number(data.value);
-      if (Number.isFinite(v)) {
-        t.history = [...t.history.slice(-49), { t: msg.time, v }];
-      }
+      if (msg.direction !== "in" || !msg.parsed?.tag_id) continue;
+      const data = msg.parsed;
+      const serverMs = Date.parse(data.time);
+      const ms = Number.isFinite(serverMs) ? serverMs : Date.parse(msg.time);
+      (byTag[data.tag_id] ||= []).push({ ms, data, entityName: msg.entityName });
+    }
+    const m = {};
+    for (const [tagId, points] of Object.entries(byTag)) {
+      points.sort((a, b) => a.ms - b.ms);
+      const history = points
+        .map((p) => {
+          const v = typeof p.data.value === "number" ? p.data.value : Number(p.data.value);
+          return Number.isFinite(v) ? { t: p.ms, v } : null;
+        })
+        .filter(Boolean)
+        .slice(-50);
+      const lastPoint = points[points.length - 1];
+      m[tagId] = { history, last: lastPoint.data, sourceName: lastPoint.entityName };
     }
     return m;
   }, [messages]);
 
-  const activeTags = useMemo(
-    () => Object.values(tagState).slice(0, 8),
-    [tagState],
-  );
+  const activeTags = useMemo(() => Object.values(tagState).slice(0, 12), [tagState]);
+  const sourceCount = useMemo(() => new Set(activeTags.map((t) => t.sourceName)).size, [activeTags]);
 
-  /* Historical trend, backed by GET /tag-values/aggregates (see
-     FRONTEND_INTEGRATION.md: "не тяните сырые точки для графика — используйте
-     этот endpoint"). Re-fetched every ~30s (nowTick) so the window slides
-     forward; live WS points newer than the last bucket are appended on top. */
-  const [range, setRange] = useState("1h");
-  const [nowTick, setNowTick] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNowTick(Date.now()), 30000);
-    return () => clearInterval(id);
-  }, []);
-
-  const tagIdsKey = useMemo(
-    () =>
-      activeTags
-        .map((t) => t.last?.tag_id)
-        .filter(Boolean)
-        .sort()
-        .join(","),
-    [activeTags],
-  );
-
-  const { windowMs, interval } = RANGE_META[range];
-  const { timeFrom, timeTo } = useMemo(
-    () => ({
-      timeFrom: new Date(nowTick - windowMs).toISOString(),
-      timeTo: new Date(nowTick).toISOString(),
-    }),
-    [nowTick, windowMs],
-  );
-
-  const { data: aggregatesData, isFetching: isLoadingAggregates } =
-    useGetQuery({
-      key: KEYS.tagValuesAggregates,
-      url: URLS.tagValuesAggregates,
-      apiClient: requestScreens,
-      params: { tagIds: tagIdsKey, timeFrom, timeTo, interval, fill: "locf" },
-      headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
-        Accept: "application/json",
-      },
-      enabled: Boolean(tagIdsKey) && !!session?.accessToken,
-    });
-
-  const trendTagNames = useMemo(
-    () => activeTags.map((t) => t.last?.tag_name || t.last?.tag_id),
-    [activeTags],
-  );
-
-  const trendSeries = useMemo(() => {
-    const rows = new Map();
-    const tagNameById = {};
-    activeTags.forEach((t) => {
-      if (t.last?.tag_id) {
-        tagNameById[t.last.tag_id] = t.last.tag_name || t.last.tag_id;
-      }
-    });
-
-    const series = get(aggregatesData, "data.data", []);
-    let lastHistoricalMs = 0;
-    series.forEach((s) => {
-      const name = s.tagName || tagNameById[s.tagId] || s.tagId;
-      (s.buckets || []).forEach((b) => {
-        const ms = new Date(b.time).getTime();
-        if (!Number.isFinite(ms) || b.avg == null) return;
-        lastHistoricalMs = Math.max(lastHistoricalMs, ms);
-        const row = rows.get(ms) || { ms };
-        row[name] = b.avg;
-        rows.set(ms, row);
-      });
-    });
-
-    activeTags.forEach((t) => {
-      const name = t.last?.tag_name || t.last?.tag_id;
-      if (!name) return;
-      t.history.forEach((pt) => {
-        const ms = new Date(pt.t).getTime();
-        if (!Number.isFinite(ms) || ms <= lastHistoricalMs) return;
-        const row = rows.get(ms) || { ms };
-        row[name] = pt.v;
-        rows.set(ms, row);
-      });
-    });
-
-    return Array.from(rows.values()).sort((a, b) => a.ms - b.ms);
-  }, [aggregatesData, activeTags]);
-
-  /* Uptime: counts seconds since connection opened. */
-  const [uptime, setUptime] = useState(0);
-  useEffect(() => {
-    if (!isConnected) {
-      setUptime(0);
-      return;
+  /* Real per-second RX rate, last 20s, from actual message timestamps. */
+  const rxRateBuckets = useMemo(() => {
+    const now = Date.now();
+    const buckets = new Array(20).fill(0);
+    for (const msg of messages) {
+      if (msg.direction !== "in") continue;
+      const ms = Date.parse(msg.time);
+      const bucket = 19 - Math.floor((now - ms) / 1000);
+      if (bucket >= 0 && bucket < 20) buckets[bucket] += 1;
     }
-    const id = setInterval(() => setUptime((u) => u + 1), 1000);
-    return () => clearInterval(id);
-  }, [isConnected]);
+    return buckets;
+  }, [messages]);
 
-  /* Filter for the log table. */
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
       if (filter === "recv") return m.direction === "in";
-      if (filter === "sent") return m.direction === "out";
-      if (filter === "err") {
-        const d = parsePayload(m.text);
-        return d && d.is_error;
-      }
+      if (filter === "ping") return m.direction === "out";
+      if (filter === "err") return m.direction === "in" && m.parsed?.is_error;
       return true;
     });
   }, [messages, filter]);
 
-  const stats = {
-    total: messages.length,
-    sent: messages.filter((m) => m.direction === "out").length,
-    received: messages.filter((m) => m.direction === "in").length,
+  useEffect(() => {
+    if (autoScroll && streamRef.current) {
+      streamRef.current.scrollTop = streamRef.current.scrollHeight;
+    }
+  }, [filteredMessages, autoScroll]);
+
+  const stats = useMemo(
+    () => ({
+      total: messages.length,
+      received: messages.filter((m) => m.direction === "in").length,
+      pinged: messages.filter((m) => m.direction === "out").length,
+      errored: messages.filter((m) => m.direction === "in" && m.parsed?.is_error).length,
+    }),
+    [messages],
+  );
+
+  const selectedFrame = useMemo(
+    () => messages.find((m) => m.seq === selectedFrameSeq) || null,
+    [messages, selectedFrameSeq],
+  );
+  const selectedFrameIndex = useMemo(
+    () => (selectedFrame ? messages.indexOf(selectedFrame) : -1),
+    [messages, selectedFrame],
+  );
+  const prevFrame = selectedFrameIndex > 0 ? messages[selectedFrameIndex - 1] : null;
+  const frameDeltaMs =
+    selectedFrame && prevFrame ? Date.parse(selectedFrame.time) - Date.parse(prevFrame.time) : null;
+
+  useEffect(() => {
+    if (!selectedFrameSeq && filteredMessages.length > 0) {
+      setSelectedFrameSeq(filteredMessages[filteredMessages.length - 1].seq);
+    }
+  }, [filteredMessages, selectedFrameSeq]);
+
+  const tokenExpiresIn = useMemo(() => {
+    if (!session?.accessTokenExpires) return null;
+    const ms = session.accessTokenExpires - Date.now();
+    return ms > 0 ? Math.round(ms / 60000) : 0;
+  }, [session?.accessTokenExpires]);
+
+  const isConnected = isRunning && openCount > 0;
+  const isConnecting = isRunning && selectedEntities.length > 0 && openCount === 0;
+
+  const handleCopyFrame = () => {
+    if (!selectedFrame) return;
+    navigator.clipboard?.writeText(selectedFrame.raw ?? "").then(
+      () => toast.success("Скопировано"),
+      () => toast.error("Не удалось скопировать"),
+    );
   };
 
-  const filteredTagList = useMemo(() => {
-    if (!tagSearch) return currentList;
-    const q = tagSearch.toLowerCase();
-    return currentList.filter((t) => (t.name || "").toLowerCase().includes(q));
-  }, [currentList, tagSearch]);
+  const handleSend = () => {
+    if (!sendText.trim()) return;
+    const sent = sendToAll(sendText);
+    if (!sent) toast.error("Нет открытых сокетов");
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#0e0e0e] text-[#e5e2e1] p-6">
@@ -431,23 +443,19 @@ export default function WebSocketTestPage() {
         {/* ============================================================
             TOP STATUS BAR
             ============================================================ */}
-        <div className="flex items-stretch flex-wrap rounded-[2px] border border-white/10 bg-gradient-to-b from-[#0e131c] to-[#0a0d12] overflow-hidden mb-4">
+        <div className="flex items-stretch flex-wrap rounded-xl border border-white/10 bg-gradient-to-b from-[#0e131c] to-[#0a0d12] overflow-hidden mb-4">
           <div className="flex items-center gap-3 px-4 py-2.5 border-r border-white/10">
             <div className="w-8 h-8 rounded bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-black text-surface-dark font-mono">
               S
             </div>
             <div>
-              <div className="text-[10px] tracking-widest font-semibold text-text-dim">
-                SCADA · CONSOLE
-              </div>
-              <div className="text-sm font-semibold text-white">
-                WebSocket Тестер
-              </div>
+              <div className="text-[10px] tracking-widest font-semibold text-text-dim">SCADA · CONSOLE</div>
+              <div className="text-sm font-semibold text-white">WebSocket Тестер</div>
             </div>
           </div>
 
           <StatusChunk
-            label="СОЕДИНЕНИЕ"
+            label="СОСТОЯНИЕ"
             value={
               <span className="inline-flex items-center gap-1.5">
                 <span
@@ -456,83 +464,58 @@ export default function WebSocketTestPage() {
                       ? "bg-emerald-400 shadow-[0_0_8px_#3ee08f] animate-pulse"
                       : isConnecting
                         ? "bg-amber-400 animate-pulse"
-                        : isError
-                          ? "bg-rose-400"
-                          : "bg-text-dim"
+                        : "bg-text-dim"
                   }`}
                 />
                 <span
                   className={`font-semibold ${
-                    isConnected
-                      ? "text-emerald-400"
-                      : isConnecting
-                        ? "text-amber-400"
-                        : isError
-                          ? "text-rose-400"
-                          : "text-text-muted"
+                    isConnected ? "text-emerald-400" : isConnecting ? "text-amber-400" : "text-text-muted"
                   }`}
                 >
-                  {isConnected
-                    ? "АКТИВНО"
-                    : isConnecting
-                      ? "ПОДКЛЮЧЕНИЕ"
-                      : isError
-                        ? "ОШИБКА"
-                        : "ОТКЛЮЧЕНО"}
+                  {isConnected ? "АКТИВНО" : isConnecting ? "ПОДКЛЮЧЕНИЕ" : "ОСТАНОВЛЕНО"}
                 </span>
               </span>
             }
           />
           <StatusChunk label="UPTIME" value={formatUptime(uptime)} mono />
           <StatusChunk
-            label="КАНАЛ"
-            value={entityId ? `/ws/${channel}/${entityId.slice(0, 8)}…` : "—"}
+            label="СОКЕТЫ"
+            value={`${openCount}/${selectedEntities.length}`}
             mono
-            muted={!entityId}
+            title="Открытых сокетов из выбранных сущностей — по одному сокету на сущность"
           />
+          <StatusChunk label="RX" value={stats.received} mono color="text-emerald-400" title="Реальные сообщения от сервера" />
           <StatusChunk
-            label="RX"
-            value={stats.received}
+            label="PING"
+            value={stats.pinged}
             mono
-            color="text-emerald-400"
+            color="text-text-dim"
+            title="Keepalive-кадры браузера — сервер их не интерпретирует, это не часть протокола API"
           />
-          <StatusChunk
-            label="TX"
-            value={stats.sent}
-            mono
-            color="text-sky-400"
-          />
+          <StatusChunk label="ОШИБКИ" value={stats.errored} mono color={stats.errored ? "text-rose-400" : undefined} />
+          <StatusChunk label="РЕКОННЕКТ" value={reconnectCount} mono />
 
-          <div className="ml-auto flex items-center gap-2 px-4 py-2">
-            <ToolBtn
-              onClick={() => router.push("/dashboard/main")}
-              accent="slate"
-              title="Вернуться на главную"
-            >
+          <div className="ml-auto flex items-center gap-4 px-4 py-2">
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-[9px] text-text-dim tracking-wider font-semibold">RX/С</span>
+              <RateBars buckets={rxRateBuckets} color="#3ee08f" />
+            </div>
+            <ToolBtn onClick={() => router.push("/dashboard/main")} accent="slate" title="Вернуться на главную">
               <ArrowBackIcon style={{ fontSize: 14 }} />
               НАЗАД
             </ToolBtn>
-            <ToolBtn
-              disabled={!wsUrl || isConnected || isConnecting}
-              onClick={connect}
-              accent="emerald"
-            >
-              <PlayArrowRoundedIcon style={{ fontSize: 14 }} />
-              ПОДКЛЮЧИТЬСЯ
-            </ToolBtn>
-            <ToolBtn
-              disabled={!isConnected && !isConnecting}
-              onClick={disconnect}
-              accent="rose"
-            >
-              <StopRoundedIcon style={{ fontSize: 14 }} />
-              ОТКЛЮЧИТЬСЯ
-            </ToolBtn>
-            <ToolBtn
-              disabled={messages.length === 0}
-              onClick={clearMessages}
-              accent="slate"
-            >
+            {!isRunning ? (
+              <ToolBtn disabled={selectedEntities.length === 0} onClick={() => setIsRunning(true)} accent="emerald">
+                <PlayArrowRoundedIcon style={{ fontSize: 14 }} />
+                ПОДКЛЮЧИТЬСЯ
+              </ToolBtn>
+            ) : (
+              <ToolBtn onClick={() => setIsRunning(false)} accent="rose">
+                <StopRoundedIcon style={{ fontSize: 14 }} />
+                ОТКЛЮЧИТЬСЯ
+              </ToolBtn>
+            )}
+            <ToolBtn disabled={messages.length === 0} onClick={clearMessages} accent="slate">
               <DeleteOutlineOutlinedIcon style={{ fontSize: 14 }} />
               ОЧИСТИТЬ
             </ToolBtn>
@@ -540,12 +523,11 @@ export default function WebSocketTestPage() {
         </div>
 
         {/* ============================================================
-            BODY: rail + content
+            BODY: rail + content + inspector
             ============================================================ */}
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_320px] gap-4">
           {/* ----- LEFT RAIL ----- */}
-          <div className="rounded-[2px] border border-white/10 bg-[#0c1118] overflow-hidden">
-            {/* Channel toggle */}
+          <div className="rounded-xl border border-white/10 bg-[#0c1118] overflow-hidden flex flex-col">
             <div className="p-3 border-b border-white/10">
               <SectionLabel>ТИП ДАННЫХ</SectionLabel>
               <div className="grid grid-cols-3 gap-1.5 mt-2">
@@ -553,26 +535,24 @@ export default function WebSocketTestPage() {
                   const Ico = preset.icon;
                   const active = channel === key;
                   const count =
-                    key === "devices"
-                      ? deviceList.length
-                      : key === "tags"
-                        ? tagList.length
-                        : screenList.length;
+                    key === "devices" ? deviceList.length : key === "tags" ? tagList.length : screenList.length;
                   return (
                     <button
                       key={key}
+                      type="button"
+                      title={preset.description}
                       onClick={() => setChannel(key)}
-                      className={`p-2.5 rounded text-left flex flex-col gap-1 transition border ${
+                      className={`min-w-0 p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118] border ${
                         active
-                          ? "bg-[#1a2030] border-orange-500 text-orange-400"
-                          : "bg-transparent border-white/10 text-text-muted hover:border-white/20"
+                          ? "bg-white/[0.07] border-white/70 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+                          : "bg-transparent border-white/10 text-text-muted hover:border-white/25 hover:bg-white/[0.03]"
                       }`}
                     >
                       <Ico style={{ fontSize: 14 }} />
-                      <span className="text-[10px] uppercase tracking-wider font-semibold">
+                      <span className="text-[10px] uppercase font-semibold leading-tight break-words">
                         {preset.label}
                       </span>
-                      <span className="text-[9px] text-text-dim font-mono">
+                      <span className={`text-[9px] font-mono ${active ? "text-white/80" : "text-text-dim"}`}>
                         {String(count).padStart(2, "0")}
                       </span>
                     </button>
@@ -581,110 +561,118 @@ export default function WebSocketTestPage() {
               </div>
             </div>
 
-            {/* Entity picker */}
-            <div className="p-3">
-              <div className="flex items-center justify-between mb-2">
-                <SectionLabel>
-                  {channel === "devices"
-                    ? "УСТРОЙСТВА"
-                    : channel === "tags"
-                      ? "ТЕГИ"
-                      : "ЭКРАНЫ"}
-                </SectionLabel>
-                {currentList.length > 0 && (
-                  <span className="text-[10px] text-text-dim font-mono border border-white/10 rounded px-1.5 py-0.5">
-                    {currentList.length}
-                  </span>
-                )}
+            <div className="p-3 flex-1 min-h-0 flex flex-col">
+              <div className="relative mb-2">
+                <SearchOutlinedIcon
+                  style={{ fontSize: 14 }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-text-dim"
+                />
+                <input
+                  value={entitySearch}
+                  onChange={(e) => setEntitySearch(e.target.value)}
+                  placeholder="фильтр по имени…"
+                  className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint pl-7 pr-2 py-1.5 rounded-lg text-xs outline-none transition-colors hover:border-white/20 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/40"
+                />
               </div>
 
-              {channel === "devices" ? (
-                isLoadingList ? (
-                  <div className="text-center py-3 text-text-dim text-xs">
-                    Загрузка списка...
-                  </div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] text-text-dim font-mono">
+                  подписка: {selectedIds.size} из {currentList.length}
+                </span>
+                <div className="flex items-center gap-2 text-[10px] font-mono">
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    disabled={filteredEntities.length === 0}
+                    className="text-sky-400 hover:text-sky-300 disabled:text-text-faint disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60 rounded"
+                  >
+                    ВСЕ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearSelection}
+                    disabled={selectedIds.size === 0}
+                    className="text-rose-400 hover:text-rose-300 disabled:text-text-faint disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/60 rounded"
+                  >
+                    СБРОС
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-0.5 overflow-y-auto pr-1" style={{ maxHeight: "38vh" }}>
+                {isLoadingList ? (
+                  <div className="text-center py-3 text-text-dim text-xs">Загрузка...</div>
+                ) : filteredEntities.length === 0 ? (
+                  <div className="text-center py-3 text-text-dim text-xs">Не найдено</div>
                 ) : (
-                  <CustomSelect
-                    value={entityId}
-                    onChange={setEntityId}
-                    options={entityOptions}
-                    placeholder={
-                      entityOptions.length
-                        ? "Выберите устройство"
-                        : "Нет данных"
-                    }
-                    sortOptions={false}
-                  />
-                )
-              ) : (
-                <>
-                  <div className="relative mb-2">
-                    <SearchOutlinedIcon
-                      style={{ fontSize: 14 }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 text-text-dim"
-                    />
-                    <input
-                      value={tagSearch}
-                      onChange={(e) => setTagSearch(e.target.value)}
-                      placeholder="фильтр…"
-                      className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint pl-7 pr-2 py-1.5 rounded text-xs outline-none focus:border-white/30"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-0.5 max-h-[60vh] overflow-y-auto pr-1">
-                    {isLoadingList ? (
-                      <div className="text-center py-3 text-text-dim text-xs">
-                        Загрузка...
-                      </div>
-                    ) : filteredTagList.length === 0 ? (
-                      <div className="text-center py-3 text-text-dim text-xs">
-                        Не найдено
-                      </div>
-                    ) : (
-                      filteredTagList.map((t) => {
-                        const active = entityId === t.id;
-                        const c = colorFor(t.id);
-                        const errored = tagState[t.id]?.last?.is_error;
-                        return (
-                          <button
-                            key={t.id}
-                            onClick={() => setEntityId(t.id)}
-                            className="rounded text-left flex items-center gap-2 px-2.5 py-1.5 text-xs border transition"
-                            style={{
-                              background: active ? "#1a2030" : "transparent",
-                              borderColor: active ? "#2b3a55" : "transparent",
-                              borderLeft: `2px solid ${
-                                active ? c : "transparent"
-                              }`,
-                            }}
-                          >
-                            <span
-                              className="w-1.5 h-1.5 rounded-full flex-none"
-                              style={{
-                                background: errored ? "#ff5c8a" : c,
-                              }}
-                            />
-                            <span className="flex-1 min-w-0 truncate text-text-primary">
-                              {t.name || "Без названия"}
-                            </span>
-                            {tagState[t.id]?.last?.unit && (
-                              <span className="font-mono text-[10px] text-text-dim">
-                                {tagState[t.id].last.unit}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </>
-              )}
+                  filteredEntities.map((entity) => {
+                    const checked = selectedIds.has(entity.id);
+                    const status = connStatus.get(entity.id);
+                    const dotColor =
+                      status === "open"
+                        ? "#3ee08f"
+                        : status === "connecting"
+                          ? "#ffc857"
+                          : status === "error"
+                            ? "#ff5c8a"
+                            : "#3a3a3a";
+                    const deviceName = channel === "tags" ? deviceNameById.get(entity.deviceId) : null;
+                    return (
+                      <label
+                        key={entity.id}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-white/[0.03] transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleEntity(entity.id)}
+                          className="accent-orange-500 cursor-pointer flex-shrink-0"
+                        />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: dotColor, boxShadow: status === "open" ? `0 0 5px ${dotColor}` : "none" }}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs text-text-primary">
+                            {formatTagLabelShort(entity.name || "Без названия")}
+                          </span>
+                          {deviceName && (
+                            <span className="block truncate text-[10px] text-text-dim font-mono">{deviceName}</span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <div className="p-3 border-t border-white/10">
+              <SectionLabel>ПАРАМЕТРЫ СЕССИИ</SectionLabel>
+              <div className="mt-2 space-y-1.5">
+                <SessionRow label="Схема" value={isSecure ? "wss (TLS)" : "ws"} />
+                <SessionRow label="Формат" value="JSON, 1 значение/кадр" />
+                <SessionRow label="Интервал ping" value="25 с" />
+                <SessionRow label="Reconnect" value="авто · экспоненциальный backoff" />
+                <SessionRow
+                  label="Токен"
+                  value={
+                    tokenExpiresIn === null
+                      ? "—"
+                      : tokenExpiresIn > 0
+                        ? `действителен · ${tokenExpiresIn} мин`
+                        : "истёк"
+                  }
+                  valueColor={tokenExpiresIn === 0 ? "text-rose-400" : undefined}
+                />
+              </div>
             </div>
           </div>
 
           {/* ----- MAIN ----- */}
           <div className="flex flex-col gap-4 min-w-0">
-            {/* Live tile grid (built from message history) */}
-            <div className="rounded-[2px] border border-white/10 bg-[#0c1118] p-4">
+            {/* Live tile grid */}
+            <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <SectionLabel>ТЕКУЩИЕ ЗНАЧЕНИЯ</SectionLabel>
@@ -697,129 +685,112 @@ export default function WebSocketTestPage() {
                 </div>
                 <span className="text-[11px] text-text-dim font-mono">
                   {activeTags.length > 0
-                    ? `${activeTags.length} активн${
-                        activeTags.length === 1 ? "ый" : "ых"
-                      }`
+                    ? `${sourceCount} источник${sourceCount === 1 ? "" : "ов"} · ${activeTags.length} тег${activeTags.length === 1 ? "" : "ов"}`
                     : "ожидание данных…"}
                 </span>
               </div>
 
               {activeTags.length === 0 ? (
                 <div className="text-center py-10 text-text-dim text-xs">
-                  {isConnected
-                    ? "Поток подключен. Ожидание первого сообщения…"
-                    : "Подключитесь, чтобы увидеть текущие значения тегов"}
+                  {isRunning
+                    ? selectedEntities.length === 0
+                      ? "Выберите устройства/теги/экраны слева"
+                      : "Сокеты подключены. Ожидание первого сообщения…"
+                    : "Выберите сущности и нажмите «Подключиться»"}
                 </div>
               ) : (
-                <>
-                  {/* Tiles */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 mb-4">
-                    {activeTags.map((t) => (
-                      <TagTile key={t.last.tag_id} t={t} />
-                    ))}
-                  </div>
-
-                  {/* Chart - historical trend from /tag-values/aggregates,
-                      with the live WS tail appended on top */}
-                  <div className="mt-6 pt-4 border-t border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <SectionLabel>ТРЕНД ЗНАЧЕНИЙ</SectionLabel>
-                        {isLoadingAggregates && (
-                          <span className="text-[10px] text-text-dim font-mono">
-                            загрузка истории…
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-0.5">
-                        {Object.entries(RANGE_META).map(([key, meta]) => (
-                          <button
-                            key={key}
-                            onClick={() => setRange(key)}
-                            className={`px-2.5 py-1 rounded font-mono font-semibold tracking-wide text-[10px] border transition ${
-                              range === key
-                                ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
-                                : "border-white/10 text-text-dim hover:text-text-secondary"
-                            }`}
-                          >
-                            {meta.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <TrendChart series={trendSeries} tagNames={trendTagNames} />
-                  </div>
-                </>
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
+                  {activeTags.map((t) => (
+                    <TagTile key={t.last.tag_id} t={t} />
+                  ))}
+                </div>
               )}
             </div>
 
             {/* Message stream */}
-            <div className="rounded-[2px] border border-white/10 bg-[#0c1118] p-4">
-              <div className="flex items-center justify-between mb-2">
+            <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4 flex-1 min-h-0 flex flex-col">
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <SectionLabel>ПОТОК СООБЩЕНИЙ</SectionLabel>
                   <span className="text-[11px] text-text-dim font-mono">
-                    {filteredMessages.length} / {messages.length}
+                    {filteredMessages.length} / {messages.length} кадров
                   </span>
                 </div>
-                <div className="flex gap-0.5">
-                  {[
-                    { k: "all", l: "ВСЕ", c: "text-text-primary" },
-                    { k: "recv", l: "← RX", c: "text-emerald-400" },
-                    { k: "sent", l: "→ TX", c: "text-sky-400" },
-                    { k: "err", l: "ERR", c: "text-rose-400" },
-                  ].map((o) => {
-                    const active = filter === o.k;
-                    return (
-                      <button
-                        key={o.k}
-                        onClick={() => setFilter(o.k)}
-                        className={`px-2.5 py-1 rounded font-mono font-semibold tracking-wide text-[10px] border transition ${
-                          active
-                            ? `bg-[#1a2030] border-[#2b3a55] ${o.c}`
-                            : "border-white/10 text-text-dim hover:text-text-secondary"
-                        }`}
-                      >
-                        {o.l}
-                      </button>
-                    );
-                  })}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAutoScroll((v) => !v)}
+                    className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                      autoScroll
+                        ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
+                        : "border-white/10 text-text-dim hover:text-text-secondary"
+                    }`}
+                  >
+                    ● АВТОПРОКРУТКА
+                  </button>
+                  <div className="flex gap-0.5">
+                    {[
+                      { k: "all", l: "ВСЕ", c: "text-text-primary" },
+                      { k: "recv", l: "← RX", c: "text-emerald-400", title: "Данные от сервера" },
+                      {
+                        k: "ping",
+                        l: "→ PING",
+                        c: "text-text-dim",
+                        title: "Keepalive-кадры браузера — не часть протокола",
+                      },
+                      { k: "err", l: "ERR", c: "text-rose-400" },
+                    ].map((o) => {
+                      const active = filter === o.k;
+                      return (
+                        <button
+                          key={o.k}
+                          type="button"
+                          title={o.title}
+                          onClick={() => setFilter(o.k)}
+                          className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                            active
+                              ? `bg-[#1a2030] border-[#2b3a55] ${o.c}`
+                              : "border-white/10 text-text-dim hover:text-text-secondary"
+                          }`}
+                        >
+                          {o.l}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-[#070a0f] border border-white/10 rounded overflow-hidden">
-                <div className="overflow-auto max-h-[55vh]">
+              <div className="bg-[#070a0f] border border-white/10 rounded-lg overflow-hidden flex-1 min-h-0">
+                <div ref={streamRef} className="overflow-auto h-full" style={{ maxHeight: "42vh" }}>
                   {filteredMessages.length === 0 ? (
                     <div className="text-center py-10 text-text-dim">
-                      <MarkEmailUnreadOutlinedIcon
-                        style={{ fontSize: 28 }}
-                        className="text-text-faint mb-2"
-                      />
+                      <MarkEmailUnreadOutlinedIcon style={{ fontSize: 28 }} className="text-text-faint mb-2" />
                       <div className="text-xs">
-                        {isConnected
-                          ? "Ожидание сообщений..."
-                          : "Подключитесь для получения сообщений"}
+                        {isRunning ? "Ожидание сообщений..." : "Подключитесь для получения сообщений"}
                       </div>
                     </div>
                   ) : (
                     <table className="w-full font-mono text-[12px]">
                       <thead className="sticky top-0 bg-[#0a0d12] z-10">
                         <tr className="text-text-dim text-[10px] tracking-wider font-semibold">
-                          <Th>TIME</Th>
-                          <Th>DIR</Th>
-                          <Th>TAG</Th>
-                          <Th align="right">VALUE</Th>
-                          <Th>UNIT</Th>
-                          <Th>STATUS</Th>
-                          <Th>DEVICE</Th>
+                          <Th>ВРЕМЯ</Th>
+                          <Th>НАПР</Th>
+                          <Th>ИСТОЧНИК</Th>
+                          <Th>ТЕГ</Th>
+                          <Th align="right">ЗНАЧЕНИЕ</Th>
+                          <Th>СТАТУС</Th>
+                          <Th align="right">РАЗМЕР</Th>
                         </tr>
                       </thead>
                       <tbody>
-                        {[...filteredMessages].reverse().map((m, i) => (
+                        {filteredMessages.map((m, i) => (
                           <LogRow
-                            key={`${m.time}-${i}`}
+                            key={m.seq}
                             m={m}
                             alt={i % 2 === 1}
+                            selected={m.seq === selectedFrameSeq}
+                            onSelect={() => setSelectedFrameSeq(m.seq)}
                           />
                         ))}
                       </tbody>
@@ -829,6 +800,117 @@ export default function WebSocketTestPage() {
               </div>
             </div>
           </div>
+
+          {/* ----- RIGHT: FRAME INSPECTOR ----- */}
+          <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4 flex flex-col gap-3 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto">
+            {!selectedFrame ? (
+              <div className="text-center py-10 text-text-dim text-xs">Выберите кадр в потоке сообщений</div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] text-text-dim font-mono">
+                      КАДР #{selectedFrame.seq} ·{" "}
+                      {selectedFrame.direction === "in"
+                        ? "RX"
+                        : selectedFrame.direction === "out"
+                          ? "PING"
+                          : "СИСТЕМА"}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyFrame}
+                    className="inline-flex items-center gap-1 text-[10px] font-mono text-text-dim hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/60 rounded px-1.5 py-0.5"
+                  >
+                    <ContentCopyOutlinedIcon style={{ fontSize: 12 }} />
+                    КОПИЯ
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                  <MetaField label="НАПРАВЛЕНИЕ" value={selectedFrame.direction === "in" ? "RX (сервер → клиент)" : selectedFrame.direction === "out" ? "PING (клиент → сервер)" : "событие сокета"} />
+                  <MetaField label="ИСТОЧНИК" value={`${channel}/${selectedFrame.entityName || "—"}`} />
+                  <MetaField label="ВРЕМЯ" value={formatTimeMs(selectedFrame.time)} mono />
+                  <MetaField label="Δt ОТ ПРЕД." value={frameDeltaMs === null ? "—" : `${frameDeltaMs} мс`} mono />
+                </div>
+
+                <div className="flex gap-0.5">
+                  {["json", "raw", "hex"].map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setFrameTab(tab)}
+                      disabled={tab === "json" && !selectedFrame.parsed}
+                      className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                        frameTab === tab
+                          ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
+                          : "border-white/10 text-text-dim hover:text-text-secondary"
+                      }`}
+                    >
+                      {tab.toUpperCase()}
+                    </button>
+                  ))}
+                  <span className="ml-auto text-[10px] text-text-dim font-mono self-center">
+                    {byteLength(selectedFrame.raw)} Б
+                  </span>
+                </div>
+
+                <div className="bg-[#070a0f] border border-white/10 rounded-lg p-3 overflow-auto" style={{ maxHeight: "34vh" }}>
+                  {frameTab === "json" && selectedFrame.parsed ? (
+                    <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
+                      <JsonNode value={selectedFrame.parsed} depth={0} />
+                    </pre>
+                  ) : frameTab === "hex" ? (
+                    <div className="text-[10.5px] font-mono leading-relaxed text-text-secondary">
+                      {toHexDump(selectedFrame.raw).map((row) => (
+                        <div key={row.offset} className="flex gap-3 whitespace-nowrap">
+                          <span className="text-text-faint">{row.offset.toString(16).padStart(6, "0")}</span>
+                          <span className="text-sky-300">{row.hex}</span>
+                          <span className="text-text-dim">{row.ascii}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
+                      {selectedFrame.raw}
+                    </pre>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-white/10">
+                  <SectionLabel>ОТПРАВИТЬ ТЕКСТ</SectionLabel>
+                  <p className="text-[10px] text-text-dim mt-1 mb-2 leading-relaxed">
+                    У сервера нет протокола команд (WEBSOCKET_API.md) — любой текст воспринимается только как
+                    keepalive и не обрабатывается. Отправляется во все открытые сокеты.
+                  </p>
+                  <textarea
+                    value={sendText}
+                    onChange={(e) => setSendText(e.target.value)}
+                    rows={2}
+                    className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint px-2.5 py-2 rounded-lg text-xs font-mono outline-none transition-colors hover:border-white/20 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/40 resize-none"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setSendText("ping")}
+                      className="px-3 py-1.5 rounded-lg border border-white/10 text-text-dim text-[10.5px] font-mono hover:text-text-secondary hover:border-white/25 transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                    >
+                      ping
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      disabled={openCount === 0}
+                      className="flex-1 py-1.5 rounded-lg bg-orange-500 text-[#0a0d12] text-[11px] font-bold tracking-wide hover:brightness-110 active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118]"
+                    >
+                      ОТПРАВИТЬ
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -836,80 +918,16 @@ export default function WebSocketTestPage() {
 }
 
 /* ---------- Sub-components ----------------------------------------------- */
-function TrendChart({ series, tagNames }) {
-  const chartData = useMemo(
-    () =>
-      series.map((row) => ({
-        ...row,
-        time: formatAxisTime(row.ms),
-      })),
-    [series],
-  );
-
-  if (!tagNames || tagNames.length === 0) {
-    return null;
-  }
-
-  if (chartData.length === 0) {
-    return (
-      <div className="text-text-dim text-xs py-4">Собираем данные...</div>
-    );
-  }
-
-  return (
-    <div
-      className="w-full bg-[#070a0f] rounded border border-white/10 p-3"
-      style={{ height: "340px" }}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1a2a3a" />
-          <XAxis dataKey="time" stroke="#64748b" tick={{ fontSize: 11 }} />
-          <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#0a0d12",
-              border: "1px solid #334155",
-              borderRadius: "4px",
-            }}
-            labelStyle={{ color: "#94a3b8" }}
-          />
-          <Legend />
-          {tagNames.map((key) => (
-            <Line
-              key={key}
-              dataKey={key}
-              stroke={colorFor(key)}
-              dot={false}
-              strokeWidth={2}
-              connectNulls
-              isAnimationActive={false}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 function SectionLabel({ children }) {
-  return (
-    <div className="text-[10px] text-text-muted tracking-widest font-bold uppercase">
-      {children}
-    </div>
-  );
+  return <div className="text-[10px] text-text-muted tracking-widest font-bold uppercase">{children}</div>;
 }
 
-function StatusChunk({ label, value, mono, color, muted }) {
+function StatusChunk({ label, value, mono, color, muted, title }) {
   return (
-    <div className="px-4 py-2 border-r border-white/10 flex flex-col justify-center gap-0.5 min-w-[120px]">
-      <div className="text-[9px] text-text-dim tracking-wider font-semibold">
-        {label}
-      </div>
+    <div title={title} className="px-4 py-2 border-r border-white/10 flex flex-col justify-center gap-0.5 min-w-[100px]">
+      <div className="text-[9px] text-text-dim tracking-wider font-semibold">{label}</div>
       <div
-        className={`text-[13px] font-semibold ${
-          color || (muted ? "text-text-dim" : "text-text-primary")
-        } ${mono ? "font-mono" : ""}`}
+        className={`text-[13px] font-semibold ${color || (muted ? "text-text-dim" : "text-text-primary")} ${mono ? "font-mono" : ""}`}
       >
         {value}
       </div>
@@ -917,18 +935,38 @@ function StatusChunk({ label, value, mono, color, muted }) {
   );
 }
 
+function SessionRow({ label, value, valueColor }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[10.5px] text-text-dim">{label}</span>
+      <span className={`text-[10.5px] font-mono ${valueColor || "text-text-secondary"}`}>{value}</span>
+    </div>
+  );
+}
+
+function MetaField({ label, value, mono }) {
+  return (
+    <div>
+      <div className="text-[9px] text-text-dim tracking-wider font-semibold">{label}</div>
+      <div className={`text-text-secondary truncate ${mono ? "font-mono" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
 const ACCENT = {
-  emerald: "text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10",
-  rose: "text-rose-400 border-rose-500/40 hover:bg-rose-500/10",
-  slate: "text-text-secondary border-white/20 hover:bg-white/5",
+  emerald: "text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 focus-visible:ring-emerald-500/60",
+  rose: "text-rose-400 border-rose-500/40 hover:bg-rose-500/10 focus-visible:ring-rose-500/60",
+  slate: "text-text-secondary border-white/20 hover:bg-white/5 focus-visible:ring-white/40",
 };
 
-function ToolBtn({ children, accent = "slate", disabled, onClick }) {
+function ToolBtn({ children, accent = "slate", disabled, onClick, title }) {
   return (
     <button
+      type="button"
+      title={title}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-bold tracking-wider border bg-transparent transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent ${ACCENT[accent]}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider border bg-transparent transition-all enabled:active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0d12] ${ACCENT[accent]}`}
     >
       {children}
     </button>
@@ -944,47 +982,33 @@ function TagTile({ t }) {
   const max = vals.length ? Math.max(...vals) : null;
   return (
     <div
-      className="rounded p-3 flex flex-col gap-1.5 bg-[#0c1118] border border-white/10 hover:bg-[#0e1421] transition"
+      className="rounded-lg p-3 flex flex-col gap-1.5 bg-[#0c1118] border border-white/10 hover:bg-[#0e1421] transition-colors"
       style={{ borderTop: `2px solid ${errored ? "#ff5c8a" : c}` }}
+      title={t.sourceName}
     >
       <div className="flex items-center justify-between">
         <div className="text-[10px] text-text-muted font-semibold uppercase tracking-wide truncate">
-          {last.tag_name || "—"}
+          {formatTagLabelShort(last.tag_name || "—")}
         </div>
         {errored ? (
-          <span className="text-[9px] text-rose-400 border border-rose-900/60 rounded px-1 py-px font-mono inline-flex items-center gap-1">
+          <span className="text-[9px] text-rose-400 border border-rose-900/60 rounded px-1 py-px font-mono inline-flex items-center gap-1 flex-shrink-0">
             <ErrorOutlineOutlinedIcon style={{ fontSize: 9 }} />
             ERR
           </span>
         ) : (
-          <span className="text-[9px] text-emerald-400 font-mono">OK</span>
+          <span className="text-[9px] text-emerald-400 font-mono flex-shrink-0">OK</span>
         )}
       </div>
       <div className="flex items-baseline gap-1">
-        <span
-          className="text-2xl font-bold font-mono tabular-nums"
-          style={{ color: errored ? "#ff5c8a" : "#fff" }}
-        >
-          {typeof last.value === "number"
-            ? last.value
-            : Number.isFinite(Number(last.value))
-              ? Number(last.value)
-              : "—"}
+        <span className="text-2xl font-bold font-mono tabular-nums" style={{ color: errored ? "#ff5c8a" : "#fff" }}>
+          {typeof last.value === "number" ? last.value : Number.isFinite(Number(last.value)) ? Number(last.value) : "—"}
         </span>
-        {last.unit && (
-          <span className="text-[11px] text-text-dim font-mono">
-            {last.unit}
-          </span>
-        )}
+        {last.unit && <span className="text-[11px] text-text-dim font-mono">{last.unit}</span>}
       </div>
       <Sparkline data={t.history} color={c} width={220} height={24} />
       <div className="flex justify-between text-[9px] text-text-dim font-mono">
         <span>min {min != null ? min.toFixed(2) : "—"}</span>
-        {last.device_id && (
-          <span className="text-text-faint truncate max-w-[100px]">
-            dev: {String(last.device_id).slice(0, 8)}
-          </span>
-        )}
+        <span className="text-text-faint truncate max-w-[100px]">{t.sourceName}</span>
         <span>max {max != null ? max.toFixed(2) : "—"}</span>
       </div>
     </div>
@@ -993,52 +1017,42 @@ function TagTile({ t }) {
 
 function Th({ children, align = "left" }) {
   return (
-    <th
-      className="px-2.5 py-2 border-b border-white/10 whitespace-nowrap"
-      style={{ textAlign: align }}
-    >
+    <th className="px-2.5 py-2 border-b border-white/10 whitespace-nowrap" style={{ textAlign: align }}>
       {children}
     </th>
   );
 }
 
-function LogRow({ m, alt }) {
-  const isRecv = m.direction === "in";
-  const dirColor = isRecv ? "text-emerald-400" : "text-sky-400";
-  const d = parsePayload(m.text);
+function LogRow({ m, alt, selected, onSelect }) {
+  const dirMeta =
+    m.direction === "in"
+      ? { label: "← RX", color: "text-emerald-400" }
+      : m.direction === "out"
+        ? { label: "→ PING", color: "text-text-dim" }
+        : { label: "• СИСТЕМА", color: "text-amber-400" };
+  const d = m.parsed;
   const isErr = d?.is_error;
   return (
     <tr
-      className={`border-b border-white/5 text-text-muted ${
-        alt ? "bg-white/[0.015]" : ""
+      onClick={onSelect}
+      className={`border-b border-white/5 text-text-muted cursor-pointer transition-colors ${
+        selected ? "bg-orange-500/10" : alt ? "bg-white/[0.015] hover:bg-white/[0.03]" : "hover:bg-white/[0.03]"
       }`}
     >
       <Td>{formatTimeMs(m.time)}</Td>
       <Td>
-        <span className={`font-bold ${dirColor}`}>
-          {isRecv ? "←  RX" : "→  TX"}
-        </span>
+        <span className={`font-bold ${dirMeta.color}`}>{dirMeta.label}</span>
       </Td>
       <Td>
-        <span className="text-text-primary">
-          {d?.tag_name || <span className="text-text-faint">—</span>}
-        </span>
+        <span className="text-text-dim truncate inline-block max-w-[110px] align-bottom">{m.entityName || "—"}</span>
+      </Td>
+      <Td>
+        <span className="text-text-primary">{d?.tag_name || <span className="text-text-faint">—</span>}</span>
       </Td>
       <Td align="right">
-        <span
-          className={`font-semibold ${isErr ? "text-rose-400" : "text-white"}`}
-        >
-          {d
-            ? typeof d.value === "number"
-              ? d.value
-              : (d.value ?? "—")
-            : typeof m.text === "string"
-              ? m.text.slice(0, 20)
-              : ""}
+        <span className={`font-semibold ${isErr ? "text-rose-400" : "text-white"}`}>
+          {d ? (typeof d.value === "number" ? d.value : (d.value ?? "—")) : m.raw?.slice(0, 20) || ""}
         </span>
-      </Td>
-      <Td>
-        <span className="text-text-dim">{d?.unit || ""}</span>
       </Td>
       <Td>
         {isErr ? (
@@ -1052,10 +1066,8 @@ function LogRow({ m, alt }) {
           <span className="text-text-faint">—</span>
         )}
       </Td>
-      <Td>
-        <span className="text-text-dim text-[11px]">
-          {d?.device_id ? String(d.device_id).slice(0, 12) : ""}
-        </span>
+      <Td align="right">
+        <span className="text-text-dim text-[11px]">{byteLength(m.raw)} Б</span>
       </Td>
     </tr>
   );
@@ -1063,10 +1075,7 @@ function LogRow({ m, alt }) {
 
 function Td({ children, align = "left" }) {
   return (
-    <td
-      className="px-2.5 py-1.5 whitespace-nowrap tabular-nums"
-      style={{ textAlign: align }}
-    >
+    <td className="px-2.5 py-1.5 whitespace-nowrap tabular-nums" style={{ textAlign: align }}>
       {children}
     </td>
   );

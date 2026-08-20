@@ -104,7 +104,7 @@ const SchemaSearch = () => {
                 key={element.id}
                 type="button"
                 onClick={() => handleSelect(element.id)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-blue-500/10 text-left transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-blue-500/10 active:bg-blue-500/20 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
               >
                 <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center text-text-dim">
                   <ShapeThumbnail kind={element.type} size={20} />

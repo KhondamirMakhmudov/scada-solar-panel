@@ -266,7 +266,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               <button
                 type="button"
                 onClick={handleRemoveCrossDeviceExtras}
-                className="text-[10px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 transition-colors"
+                className="text-[10px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 active:scale-95 active:bg-amber-500/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
               >
                 Убрать теги других устройств
               </button>

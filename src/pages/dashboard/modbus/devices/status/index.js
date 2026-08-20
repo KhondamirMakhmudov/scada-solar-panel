@@ -82,7 +82,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             {/* Actions Menu Toggle */}
             <button
               onClick={() => setShowActions(!showActions)}
-              className="w-8 h-8 rounded-[2px] bg-background-dark/80 hover:bg-surface-border border border-surface-border-hover flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-[2px] bg-background-dark/80 hover:bg-surface-border active:scale-90 border border-surface-border-hover flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <span className="material-symbols-outlined text-text-secondary text-lg">
                 more_vert
@@ -102,7 +102,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <button
               onClick={() => handleAction("start")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 active:bg-blue-500/20 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn enabled:active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset"
             >
               {actionLoading === "start" ? (
                 <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -122,7 +122,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <button
               onClick={() => handleAction("stop")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-red-500/10 active:bg-red-500/20 border border-transparent hover:border-red-500/30 transition-all text-left group/btn enabled:active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-inset"
             >
               {actionLoading === "stop" ? (
                 <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -144,7 +144,7 @@ const DeviceCard = ({ device, delay, onAction }) => {
             <button
               onClick={() => handleAction("restart")}
               disabled={actionLoading !== null}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[2px] hover:bg-blue-500/10 active:bg-blue-500/20 border border-transparent hover:border-blue-500/30 transition-all text-left group/btn enabled:active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset"
             >
               {actionLoading === "restart" ? (
                 <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -369,7 +369,7 @@ const Index = () => {
             </div>
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-[2px] font-medium transition-all"
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-[2px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               Обновить сейчас
             </button>
@@ -394,7 +394,7 @@ const Index = () => {
           <div className="flex gap-2 items-center">
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-[2px] font-medium transition-all text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-[2px] font-medium transition-all text-sm flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               <span className="material-symbols-outlined text-lg">refresh</span>
               Обновить
@@ -403,9 +403,9 @@ const Index = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 ${
                   filter === "all"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >
@@ -413,9 +413,9 @@ const Index = () => {
               </button>
               <button
                 onClick={() => setFilter("active")}
-                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 ${
                   filter === "active"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >
@@ -423,9 +423,9 @@ const Index = () => {
               </button>
               <button
                 onClick={() => setFilter("inactive")}
-                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm ${
+                className={`px-4 py-2 rounded-[2px] font-medium transition-all text-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 ${
                   filter === "inactive"
-                    ? "bg-red-500 text-white"
+                    ? "bg-red-500 text-white hover:bg-red-600"
                     : "bg-background-dark text-text-muted hover:bg-surface-border"
                 }`}
               >

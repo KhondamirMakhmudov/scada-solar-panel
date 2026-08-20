@@ -48,7 +48,7 @@ const CustomSelect = ({
   return (
     <div className={`relative w-full font-ibmPlexSans ${className}`} ref={selectRef}>
       {label && (
-        <label className="block mb-[4px] text-[11px] uppercase tracking-wide text-text-muted">
+        <label className="block mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#d1d5db]">
           {label}
           {required && <span className="text-status-fault"> *</span>}
         </label>
@@ -58,30 +58,32 @@ const CustomSelect = ({
         type="button"
         onClick={toggleDropdown}
         className={clsx(
-          "w-full h-9 border text-[12.5px] rounded-[2px] px-2.5 text-left bg-background-dark text-text-primary flex items-center justify-between focus:outline-none transition-colors",
+          "w-full h-11 border text-[13.5px] rounded-lg px-3.5 text-left bg-[#2c2c32] text-text-primary flex items-center justify-between focus:outline-none transition-colors active:scale-[0.99]",
           error
             ? "border-status-fault"
-            : "border-surface-border hover:border-surface-border-hover"
+            : isOpen
+              ? "border-primary ring-2 ring-primary"
+              : "border-white/15 hover:border-white/25"
         )}
       >
         <span className={clsx("truncate", !value && "text-text-faint")}>
           {selectedLabel || placeholder}
         </span>
         <KeyboardArrowDown
-          sx={{ fontSize: 16 }}
-          className={`transition-transform duration-200 text-text-muted ${
+          sx={{ fontSize: 18 }}
+          className={`flex-shrink-0 ml-2 transition-transform duration-200 text-text-muted ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <ul className="absolute z-[9999] mt-1 w-full bg-surface-dark text-text-primary border border-surface-border rounded-[2px] shadow-xl shadow-black/40 max-h-60 overflow-auto">
+        <ul className="absolute z-[9999] mt-1.5 w-full bg-[#2c2c32] text-text-primary border border-white/15 rounded-lg shadow-xl shadow-black/50 max-h-60 overflow-auto py-1">
           {finalOptions.map((opt, idx) => (
             <li
               key={idx}
               className={clsx(
-                "px-3 py-1.5 text-[12.5px] hover:bg-background-dark cursor-pointer transition-colors",
+                "px-3 py-2 text-[13px] hover:bg-primary/10 active:bg-primary/20 cursor-pointer transition-colors",
                 (returnObject ? value?.value : value) === opt.value &&
                   "bg-primary/10 text-primary font-medium border-l-2 border-primary"
               )}

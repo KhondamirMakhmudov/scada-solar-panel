@@ -169,7 +169,7 @@ export default function TopNavBar() {
           <button
             type="button"
             onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-            className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-[2px] border border-transparent hover:border-surface-border transition-colors"
+            className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-[2px] border border-transparent hover:border-surface-border hover:bg-white/[0.02] active:scale-[0.97] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
           >
             <Avatar
               {...stringAvatar(userFullName)}
@@ -193,7 +193,7 @@ export default function TopNavBar() {
                 <Link
                   href="/dashboard/settings"
                   onClick={() => setIsProfileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] border-b border-surface-border transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] border-b border-surface-border transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
                 >
                   <SettingsRoundedIcon
                     sx={{ fontSize: 15, color: "#bfc7d4" }}
@@ -206,7 +206,7 @@ export default function TopNavBar() {
                     setIsProfileMenuOpen(false);
                     setOpenExitModal(true);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] text-left transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
                 >
                   <ExitToAppIcon sx={{ fontSize: 15, color: "#bfc7d4" }} />
                   Выйти
@@ -228,7 +228,7 @@ export default function TopNavBar() {
               type="button"
               onClick={() => router.push(item.path)}
               title={item.hint}
-              className={`flex items-center gap-1.5 px-3 whitespace-nowrap text-[11.5px] font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 whitespace-nowrap text-[11.5px] font-medium border-b-2 transition-colors active:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
                 isActive
                   ? "border-primary text-primary bg-primary/[0.06]"
                   : "border-transparent text-text-secondary hover:text-text-primary hover:bg-white/[0.02]"

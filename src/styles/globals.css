@@ -231,6 +231,26 @@ body {
   }
 }
 
+/* Brief highlight on a mnemonic-screen value row when a new live reading
+   arrives — see PanelInstance.tsx. Not a blink/loop: plays once per update
+   so an operator's eye catches "this just changed" without a permanently
+   flickering screen. */
+@keyframes value-flash {
+  0% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.mnemonic-value-flash {
+  /* forwards is load-bearing: without it, the element snaps back to its
+     default opacity (1, fully opaque) the instant the animation ends,
+     permanently painting the row solid instead of fading out. */
+  animation: value-flash 700ms ease-out forwards;
+}
+
 /* From Uiverse.io by DevPTG */
 @keyframes spin {
   from {

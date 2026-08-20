@@ -66,7 +66,7 @@ const EditorToolbar = ({
   const redo = useHistoryStore((state) => state.redo);
 
   const toolButtonClass = (tool: string) =>
-    `w-7 h-7 flex items-center justify-center rounded-[2px] text-sm transition-colors ${
+    `w-7 h-7 flex items-center justify-center rounded-[2px] text-sm transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
       activeTool === tool
         ? "bg-blue-500/20 text-blue-300 border border-blue-500/50"
         : "text-text-secondary border border-transparent hover:bg-background-dark"
@@ -82,7 +82,7 @@ const EditorToolbar = ({
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+          className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors rounded-[2px] active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           <span className="text-base leading-none">←</span> Назад
         </button>
@@ -118,7 +118,7 @@ const EditorToolbar = ({
           onClick={onPreview}
           disabled={isPreviewing}
           title="Сохранить и открыть в новой вкладке"
-          className="h-8 flex items-center gap-2 border border-surface-border hover:border-surface-border-hover disabled:opacity-60 text-text-primary text-sm font-medium px-3 rounded-[2px] transition-colors"
+          className="h-8 flex items-center gap-2 border border-surface-border hover:border-surface-border-hover disabled:opacity-60 text-text-primary text-sm font-medium px-3 rounded-[2px] transition-colors enabled:active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
         >
           {isPreviewing ? "Открытие..." : "Предпросмотр ↗"}
         </button>
@@ -126,7 +126,7 @@ const EditorToolbar = ({
           type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="h-8 flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-medium px-4 rounded-[2px] transition-colors"
+          className="h-8 flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-medium px-4 rounded-[2px] transition-colors enabled:active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
         >
           {isSaving ? "Сохранение..." : "Сохранить схему"}
         </button>
@@ -162,7 +162,7 @@ const EditorToolbar = ({
             onClick={undo}
             disabled={!canUndo}
             title="Отменить (Ctrl+Z)"
-            className="w-7 h-7 flex items-center justify-center rounded-[2px] text-text-secondary hover:bg-background-dark disabled:opacity-30 disabled:hover:bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded-[2px] text-text-secondary transition-colors hover:bg-background-dark enabled:active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ↶
           </button>
@@ -171,7 +171,7 @@ const EditorToolbar = ({
             onClick={redo}
             disabled={!canRedo}
             title="Повторить (Ctrl+Y)"
-            className="w-7 h-7 flex items-center justify-center rounded-[2px] text-text-secondary hover:bg-background-dark disabled:opacity-30 disabled:hover:bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded-[2px] text-text-secondary transition-colors hover:bg-background-dark enabled:active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ↷
           </button>
@@ -185,7 +185,7 @@ const EditorToolbar = ({
             type="button"
             onClick={() => stepZoom(-1)}
             title="Уменьшить"
-            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             −
           </button>
@@ -193,7 +193,7 @@ const EditorToolbar = ({
             type="button"
             onClick={() => setViewport({ zoom: 1, panX: 0, panY: 0 })}
             title="Сбросить масштаб и положение (100 %)"
-            className="w-12 h-6 rounded text-[11px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors"
+            className="w-12 h-6 rounded text-[11px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             {Math.round(zoom * 100)}%
           </button>
@@ -201,7 +201,7 @@ const EditorToolbar = ({
             type="button"
             onClick={() => stepZoom(1)}
             title="Увеличить"
-            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             +
           </button>
@@ -217,9 +217,9 @@ const EditorToolbar = ({
                 type="button"
                 onClick={() => setGridStyle(option.value)}
                 title={option.title}
-                className={`w-6 h-6 text-[11px] leading-none transition-colors ${
+                className={`w-6 h-6 text-[11px] leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                   gridStyle === option.value
-                    ? "bg-blue-500/20 text-blue-300"
+                    ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
                     : "text-text-dim hover:bg-background-dark hover:text-text-secondary"
                 }`}
               >
@@ -231,9 +231,9 @@ const EditorToolbar = ({
             type="button"
             onClick={toggleSnapToGrid}
             title="Привязка к сетке при перемещении и изменении размера"
-            className={`h-6 px-2 rounded-[2px] border text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
+            className={`h-6 px-2 rounded-[2px] border text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
               snapToGrid
-                ? "border-blue-500/50 bg-blue-500/15 text-blue-300"
+                ? "border-blue-500/50 bg-blue-500/15 text-blue-300 hover:bg-blue-500/25"
                 : "border-surface-border text-text-dim hover:text-text-secondary hover:border-surface-border"
             }`}
           >

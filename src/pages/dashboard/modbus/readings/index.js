@@ -319,20 +319,20 @@ const Index = () => {
               <div className="flex gap-2 bg-surface-dark rounded-[2px] p-1">
                 <button
                   onClick={() => setViewMode("table")}
-                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     viewMode === "table"
-                      ? "bg-primary text-background-dark"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-primary text-background-dark hover:bg-opacity-90"
+                      : "text-text-muted hover:text-text-primary hover:bg-background-dark"
                   }`}
                 >
                   Таблица
                 </button>
                 <button
                   onClick={() => setViewMode("chart")}
-                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-[2px] text-sm font-medium transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     viewMode === "chart"
-                      ? "bg-primary text-background-dark"
-                      : "text-text-muted hover:text-text-primary"
+                      ? "bg-primary text-background-dark hover:bg-opacity-90"
+                      : "text-text-muted hover:text-text-primary hover:bg-background-dark"
                   }`}
                 >
                   График

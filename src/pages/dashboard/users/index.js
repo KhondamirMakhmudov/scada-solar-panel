@@ -233,7 +233,7 @@ const Index = () => {
               setDeleteModal(true);
             }}
             style={{ color: "#ef4444" }}
-            className="hover:underline"
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
           >
             УДАЛИТЬ
           </button>
@@ -277,15 +277,16 @@ const Index = () => {
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
             placeholder="поиск пользователей…"
+            className="transition-colors hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
             style={{
               width: 230,
-              padding: "5px 8px",
-              background: "#1c1b1b",
-              border: "1px solid #2a2a2a",
-              borderRadius: 2,
+              height: 36,
+              padding: "0 12px",
+              background: "#2c2c32",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
               color: "#e5e2e1",
-              font: "400 11.5px/1.3 'IBM Plex Mono'",
-              outline: "none",
+              font: "400 12px/1.3 'IBM Plex Mono'",
             }}
           />
           <ChipSelect
@@ -297,45 +298,49 @@ const Index = () => {
 
           <div className="flex-1" />
 
-          <div style={{ display: "flex", border: "1px solid #2a2a2a", borderRadius: 2, overflow: "hidden" }}>
-            <div
+          <div className="flex rounded-lg border border-white/15 overflow-hidden">
+            <button
+              type="button"
               onClick={() => setActiveTab("table")}
+              className="transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
               style={{
-                padding: "4px 9px",
+                padding: "6px 12px",
                 cursor: "pointer",
                 font: "500 10px/1.5 'IBM Plex Mono'",
-                background: activeTab === "table" ? "#3b82f6" : "#1c1b1b",
-                color: activeTab === "table" ? "#fff" : "#7c8290",
+                background: activeTab === "table" ? "#3b82f6" : "transparent",
+                color: activeTab === "table" ? "#fff" : "#9aa0ac",
               }}
             >
               ТАБЛИЦА
-            </div>
-            <div
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab("card")}
+              className="transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
               style={{
-                padding: "4px 9px",
+                padding: "6px 12px",
                 cursor: "pointer",
                 font: "500 10px/1.5 'IBM Plex Mono'",
-                borderLeft: "1px solid #2a2a2a",
-                background: activeTab === "card" ? "#3b82f6" : "#1c1b1b",
-                color: activeTab === "card" ? "#fff" : "#7c8290",
+                borderLeft: "1px solid rgba(255,255,255,0.15)",
+                background: activeTab === "card" ? "#3b82f6" : "transparent",
+                color: activeTab === "card" ? "#fff" : "#9aa0ac",
               }}
             >
               КАРТОЧКИ
-            </div>
+            </button>
           </div>
 
           <button
             type="button"
             onClick={() => setCreateModal(true)}
-            className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
+            className="h-9 px-4 rounded-lg border border-primary text-primary text-[10.5px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
           >
             + ПОЛЬЗОВАТЕЛЬ
           </button>
         </div>
 
         {activeTab === "table" && (
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+          <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
             <CustomTable columns={columns} data={filteredUsers} />
           </div>
         )}

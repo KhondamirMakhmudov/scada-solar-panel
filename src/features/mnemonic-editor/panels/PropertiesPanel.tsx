@@ -63,7 +63,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
               type="button"
               onClick={togglePinned}
               title="Свернуть панель"
-              className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors"
+              className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
             >
               »
             </button>
@@ -79,7 +79,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           type="button"
           onClick={togglePinned}
           title="Настройки холста"
-          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           «
         </button>
@@ -143,7 +143,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           type="button"
           onClick={clearSelection}
           title="Снять выделение"
-          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary text-sm leading-none transition-colors"
+          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary text-sm leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           ✕
         </button>
@@ -194,7 +194,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
         <button
           type="button"
           onClick={handleDelete}
-          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 rounded-[2px] py-2 transition-colors"
+          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 active:bg-rose-500/20 active:scale-[0.98] rounded-[2px] py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
         >
           Удалить элемент
         </button>

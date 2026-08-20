@@ -564,15 +564,15 @@ const Index = () => {
       header: "Действия",
       cell: ({ row }) => (
         <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
-          <button type="button" onClick={() => openViewModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+          <button type="button" onClick={() => openViewModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
             ПРОСМОТР
           </button>
           <span style={{ color: "#3b82f6" }}> · </span>
-          <button type="button" onClick={() => openEditModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+          <button type="button" onClick={() => openEditModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
             ИЗМЕНИТЬ
           </button>
           <span style={{ color: "#3b82f6" }}> · </span>
-          <button type="button" onClick={() => openDeleteModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline">
+          <button type="button" onClick={() => openDeleteModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
             УДАЛИТЬ
           </button>
         </div>
@@ -597,15 +597,16 @@ const Index = () => {
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
             placeholder="поиск устройств…"
+            className="transition-colors hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
             style={{
               width: 230,
-              padding: "5px 8px",
-              background: "#1c1b1b",
-              border: "1px solid #2a2a2a",
-              borderRadius: 2,
+              height: 36,
+              padding: "0 12px",
+              background: "#2c2c32",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
               color: "#e5e2e1",
-              font: "400 11.5px/1.3 'IBM Plex Mono'",
-              outline: "none",
+              font: "400 12px/1.3 'IBM Plex Mono'",
             }}
           />
           <ChipSelect value={statusFilter} onChange={setStatusFilter} label="СТАТУС" options={STATUS_OPTIONS} />
@@ -613,48 +614,52 @@ const Index = () => {
 
           <div className="flex-1" />
 
-          <div style={{ display: "flex", border: "1px solid #2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+          <div className="flex rounded-lg border border-white/15 overflow-hidden">
             {VIEW_MODE_OPTIONS.map((item, idx) => {
               const isActive = viewMode === item.value;
               return (
-                <div
+                <button
                   key={item.value}
+                  type="button"
                   onClick={() => setViewMode(item.value)}
+                  className="transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
                   style={{
-                    padding: "4px 9px",
+                    padding: "6px 12px",
                     cursor: "pointer",
                     font: "500 10px/1.5 'IBM Plex Mono'",
-                    borderLeft: idx > 0 ? "1px solid #2a2a2a" : "none",
-                    background: isActive ? "#3b82f6" : "#1c1b1b",
-                    color: isActive ? "#fff" : "#7c8290",
+                    borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
+                    background: isActive ? "#3b82f6" : "transparent",
+                    color: isActive ? "#fff" : "#9aa0ac",
                     textTransform: "uppercase",
                   }}
                 >
                   {item.value === "table" ? "ТАБЛИЦА" : "КАРТОЧКИ"}
-                </div>
+                </button>
               );
             })}
           </div>
 
-          <span
+          <button
+            type="button"
             onClick={() => {
               resetCreateForm();
               setShowCreateModal(true);
             }}
+            className="transition-colors hover:bg-primary/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
             style={{
-              padding: "5px 10px",
+              padding: "8px 14px",
               border: "1px solid #3b82f6",
-              borderRadius: 2,
-              font: "500 10.5px/1.2 'IBM Plex Mono'",
+              borderRadius: 8,
+              font: "600 10.5px/1.2 'IBM Plex Mono'",
               color: "#3b82f6",
               cursor: "pointer",
             }}
           >
             + УСТРОЙСТВО
-          </span>
+          </button>
         </div>
 
-        <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+        <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
           {filteredDevices.length === 0 ? (
             <NoData
               title="Устройства не найдены"
@@ -688,9 +693,9 @@ const Index = () => {
                       setPageSize(size);
                       setCurrentPage(1);
                     }}
-                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition ${
+                    className={`h-8 w-10 rounded-[2px] border text-xs font-medium transition active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                       pageSize === size
-                        ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
+                        ? "border-blue-500/70 bg-blue-500/20 text-blue-200 hover:bg-blue-500/30"
                         : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                     }`}
                   >
@@ -704,7 +709,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                   title="Первая"
                 >
                   «
@@ -713,7 +718,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                   title="Назад"
                 >
                   ‹
@@ -746,9 +751,9 @@ const Index = () => {
                         key={item}
                         type="button"
                         onClick={() => setCurrentPage(item)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-[2px] border text-xs font-medium transition active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                           currentPage === item
-                            ? "border-blue-500/70 bg-blue-500/20 text-blue-200"
+                            ? "border-blue-500/70 bg-blue-500/20 text-blue-200 hover:bg-blue-500/30"
                             : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                         }`}
                       >
@@ -763,7 +768,7 @@ const Index = () => {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                   title="Вперёд"
                 >
                   ›
@@ -772,7 +777,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition hover:border-surface-border-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                   title="Последняя"
                 >
                   »

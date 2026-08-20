@@ -83,15 +83,15 @@ const CustomTable = ({ data, columns, pagination }) => {
   };
 
   return (
-    <div className="overflow-x-auto border border-surface-border rounded-md font-ibmPlexSans">
+    <div className="overflow-x-auto border border-white/[0.08] rounded-xl font-ibmPlexSans">
       <table className="min-w-full text-left">
-        <thead className="bg-background-dark border-b border-surface-border">
+        <thead className="bg-[#18181c] border-b border-white/[0.08]">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted cursor-pointer select-none"
+                  className="px-4 py-3 text-[10.5px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-secondary cursor-pointer select-none transition-colors"
                   onClick={header.column.getToggleSortingHandler()}
                 >
                   <span className="flex items-center gap-1">
@@ -125,12 +125,12 @@ const CustomTable = ({ data, columns, pagination }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 5 }}
                 transition={{ duration: 0.2 }}
-                className="hover:bg-[#232222] cursor-auto transition-colors duration-150"
+                className="hover:bg-white/[0.03] cursor-auto transition-colors duration-150"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-3 py-2 border-t border-t-surface-border"
+                    className="px-4 py-2.5 border-t border-t-white/[0.06]"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -143,11 +143,11 @@ const CustomTable = ({ data, columns, pagination }) => {
 
       {/* ✅ Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-1.5 py-3 border-t border-surface-border bg-background-dark">
+        <div className="flex justify-center items-center gap-1.5 py-3 border-t border-white/[0.08] bg-[#18181c]">
           <button
             onClick={() => currentPage > 1 && handlePageClick(currentPage - 1)}
             disabled={currentPage === 1}
-            className="w-7 h-7 flex items-center justify-center border border-surface-border rounded-[2px] text-text-secondary cursor-pointer hover:border-surface-border-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-lg text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <ChevronLeftIcon sx={{ fontSize: 15 }} />
           </button>
@@ -157,12 +157,12 @@ const CustomTable = ({ data, columns, pagination }) => {
               key={i}
               onClick={() => handlePageClick(p)}
               disabled={p === "..."}
-              className={`min-w-7 h-7 px-1.5 border rounded-[2px] text-[11px] font-ibmPlexMono cursor-pointer transition-colors ${
+              className={`min-w-8 h-8 px-1.5 border rounded-lg text-[11px] font-ibmPlexMono cursor-pointer transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
                 p === currentPage
                   ? "bg-primary border-primary text-white"
                   : p === "..."
                     ? "cursor-default border-transparent text-text-faint"
-                    : "border-surface-border text-text-secondary hover:border-surface-border-hover"
+                    : "border-white/15 text-text-secondary hover:border-primary/40"
               }`}
             >
               {p}
@@ -174,7 +174,7 @@ const CustomTable = ({ data, columns, pagination }) => {
               currentPage < totalPages && handlePageClick(currentPage + 1)
             }
             disabled={currentPage === totalPages}
-            className="w-7 h-7 flex items-center justify-center border border-surface-border rounded-[2px] text-text-secondary cursor-pointer hover:border-surface-border-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-lg text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <ChevronRightIcon sx={{ fontSize: 15 }} />
           </button>

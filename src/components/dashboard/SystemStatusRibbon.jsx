@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 import { get } from "lodash";
+import CountUp from "react-countup";
 import useGetPythonQuery from "@/hooks/python/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
@@ -25,7 +26,7 @@ const Metric = ({ label, active, total }) => {
       />
       <span className="text-[10.5px] font-ibmPlexMono text-text-faint">{label}</span>
       <span className="text-[10.5px] font-ibmPlexMono tabular-nums" style={{ color }}>
-        {active}/{total}
+        <CountUp end={active} duration={0.6} preserveValue />/<CountUp end={total} duration={0.6} preserveValue />
       </span>
     </div>
   );

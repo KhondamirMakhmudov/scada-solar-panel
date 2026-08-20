@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import CountUp from "react-countup";
 import { STATUS_COLOR, type SystemStatus } from "@/constants/statusPalette";
 
 interface StatTileProps {
@@ -22,6 +23,9 @@ interface StatTileProps {
  */
 const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileProps) => {
   const color = status ? STATUS_COLOR[status] : undefined;
+  // Only tween real finite numbers — a status string ("—", "Работает") or
+  // arbitrary JSX passed as `value` renders as-is, unanimated.
+  const isNumeric = typeof value === "number" && Number.isFinite(value);
 
   return (
     <div
@@ -44,7 +48,17 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
         }`}
         style={color ? { color } : undefined}
       >
-        {value}
+        {isNumeric ? (
+          <CountUp
+            end={value as number}
+            duration={0.6}
+            decimals={Number.isInteger(value) ? 0 : 2}
+            separator=" "
+            preserveValue
+          />
+        ) : (
+          value
+        )}
         {unit && <span className="ml-1 text-[11px] text-[#6b7280] font-normal">{unit}</span>}
       </p>
       {hint && <p className="mt-1 text-[10px] text-[#6b7280] truncate">{hint}</p>}

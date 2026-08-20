@@ -605,7 +605,7 @@ const Index = () => {
             type="button"
             onClick={() => setSelectedConnection(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline"
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ПРОСМОТР
           </button>
@@ -614,7 +614,7 @@ const Index = () => {
             type="button"
             onClick={() => handleOpenEditModal(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline"
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ИЗМЕНИТЬ
           </button>
@@ -623,7 +623,7 @@ const Index = () => {
             type="button"
             onClick={() => handleOpenDeleteModal(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline"
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             УДАЛИТЬ
           </button>
@@ -647,15 +647,16 @@ const Index = () => {
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
           placeholder="поиск подключений…"
+          className="transition-colors hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
           style={{
             width: 230,
-            padding: "5px 8px",
-            background: "#1c1b1b",
-            border: "1px solid #2a2a2a",
-            borderRadius: 2,
+            height: 36,
+            padding: "0 12px",
+            background: "#2c2c32",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 8,
             color: "#e5e2e1",
-            font: "400 11.5px/1.3 'IBM Plex Mono'",
-            outline: "none",
+            font: "400 12px/1.3 'IBM Plex Mono'",
           }}
         />
         <ChipSelect
@@ -677,13 +678,13 @@ const Index = () => {
 
         <div className="flex-1" />
 
-        <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+        <div className="flex border border-white/15 rounded-lg overflow-hidden">
           <button
             onClick={() => setActiveTab("table")}
-            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors ${
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
               activeTab === "table"
-                ? "bg-primary/15 text-primary"
-                : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+                ? "bg-primary/15 text-primary hover:bg-primary/25"
+                : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
             }`}
           >
             <TableRows sx={{ fontSize: 14 }} />
@@ -691,10 +692,10 @@ const Index = () => {
           </button>
           <button
             onClick={() => setActiveTab("card")}
-            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-surface-border transition-colors ${
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-white/15 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
               activeTab === "card"
-                ? "bg-primary/15 text-primary"
-                : "text-text-muted hover:text-text-secondary hover:bg-background-dark"
+                ? "bg-primary/15 text-primary hover:bg-primary/25"
+                : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
             }`}
           >
             <GridView sx={{ fontSize: 14 }} />
@@ -705,7 +706,7 @@ const Index = () => {
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="h-8 px-3 rounded-[2px] border border-primary text-primary text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary hover:text-white transition-colors"
+          className="h-9 px-4 rounded-lg border border-primary text-primary text-[10.5px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
         >
           + ПОДКЛЮЧЕНИЕ
         </button>
@@ -719,7 +720,7 @@ const Index = () => {
       ) : (
         <>
           {activeTab === "table" && (
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+            <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
               <CustomTable columns={columns} data={filteredConnections} />
             </div>
           )}
@@ -731,7 +732,7 @@ const Index = () => {
                 return (
                   <div
                     key={connection.id}
-                    className="rounded-[2px] bg-surface-dark border border-surface-border p-3 hover:border-surface-border-hover transition-colors"
+                    className="rounded-xl bg-surface-dark border border-white/[0.08] p-3 hover:border-primary/40 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <span className="font-ibmPlexMono text-[12.5px] font-semibold text-text-primary">
@@ -776,7 +777,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedConnection(connection)}
-                        className="text-primary hover:underline"
+                        className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         ПРОСМОТР
                       </button>
@@ -784,7 +785,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(connection)}
-                        className="text-primary hover:underline"
+                        className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         ИЗМЕНИТЬ
                       </button>
@@ -792,7 +793,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenDeleteModal(connection)}
-                        className="text-status-fault hover:underline"
+                        className="text-status-fault hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
                       >
                         УДАЛИТЬ
                       </button>
@@ -846,7 +847,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b] p-4">
+          <div className="rounded-xl border border-white/[0.08] bg-[#18181c] p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
@@ -865,6 +866,10 @@ const Index = () => {
                   color: "#bfdbfe",
                   borderColor: "#426080",
                   background: "#1b2633",
+                  borderRadius: "10px",
+                  fontWeight: 600,
+                  py: 0.9,
+                  px: 2,
                   "&:hover": {
                     background: "#223246",
                     borderColor: "#5a82b0",
@@ -926,8 +931,16 @@ const Index = () => {
               sx={{
                 textTransform: "none",
                 color: "#bfc7d4",
-                borderColor: "#383737",
+                borderColor: "rgba(255,255,255,0.15)",
+                borderRadius: "10px",
+                fontWeight: 600,
                 fontFamily: "'Manrope', sans-serif",
+                py: 1.1,
+                px: 3,
+                "&:hover": {
+                  borderColor: "#3b82f6",
+                  background: "rgba(59,130,246,0.08)",
+                },
               }}
             >
               Отмена
@@ -940,7 +953,11 @@ const Index = () => {
                 textTransform: "none",
                 background: "#2563eb",
                 color: "#eff6ff",
+                borderRadius: "10px",
+                fontWeight: 600,
                 fontFamily: "'Manrope', sans-serif",
+                py: 1.1,
+                px: 3,
                 "&:hover": {
                   background: "#1d4ed8",
                 },
@@ -997,7 +1014,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b] p-4">
+          <div className="rounded-xl border border-white/[0.08] bg-[#18181c] p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
@@ -1021,7 +1038,11 @@ const Index = () => {
                   color: "#bfdbfe",
                   borderColor: "#426080",
                   background: "#1b2633",
+                  borderRadius: "10px",
+                  fontWeight: 600,
                   fontFamily: "'Manrope', sans-serif",
+                  py: 0.9,
+                  px: 2,
                   "&:hover": {
                     background: "#223246",
                     borderColor: "#5a82b0",
@@ -1085,7 +1106,15 @@ const Index = () => {
               sx={{
                 textTransform: "none",
                 color: "#bfc7d4",
-                borderColor: "#383737",
+                borderColor: "rgba(255,255,255,0.15)",
+                borderRadius: "10px",
+                fontWeight: 600,
+                py: 1.1,
+                px: 3,
+                "&:hover": {
+                  borderColor: "#3b82f6",
+                  background: "rgba(59,130,246,0.08)",
+                },
               }}
             >
               Отмена
@@ -1098,6 +1127,10 @@ const Index = () => {
                 textTransform: "none",
                 background: "#d97706",
                 color: "#fffbeb",
+                borderRadius: "10px",
+                fontWeight: 600,
+                py: 1.1,
+                px: 3,
                 "&:hover": {
                   background: "#b45309",
                 },

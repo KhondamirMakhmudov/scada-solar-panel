@@ -207,13 +207,15 @@ export default function SettingsPage() {
             ) : (
               savedAccounts.map((account) => (
                 <SettingsRow key={account.username} label={account.username}>
-                  <span
+                  <button
+                    type="button"
                     onClick={() => handleRemoveAccount(account.username)}
-                    style={{ font: "500 10px/1.4 'IBM Plex Mono'", color: "#ef4444", cursor: "pointer" }}
                     title="Удалить сохранённый вход"
+                    className="rounded-[2px] px-1.5 py-0.5 transition-colors hover:bg-red-500/10 active:scale-[0.96] active:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1"
+                    style={{ font: "500 10px/1.4 'IBM Plex Mono'", color: "#ef4444" }}
                   >
                     УДАЛИТЬ
-                  </span>
+                  </button>
                 </SettingsRow>
               ))
             )}
@@ -224,18 +226,19 @@ export default function SettingsPage() {
               label="Обновить все данные"
               hint="Принудительно перезапросить все таблицы и показатели"
             >
-              <span
+              <button
+                type="button"
                 onClick={handleClearCache}
+                className="transition-colors hover:bg-[#3b82f6]/10 active:scale-[0.96] active:bg-[#3b82f6]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1"
                 style={{
                   padding: "5px 9px",
                   border: "1px solid #3b82f6",
                   color: "#3b82f6",
                   font: "500 10.5px/1.2 'IBM Plex Mono'",
-                  cursor: "pointer",
                 }}
               >
                 ОБНОВИТЬ
-              </span>
+              </button>
             </SettingsRow>
           </SectionCard>
         </div>

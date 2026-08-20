@@ -40,11 +40,16 @@ export const EyeButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#0c4a6e", // bg-blue-900/30 - 0c4a6e
             color: disabled ? "#8a8a8a" : "#0284c7", // text-blue-600 - 0284c7
             // border border-blue-600
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#075985", // to'g'ri hover rang
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -74,10 +79,15 @@ export const EditButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#7c2d12",
             color: disabled ? "#8a8a8a" : "#fb923c",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#9a3412",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -107,10 +117,15 @@ export const DeleteButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#7f1d1d",
             color: disabled ? "#8a8a8a" : "#fca5a5",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#991b1b",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -140,10 +155,15 @@ export const ViewButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#0c4a6e",
             color: disabled ? "#8a8a8a" : "#7dd3fc",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#075985",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -173,10 +193,15 @@ export const AddButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#14532d",
             color: disabled ? "#8a8a8a" : "#4ade80",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#166534",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -207,10 +232,15 @@ export const PrimaryButton = ({
             width: "auto",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#14532d",
             color: disabled ? "#8a8a8a" : "#4ade80",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#166534",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.96)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -240,10 +270,15 @@ export const DiagramButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#312e81",
             color: disabled ? "#8a8a8a" : "#a5b4fc",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#3730a3",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",
@@ -273,10 +308,15 @@ export const PreviewButton = ({
             width: "32px",
             height: "32px",
             minWidth: "32px",
+            borderRadius: "8px",
             background: disabled ? "#4a4a4a" : "#064e3b",
             color: disabled ? "#8a8a8a" : "#34d399",
+            transition: "background-color 0.15s ease, transform 0.1s ease",
             "&:hover": {
               background: disabled ? "#4a4a4a" : "#065f46",
+            },
+            "&:active": {
+              transform: disabled ? "none" : "scale(0.92)",
             },
             "&:disabled": {
               cursor: "not-allowed",

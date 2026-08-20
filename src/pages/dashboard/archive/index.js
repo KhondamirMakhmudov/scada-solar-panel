@@ -19,6 +19,7 @@ import { useTagHistory } from "@/features/archive/useTagHistory";
 import GroupedTagCharts from "@/features/archive/GroupedTagCharts";
 import RangePicker from "@/features/archive/RangePicker";
 import ViewModeToggle from "@/features/archive/ViewModeToggle";
+import ExportExcelButton from "@/features/archive/ExportExcelButton";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 import { useTagValueMaps } from "@/features/mnemonic-editor/hooks/useTagValueMaps";
 
@@ -226,7 +227,24 @@ const Index = () => {
 
             <Panel
               title="Выборка"
-              toolbar={<ViewModeToggle value={viewMode} onChange={setViewMode} />}
+              toolbar={
+                <>
+                  <ExportExcelButton
+                    groups={groupedSelectedTags}
+                    seriesByTagId={seriesByTagId}
+                    valueMaps={valueMaps}
+                    fileName={`Архив_${toDatetimeLocal(new Date()).replace(/[:T]/g, "-")}.xlsx`}
+                    periodLabel={
+                      timeFrom && timeTo
+                        ? `Период: ${formatFullTime(new Date(timeFrom).getTime())} — ${formatFullTime(new Date(timeTo).getTime())}`
+                        : undefined
+                    }
+                    disabled={selectedTags.length === 0}
+                    isFetching={isFetching}
+                  />
+                  <ViewModeToggle value={viewMode} onChange={setViewMode} />
+                </>
+              }
             >
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <CustomSelect
@@ -278,31 +296,34 @@ const Index = () => {
                     }}
                   />
                   <div className="ml-auto flex items-center gap-2">
-                    <span
+                    <button
+                      type="button"
+                      disabled={visibleTags.length === 0}
                       onClick={() =>
-                        visibleTags.length > 0 &&
                         setSelectedTagIds((prev) =>
                           Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
                         )
                       }
+                      className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-primary/10 enabled:active:scale-[0.96] enabled:active:bg-primary/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
                       style={{
                         font: "500 10.5px/1.2 'IBM Plex Mono'",
                         color: visibleTags.length === 0 ? "#3a3a3a" : "#3b82f6",
-                        cursor: visibleTags.length === 0 ? "default" : "pointer",
                       }}
                     >
                       ВЫБРАТЬ ВСЕ
-                    </span>
-                    <span
-                      onClick={() => selectedTagIds.length > 0 && setSelectedTagIds([])}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedTagIds.length === 0}
+                      onClick={() => setSelectedTagIds([])}
+                      className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-red-500/10 enabled:active:scale-[0.96] enabled:active:bg-red-500/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
                       style={{
                         font: "500 10.5px/1.2 'IBM Plex Mono'",
                         color: selectedTagIds.length === 0 ? "#3a3a3a" : "#ef4444",
-                        cursor: selectedTagIds.length === 0 ? "default" : "pointer",
                       }}
                     >
                       ОЧИСТИТЬ
-                    </span>
+                    </button>
                   </div>
                 </div>
 

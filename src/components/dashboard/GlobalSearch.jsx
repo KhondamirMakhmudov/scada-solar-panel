@@ -125,7 +125,7 @@ const GlobalSearch = () => {
                   type="button"
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => go(item)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors active:bg-[#2e2e2e] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#3b82f6]/60 focus-visible:ring-inset ${
                     index === activeIndex ? "bg-[rgba(59,130,246,0.12)]" : "hover:bg-[#242424]"
                   }`}
                 >

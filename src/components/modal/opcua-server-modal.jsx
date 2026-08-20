@@ -98,7 +98,7 @@ export const OPCUAServerModal = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-background-dark border border-surface-dark rounded-[2px] max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-[#131315] border border-white/[0.08] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[0_24px_60px_rgba(0,0,0,0.55)]"
       >
         <div className="p-6">
           <h2 className="text-[17px] font-semibold font-ibmPlexSans text-text-primary mb-6">
@@ -194,14 +194,14 @@ export const OPCUAServerModal = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-[2px] hover:bg-opacity-90 transition-all shadow-[0_0_15px_rgba(19,236,91,0.3)] active:scale-95"
+                className="flex-1 h-11 px-6 bg-primary text-background-dark text-sm font-bold rounded-lg hover:brightness-110 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
               >
                 {editServer ? "Сохранить" : "Создать"}
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-5 py-2.5 bg-surface-dark text-text-secondary text-sm font-bold rounded-[2px] hover:bg-opacity-80 transition-all active:scale-95"
+                className="flex-1 h-11 px-6 bg-surface-3 border border-surface-border-hover text-text-secondary text-sm font-bold rounded-lg hover:border-primary/40 hover:text-text-primary transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-border-hover focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark"
               >
                 Отмена
               </button>

@@ -25,7 +25,7 @@ const Input = ({
       {label && (
         <label
           htmlFor={name}
-          className={`block mb-1 text-[11px] uppercase tracking-wide text-text-muted ${labelClass}`}
+          className={`block mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#d1d5db] ${labelClass}`}
         >
           {label}
           {required && <span className="text-status-fault ml-1">*</span>}
@@ -41,12 +41,13 @@ const Input = ({
         value={value}
         onChange={onChange}
         className={`
-          w-full h-9 border bg-background-dark text-text-primary text-[12.5px]
+          w-full h-11 border bg-[#2c2c32] text-text-primary text-[13.5px]
           placeholder:text-text-faint
-          ${error ? "border-status-fault" : "border-surface-border"}
-          rounded-[2px] px-2.5 pr-9 focus:outline-none
+          ${error ? "border-status-fault" : "border-white/15"}
+          rounded-lg px-3.5 pr-10 focus:outline-none
           transition-colors duration-150
-          hover:border-surface-border-hover
+          hover:border-white/25
+          focus:border-primary focus:ring-2 focus:ring-primary
           ${inputClass}
         `}
       />
@@ -55,7 +56,7 @@ const Input = ({
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-2.5 top-[50%] transform -translate-y-1/2 text-text-faint hover:text-primary transition-colors duration-200"
+          className="absolute right-3 top-[50%] transform -translate-y-1/2 text-text-faint hover:text-primary active:scale-90 transition-all duration-150"
         >
           {showPassword ? (
             <VisibilityOffIcon sx={{ fontSize: 18 }} />

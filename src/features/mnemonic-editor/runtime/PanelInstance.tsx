@@ -118,14 +118,32 @@ const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
         strokeWidth={1}
       />
       {rows.map((row, index) => {
-        const rowY = panelY + paddingY + (index + 0.5) * rowHeight + fontSize * 0.35;
+        const rowTop = panelY + paddingY + index * rowHeight;
+        const rowY = rowTop + rowHeight / 2 + fontSize * 0.35;
         // Имя обрезаем только если оно реально не помещается рядом со значением
         const nameSpace =
           panelWidth - paddingX * 2 - columnGap - row.value.length * monoCharW;
         const nameMaxChars = Math.max(6, Math.floor(nameSpace / (fontSize * 0.62)));
+        const liveTime = values[index]?.time;
         return (
           <g key={bindings[index].tagId}>
             <title>{`${row.name}: ${row.value}`}</title>
+            {/* Remounted (via key) on every new tag timestamp so the CSS
+                animation restarts — a quick highlight so an operator
+                watching the screen notices *this* row just updated,
+                without a permanent blinking distraction. */}
+            {liveTime && (
+              <rect
+                key={`flash-${bindings[index].tagId}-${liveTime}`}
+                x={panelX + 1}
+                y={rowTop}
+                width={panelWidth - 2}
+                height={rowHeight}
+                fill={row.fill}
+                className="mnemonic-value-flash"
+                pointerEvents="none"
+              />
+            )}
             <text
               x={panelX + paddingX}
               y={rowY}

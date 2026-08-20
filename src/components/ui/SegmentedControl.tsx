@@ -43,10 +43,10 @@ function SegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             title={option.title}
             aria-pressed={isActive}
-            className={`${height} ${text} px-2.5 rounded-md transition-colors whitespace-nowrap ${
+            className={`${height} ${text} px-2.5 rounded-md transition-colors whitespace-nowrap active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
               isActive
-                ? "bg-primary/20 text-[#93c5fd]"
-                : "text-[#6b7280] hover:text-[#e5e2e1]"
+                ? "bg-primary/20 text-[#93c5fd] hover:bg-primary/30"
+                : "text-[#6b7280] hover:text-[#e5e2e1] hover:bg-surface-2"
             }`}
           >
             {option.label}
