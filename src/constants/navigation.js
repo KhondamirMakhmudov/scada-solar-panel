@@ -95,6 +95,13 @@ export const NAV_GROUPS = [
         roles: ["admin", "super_admin"],
       },
       {
+        text: "Экраны (черновик)",
+        Icon: MonitorRoundedIcon,
+        path: "/dashboard/test/screens-draft",
+        hint: "Создание/правка экранов на черновом бэкенде (8103)",
+        roles: ["admin", "super_admin"],
+      },
+      {
         text: "Настройки",
         Icon: SettingsRoundedIcon,
         path: "/dashboard/settings",

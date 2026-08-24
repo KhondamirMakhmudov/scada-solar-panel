@@ -17,7 +17,16 @@ import theme from "@/components/theme/theme";
 
 // Обработчик ошибок сессии next-auth: если jwt-колбэк на сервере не смог
 // обновить access-токен (см. [...nextauth].js), сессия приходит с
-// session.error — разлогиниваем сразу.
+// session.error.
+//
+// Разлогиниваем ТОЛЬКО на RefreshTokenExpired — это единственный статус,
+// который jwt-колбэк ставит окончательно (сам refresh-токен подтверждённо
+// мёртв, дальше только новый вход). RefreshAccessTokenError — единичный сбой
+// одной попытки обновления (сетевой блип, auth-сервис на секунду недоступен
+// и т.п.); accessToken в сессии в этот момент почти всегда ещё валиден, а
+// jwt-колбэк сам повторит попытку на следующем цикле (см. refreshFailCount
+// в [...nextauth].js). Разлогинивать на этом статусе — раньше выкидывало
+// пользователя посреди сессии без реальной причины.
 //
 // isSigningOutRef — не косметика, а фикс реального бага: без него, если
 // signOut() не успевает довести до конца свой редирект/размонтирование
@@ -31,10 +40,7 @@ function SessionErrorHandler() {
   useEffect(() => {
     if (isSigningOutRef.current) return;
 
-    if (
-      session?.error === "RefreshAccessTokenError" ||
-      session?.error === "RefreshTokenExpired"
-    ) {
+    if (session?.error === "RefreshTokenExpired") {
       isSigningOutRef.current = true;
       console.error(`[Auth] Выход из системы: ${session.error}`);
       signOut({ callbackUrl: "/" });

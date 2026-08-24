@@ -123,11 +123,14 @@ const REFRESH_LOCK_TTL_MS = 15000;
 
 const refreshLocks = new Map();
 
-// Один HTTP-запрос на обновление токена к app.tpp.uz — без внутренних
-// повторов: если бэкенд отказал, jwt-колбэк просто помечает токен ошибкой
-// и не пробует снова, пока пользователь не залогинится заново (см. guard
-// `if (token.error) return token;` ниже — это то, что реально останавливает
-// цикл, а не количество попыток здесь).
+// Один HTTP-запрос на обновление токена к app.tpp.uz за вызов — без цикла
+// повторов внутри самой функции. Стойкость к единичным сбоям обеспечивает
+// вызывающий jwt-колбэк: он помечает токен как RefreshAccessTokenError (не
+// останавливает цикл, см. guard `if (token.error === "RefreshTokenExpired")`
+// там же) и просто вызовет эту функцию снова на следующей проверке сессии.
+// refreshFailCount ниже — единственный источник истины о том, сколько раз
+// подряд это уже не удавалось; после 3 подряд или явного 401 от бэкенда
+// сессия помечается RefreshTokenExpired окончательно.
 async function refreshAccessToken(token) {
   const lockKey = token.refreshToken;
 
@@ -205,15 +208,24 @@ async function refreshAccessToken(token) {
       },
       rolesDetail: sanitizedRoles,
       error: undefined,
+      refreshFailCount: 0,
     };
 
     resolveLock(newToken);
     return newToken;
   } catch (error) {
     console.error("=== ОБНОВЛЕНИЕ ТОКЕНА НЕ УДАЛОСЬ ===", error.message);
-    const isExpired = error.message === "RefreshTokenExpired";
+    // 401 от бэкенда — надёжный сигнал "токен мёртв", доверяем ему сразу.
+    // Для остального (сетевой сбой, 5xx, временная недоступность
+    // auth-сервиса) даём несколько попыток на следующих циклах обновления,
+    // прежде чем считать сессию окончательно неживой — один-единственный
+    // сбой не должен разлогинивать пользователя, у которого accessToken
+    // ещё валиден (см. SessionErrorHandler в _app.js).
+    const failCount = (token.refreshFailCount || 0) + 1;
+    const isExpired = error.message === "RefreshTokenExpired" || failCount >= 3;
     const errorToken = {
       ...token,
+      refreshFailCount: failCount,
       error: isExpired ? "RefreshTokenExpired" : "RefreshAccessTokenError",
     };
     resolveLock(errorToken);
@@ -303,6 +315,7 @@ export const authOptions = {
               unit_code: decoded.unitCode,
             },
             rolesDetail: sanitizedRoles,
+            refreshFailCount: 0,
           };
         } catch (error) {
           console.error("Ошибка авторизации:", error);
@@ -327,6 +340,7 @@ export const authOptions = {
           refreshTokenExpires: user.refreshTokenExpires,
           userData: user.userData,
           rolesDetail: user.rolesDetail,
+          refreshFailCount: 0,
         };
       }
 
@@ -334,14 +348,14 @@ export const authOptions = {
         return { ...token, error: "NoAccessToken" };
       }
 
-      // Уже есть незакрытая ошибка от предыдущей попытки обновления — не
-      // повторяем обновление на каждой проверке сессии. Это и есть фикс
-      // бесконечного цикла: без этой проверки каждый /api/auth/session
-      // снова пытался бы обновить токен, снова получал ошибку и снова
-      // разлогинивал через SessionErrorHandler — цикл без остановки.
-      // SessionErrorHandler на клиенте разлогинит пользователя на
-      // следующем рендере; новую попытку обновления даст только новый вход.
-      if (token.error) {
+      // RefreshTokenExpired — окончательно: сервер (или локальная проверка
+      // exp ниже) подтвердил, что refresh-токен мёртв, дальше только новый
+      // логин. RefreshAccessTokenError — временный сбой одной попытки
+      // обновления; НЕ останавливаем цикл здесь, иначе пользователь
+      // застревает навсегда с session.error, без выхода и без повторных
+      // попыток. Повторы ограничены бюджетом refreshFailCount внутри
+      // refreshAccessToken, поэтому зацикливание невозможно.
+      if (token.error === "RefreshTokenExpired") {
         return token;
       }
 
@@ -372,9 +386,11 @@ export const authOptions = {
         return { ...session, error: "RefreshTokenExpired", user: null };
       }
 
-      // RefreshAccessTokenError — не обнуляем пользователя сразу, оставляем
-      // последние известные данные сессии, чтобы интерфейс не мигал пустым
-      // состоянием на тот единственный рендер до signOut() в SessionErrorHandler.
+      // RefreshAccessTokenError — временный сбой одной попытки обновления;
+      // accessToken мог остаться валидным, поэтому не обнуляем пользователя.
+      // SessionErrorHandler в _app.js на этот статус не разлогинивает —
+      // только помечает session.error, а jwt-колбэк сам повторит попытку
+      // на следующем цикле.
       if (token.error) {
         session.error = token.error;
       }

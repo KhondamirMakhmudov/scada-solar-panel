@@ -61,4 +61,20 @@ requestScreens.interceptors.response.use(
   handleAuthError,
 );
 
-export { request, requestPython, requestScreens };
+const requestScreensDraft = axios.create({
+  baseURL: config.SCREENS_API_DRAFT_URL,
+  params: {},
+  headers: {
+    common: {
+      Accept: "application/json",
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  },
+});
+
+requestScreensDraft.interceptors.response.use(
+  (response) => response,
+  handleAuthError,
+);
+
+export { request, requestPython, requestScreens, requestScreensDraft };
