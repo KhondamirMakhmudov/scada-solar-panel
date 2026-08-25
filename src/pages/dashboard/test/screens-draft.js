@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { get } from "lodash";
 import { formatTagLabel } from "@/lib/tagNameTranslation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { TableRows, ViewModule, KeyboardArrowDown, Sell, Cable, Memory } from "@mui/icons-material";
+import {
+  TableRows,
+  ViewModule,
+  KeyboardArrowDown,
+  Sell,
+  Cable,
+  Memory,
+} from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
@@ -23,12 +31,13 @@ import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
 import { requestPython, requestScreensDraft } from "@/services/api";
 
-// Черновая версия страницы «Экраны»: те же CRUD-операции (создать,
-// изменить, клонировать, удалить), но записи создаются в дубликате сервиса
-// экранов (8103), а не в проде (8102) — можно тестировать создание экранов,
-// не рискуя рабочими данными. Без редактора мнемосхемы и живого просмотра:
-// это отдельная, гораздо более объёмная задача (редактор жёстко завязан на
-// прод-клиент requestScreens в нескольких местах фичи mnemonic-editor).
+// Черновая версия страницы «Экраны»: полный функционал (список, редактор
+// мнемосхемы, живой просмотр, клон, удаление), но всё работает через
+// дубликат сервиса экранов (8103) вместо прода (8102) — экраны, маршруты
+// (/dashboard/test/screens-draft/...) и кэш запросов отдельные, поэтому
+// ничего здесь не может задеть рабочие данные.
+
+const BASE_PATH = "/dashboard/test/screens-draft";
 
 const STATUS_OPTIONS = [
   { label: "Все статусы", value: "all" },
@@ -312,7 +321,19 @@ const ScreenThumbnail = () => (
   </div>
 );
 
-const ScreenCard = ({ screen, isSelected, onSelect, onEditDetails, onOpenDetails, onClone, onDelete, canUpdate, canDelete }) => {
+const ScreenCard = ({
+  screen,
+  isSelected,
+  onSelect,
+  onOpen,
+  onOpenRuntime,
+  onEditDetails,
+  onOpenDetails,
+  onClone,
+  onDelete,
+  canUpdate,
+  canDelete,
+}) => {
   const stateColor = screen.isActive ? "#22c55e" : "#f59e0b";
   const actionBtnStyle =
     "flex-1 text-center py-[3px] border font-ibmPlexMono text-[9.5px] font-medium transition-colors enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
@@ -358,10 +379,21 @@ const ScreenCard = ({ screen, isSelected, onSelect, onEditDetails, onOpenDetails
         <div className="flex gap-1 mt-0.5">
           <button
             type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenRuntime();
+            }}
+            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
+            style={{ borderColor: "#2a2a2a" }}
+          >
+            ПРОСМОТР
+          </button>
+          <button
+            type="button"
             disabled={!canUpdate}
             onClick={(e) => {
               e.stopPropagation();
-              onEditDetails();
+              onOpen();
             }}
             className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary disabled:opacity-30 disabled:cursor-not-allowed`}
             style={{ borderColor: "#2a2a2a" }}
@@ -400,9 +432,11 @@ const ScreenCard = ({ screen, isSelected, onSelect, onEditDetails, onOpenDetails
 };
 
 const ScreensDraftPage = () => {
+  const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
+  const [screenTab, setScreenTab] = useState("gallery"); // "runtime" | "gallery"
   const [selectedScreenId, setSelectedScreenId] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -431,6 +465,7 @@ const ScreensDraftPage = () => {
   const canCreateScreen = hasPermission(permissions, "scada_storage", "create");
   const canUpdateScreen = hasPermission(permissions, "scada_storage", "update");
   const canDeleteScreen = hasPermission(permissions, "scada_storage", "delete");
+  const canReadScreen = hasPermission(permissions, "scada_storage", ["read", "all-read"]);
 
   // Черновой список экранов — отдельный ключ кэша, не пересекается с
   // прод-списком на /dashboard/screens.
@@ -559,6 +594,13 @@ const ScreensDraftPage = () => {
       }),
     [listRaw, tagMap],
   );
+
+  useEffect(() => {
+    if (selectedScreenId || list.length === 0) return;
+    setSelectedScreenId((list.find((s) => s.isActive) || list[0]).id);
+  }, [list, selectedScreenId]);
+
+  const activeScreen = list.find((s) => s.id === selectedScreenId) || null;
 
   const resetCreateForm = () => {
     setCreateForm(DEFAULT_FORM);
@@ -700,6 +742,14 @@ const ScreensDraftPage = () => {
     );
   };
 
+  const openDiagram = (screen) => {
+    router.push(`${BASE_PATH}/${screen.id}`);
+  };
+
+  const openRuntime = (screen) => {
+    router.push(`${BASE_PATH}/${screen.id}/runtime`);
+  };
+
   const openViewModal = (screen) => {
     setSelectedScreen(screen);
     setShowViewModal(true);
@@ -783,11 +833,21 @@ const ScreensDraftPage = () => {
       header: "Действия",
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+          {canReadScreen && (
+            <button
+              type="button"
+              onClick={() => openRuntime(row.original)}
+              className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+            >
+              ПРОСМОТР
+            </button>
+          )}
           {canUpdateScreen && (
             <>
+              <span className="text-text-faint">·</span>
               <button
                 type="button"
-                onClick={() => openEditModal(row.original)}
+                onClick={() => openDiagram(row.original)}
                 className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
               >
                 ИЗМЕНИТЬ
@@ -836,24 +896,42 @@ const ScreensDraftPage = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <input
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="поиск экранов…"
-            className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
-          />
-          <div className="w-[160px]">
-            <CustomSelect
-              value={statusFilter}
-              onChange={(value) => setStatusFilter(value)}
-              options={STATUS_OPTIONS}
-              placeholder="Статус"
-              sortOptions={false}
-            />
+          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setScreenTab("runtime")}
+              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+                screenTab === "runtime"
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "text-text-secondary hover:bg-background-dark"
+              }`}
+            >
+              Просмотр
+            </button>
+            <button
+              type="button"
+              onClick={() => setScreenTab("gallery")}
+              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+                screenTab === "gallery"
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "text-text-secondary hover:bg-background-dark"
+              }`}
+            >
+              Список экранов
+            </button>
           </div>
 
           <div className="flex-1" />
 
+          {canUpdateScreen && activeScreen && (
+            <button
+              type="button"
+              onClick={() => openDiagram(activeScreen)}
+              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[10.5px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+            >
+              ОТКРЫТЬ РЕДАКТОР
+            </button>
+          )}
           {canCreateScreen && (
             <button
               type="button"
@@ -868,179 +946,234 @@ const ScreensDraftPage = () => {
           )}
         </div>
 
-        <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "7px 10px",
-              borderBottom: "1px solid #2a2a2a",
-            }}
-          >
-            <span
-              className="font-ibmPlexSans uppercase"
-              style={{ fontWeight: 600, fontSize: 11, letterSpacing: ".06em", color: "#bfc7d4" }}
-            >
-              Экраны (черновик) · {filteredList.length}
-            </span>
-            <div className="flex rounded-lg border border-white/15 overflow-hidden">
-              {VIEW_MODE_OPTIONS.map((item, idx) => {
-                const isActive = viewMode === item.value;
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setViewMode(item.value)}
-                    className="font-ibmPlexMono transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
-                    style={{
-                      padding: "5px 11px",
-                      cursor: "pointer",
-                      fontSize: 10,
-                      fontWeight: 500,
-                      borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
-                      background: isActive ? "#3b82f6" : "transparent",
-                      color: isActive ? "#fff" : "#8b9099",
-                    }}
+        {screenTab === "runtime" ? (
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+            {!activeScreen ? (
+              <NoData title="Нет экранов" description="Создайте первый экран, чтобы увидеть просмотр." />
+            ) : (
+              <>
+                <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border">
+                  <span className="font-ibmPlexSans text-[12px] font-semibold text-text-primary">
+                    {activeScreen.name}
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-[2px] border text-[9px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
+                      activeScreen.isActive ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
+                    }`}
                   >
-                    {item.value === "grid" ? "ПЛИТКА" : "ТАБЛИЦА"}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {filteredList.length === 0 ? (
-            <NoData title="Экраны не найдены" description="Измените фильтры или создайте новый экран." />
-          ) : viewMode === "table" ? (
-            <CustomTable columns={columns} data={paginatedList} />
-          ) : (
-            <div
-              style={{
-                padding: 10,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))",
-                gap: 10,
-              }}
-            >
-              {paginatedList.map((item) => (
-                <ScreenCard
-                  key={item.id}
-                  screen={item}
-                  isSelected={item.id === selectedScreenId}
-                  onSelect={() => setSelectedScreenId(item.id)}
-                  onEditDetails={() => openEditModal(item)}
-                  onOpenDetails={() => openViewModal(item)}
-                  onClone={() => handleCloneScreen(item)}
-                  onDelete={() => openDeleteModal(item)}
-                  canUpdate={canUpdateScreen}
-                  canDelete={canDeleteScreen}
+                    {activeScreen.isActive ? "Активен" : "Неактивен"}
+                  </span>
+                  <div className="flex-1" />
+                  <span className="font-ibmPlexMono text-[10px] text-text-muted">
+                    {activeScreen.tagNames.length} тегов привязано
+                  </span>
+                </div>
+                <iframe
+                  key={activeScreen.id}
+                  src={`${BASE_PATH}/${activeScreen.id}/runtime`}
+                  title={`Просмотр: ${activeScreen.name}`}
+                  className="w-full h-[560px] border-0 bg-background-dark"
                 />
-              ))}
+              </>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="поиск экранов…"
+                className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+              />
+              <div className="w-[160px]">
+                <CustomSelect
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  options={STATUS_OPTIONS}
+                  placeholder="Статус"
+                  sortOptions={false}
+                />
+              </div>
             </div>
-          )}
-        </div>
 
-        {filteredList.length > 0 && (
-          <div className="mt-2.5 flex flex-col items-center justify-between gap-3 border-t border-surface-border pt-3 sm:flex-row">
-            <div className="flex items-center gap-2 text-[11px] text-text-muted">
-              <span>Строк на странице:</span>
-              {[10, 20, 50].map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => {
-                    setPageSize(size);
-                    setCurrentPage(1);
-                  }}
-                  className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
-                    pageSize === size
-                      ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
-                      : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
-                  }`}
+            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "7px 10px",
+                  borderBottom: "1px solid #2a2a2a",
+                }}
+              >
+                <span
+                  className="font-ibmPlexSans uppercase"
+                  style={{ fontWeight: 600, fontSize: 11, letterSpacing: ".06em", color: "#bfc7d4" }}
                 >
-                  {size}
-                </button>
-              ))}
+                  Экраны (черновик) · {filteredList.length}
+                </span>
+                <div className="flex rounded-lg border border-white/15 overflow-hidden">
+                  {VIEW_MODE_OPTIONS.map((item, idx) => {
+                    const isActive = viewMode === item.value;
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => setViewMode(item.value)}
+                        className="font-ibmPlexMono transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-inset"
+                        style={{
+                          padding: "5px 11px",
+                          cursor: "pointer",
+                          fontSize: 10,
+                          fontWeight: 500,
+                          borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
+                          background: isActive ? "#3b82f6" : "transparent",
+                          color: isActive ? "#fff" : "#8b9099",
+                        }}
+                      >
+                        {item.value === "grid" ? "ПЛИТКА" : "ТАБЛИЦА"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {filteredList.length === 0 ? (
+                <NoData title="Экраны не найдены" description="Измените фильтры или создайте новый экран." />
+              ) : viewMode === "table" ? (
+                <CustomTable columns={columns} data={paginatedList} />
+              ) : (
+                <div
+                  style={{
+                    padding: 10,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {paginatedList.map((item) => (
+                    <ScreenCard
+                      key={item.id}
+                      screen={item}
+                      isSelected={item.id === selectedScreenId}
+                      onSelect={() => setSelectedScreenId(item.id)}
+                      onOpen={() => openDiagram(item)}
+                      onOpenRuntime={() => openRuntime(item)}
+                      onEditDetails={() => openEditModal(item)}
+                      onOpenDetails={() => openViewModal(item)}
+                      onClone={() => handleCloneScreen(item)}
+                      onDelete={() => openDeleteModal(item)}
+                      canUpdate={canUpdateScreen}
+                      canDelete={canDeleteScreen}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                title="Первая"
-              >
-                «
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                title="Назад"
-              >
-                ‹
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
-                .reduce((acc, page, idx, arr) => {
-                  if (idx > 0 && page - arr[idx - 1] > 1) {
-                    acc.push("...");
-                  }
-                  acc.push(page);
-                  return acc;
-                }, [])
-                .map((item, idx) =>
-                  item === "..." ? (
-                    <span key={`ellipsis-${idx}`} className="flex h-7 w-7 items-center justify-center text-text-dim">
-                      …
-                    </span>
-                  ) : (
+            {filteredList.length > 0 && (
+              <div className="mt-2.5 flex flex-col items-center justify-between gap-3 border-t border-surface-border pt-3 sm:flex-row">
+                <div className="flex items-center gap-2 text-[11px] text-text-muted">
+                  <span>Строк на странице:</span>
+                  {[10, 20, 50].map((size) => (
                     <button
-                      key={item}
+                      key={size}
                       type="button"
-                      onClick={() => setCurrentPage(item)}
-                      className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
-                        currentPage === item
+                      onClick={() => {
+                        setPageSize(size);
+                        setCurrentPage(1);
+                      }}
+                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                        pageSize === size
                           ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                           : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
                       }`}
                     >
-                      {item}
+                      {size}
                     </button>
-                  ),
-                )}
+                  ))}
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                title="Вперёд"
-              >
-                ›
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                title="Последняя"
-              >
-                »
-              </button>
-            </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    title="Первая"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    title="Назад"
+                  >
+                    ‹
+                  </button>
 
-            <span className="text-[11px] text-text-muted">
-              Страница <span className="font-semibold text-text-primary">{currentPage}</span> из{" "}
-              <span className="font-semibold text-text-primary">{totalPages}</span>
-              {" · "}
-              <span className="font-semibold text-text-primary">{filteredList.length}</span> записей
-            </span>
-          </div>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                    .reduce((acc, page, idx, arr) => {
+                      if (idx > 0 && page - arr[idx - 1] > 1) {
+                        acc.push("...");
+                      }
+                      acc.push(page);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      item === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="flex h-7 w-7 items-center justify-center text-text-dim">
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setCurrentPage(item)}
+                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                            currentPage === item
+                              ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
+                              : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ),
+                    )}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    title="Вперёд"
+                  >
+                    ›
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    title="Последняя"
+                  >
+                    »
+                  </button>
+                </div>
+
+                <span className="text-[11px] text-text-muted">
+                  Страница <span className="font-semibold text-text-primary">{currentPage}</span> из{" "}
+                  <span className="font-semibold text-text-primary">{totalPages}</span>
+                  {" · "}
+                  <span className="font-semibold text-text-primary">{filteredList.length}</span> записей
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -1218,6 +1351,30 @@ const ScreensDraftPage = () => {
                 <span className="text-text-dim">—</span>
               )}
             </div>
+          </div>
+
+          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3 overflow-hidden">
+            <p className="text-text-muted mb-2">Параметры</p>
+            {selectedScreen?.params && Object.keys(selectedScreen.params).length ? (
+              <div className="space-y-2">
+                {Object.entries(selectedScreen.params).map(([key, value]) => (
+                  <div key={key} className="text-xs min-w-0">
+                    <p className="text-text-dim mb-1">{key}</p>
+                    {key === "canvas" && value && typeof value === "object" ? (
+                      <p className="text-text-primary">
+                        {(value.nodes || []).length} узлов, {(value.edges || []).length} связей
+                      </p>
+                    ) : (
+                      <pre className="text-text-primary bg-background-dark/60 rounded-[2px] p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
+                        {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="text-text-dim text-xs">—</span>
+            )}
           </div>
 
           <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">

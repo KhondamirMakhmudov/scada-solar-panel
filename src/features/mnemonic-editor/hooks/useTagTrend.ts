@@ -4,7 +4,7 @@ import { get } from "lodash";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
-import { requestScreens } from "@/services/api";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import type { DataBinding } from "../types";
 
 export type TrendRange = "15m" | "1h" | "6h" | "24h";
@@ -43,6 +43,7 @@ interface AggregateSeries {
  */
 export function useTagTrend(tags: DataBinding[], range: TrendRange) {
   const { data: session } = useSession();
+  const { apiClient, backendId } = useScreensBackend();
   const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
@@ -70,9 +71,9 @@ export function useTagTrend(tags: DataBinding[], range: TrendRange) {
   );
 
   const { data, isFetching } = useGetQuery({
-    key: KEYS.tagValuesAggregates,
+    key: `${KEYS.tagValuesAggregates}:${backendId}`,
     url: URLS.tagValuesAggregates,
-    apiClient: requestScreens,
+    apiClient,
     params: { tagIds: tagIdsKey, timeFrom, timeTo, interval, fill: "locf" },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { config } from "@/config";
 import { buildScadaWsUrl, useWebSocket } from "@/hooks/useWebsoket";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import { useRuntimeStore } from "../store/runtimeStore";
 
 interface IncomingMessage {
@@ -25,12 +25,13 @@ interface IncomingMessage {
 export function useMnemonicWebSocket(screenId: string | undefined, token: string | undefined) {
   const setConnectionStatus = useRuntimeStore((state) => state.setConnectionStatus);
   const applyTagFrame = useRuntimeStore((state) => state.applyTagFrame);
+  const { baseHttpUrl } = useScreensBackend();
 
   const url = useMemo(() => {
     if (!screenId) return "";
     try {
       return buildScadaWsUrl({
-        baseHttpUrl: config.SCREENS_API_URL,
+        baseHttpUrl,
         channel: "screens",
         id: screenId,
         token,
@@ -38,7 +39,7 @@ export function useMnemonicWebSocket(screenId: string | undefined, token: string
     } catch {
       return "";
     }
-  }, [screenId, token]);
+  }, [screenId, token, baseHttpUrl]);
 
   // useWebSocket's internal `connect` callback depends on `onMessage` — if
   // it got a fresh identity every render (e.g. an inline arrow function),

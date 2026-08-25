@@ -3,7 +3,7 @@ import { get } from "lodash";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
-import { requestScreens } from "@/services/api";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import { useRuntimeStore } from "../store/runtimeStore";
 
 interface LatestTagValue {
@@ -25,14 +25,15 @@ interface LatestTagValue {
  */
 export function useSeedLatestTagValues(tagIds: string[], accessToken: string | undefined) {
   const applyTagFrame = useRuntimeStore((state) => state.applyTagFrame);
+  const { apiClient, backendId } = useScreensBackend();
   const seededKey = useRef<string | null>(null);
 
   const tagIdsKey = tagIds.slice().sort().join(",");
 
   const { data } = useGetQuery({
-    key: KEYS.tagValuesLatest,
+    key: `${KEYS.tagValuesLatest}:${backendId}`,
     url: URLS.tagValuesLatest,
-    apiClient: requestScreens,
+    apiClient,
     params: { tagIds: tagIdsKey },
     headers: {
       Authorization: `Bearer ${accessToken}`,

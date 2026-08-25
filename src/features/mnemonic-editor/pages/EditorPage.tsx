@@ -7,9 +7,9 @@ import ContentLoader from "@/components/loader";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
-import { requestScreens } from "@/services/api";
 import { translateApiError } from "@/lib/apiErrorTranslation";
 
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import { useDocumentStore } from "../store/documentStore";
 import { useUiStore } from "../store/uiStore";
 import { useHistoryStore } from "../store/history/historyStore";
@@ -33,11 +33,12 @@ interface EditorPageProps {
 const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
   const router = useRouter();
   const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  const { apiClient, basePath, backendId } = useScreensBackend();
 
   const { data: screenResp, isLoading: isLoadingScreen } = useGetQuery({
-    key: `${KEYS.screens}:detail:${screenId}`,
+    key: `${KEYS.screens}:detail:${backendId}:${screenId}`,
     url: `${URLS.screens}/${screenId}`,
-    apiClient: requestScreens,
+    apiClient,
     headers: { ...authHeaders, Accept: "application/json" },
     enabled: Boolean(screenId),
   });
@@ -84,7 +85,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
       const existingParams = get(screen, "params", {}) || {};
       const existingTagIds: string[] = Array.isArray(screen.tagIds) ? screen.tagIds : [];
 
-      await requestScreens.patch(
+      await apiClient.patch(
         `${URLS.screens}/${screenId}`,
         {
           name: screen.name,
@@ -128,7 +129,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
     const ok = await persistScreen();
     setIsPreviewing(false);
     if (ok) {
-      window.open(`/dashboard/screens/${screenId}/runtime`, "scada_runtime_preview");
+      window.open(`${basePath}/${screenId}/runtime`, "scada_runtime_preview");
     }
   };
 
@@ -150,7 +151,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
       </Head>
       <EditorToolbar
         title={screen.name}
-        onBack={() => router.push("/dashboard/screens")}
+        onBack={() => router.push(basePath)}
         onSave={handleSave}
         isSaving={isSaving}
         isDirty={isDirty}

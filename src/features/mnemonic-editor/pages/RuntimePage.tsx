@@ -9,9 +9,9 @@ import ScreenArchiveModal from "../runtime/ScreenArchiveModal";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
-import { requestScreens } from "@/services/api";
 import { hasPermission } from "@/constants/permissions";
 
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import { useDocumentStore } from "../store/documentStore";
 import { useUiStore } from "../store/uiStore";
 import { useHistoryStore } from "../store/history/historyStore";
@@ -35,6 +35,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
   const router = useRouter();
   const { data: session } = useSession();
   const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  const { apiClient, basePath, backendId } = useScreensBackend();
 
   // Редактирование мнемосхемы — не операторская задача (см. routeAccess.js:
   // /dashboard/screens/[id] и так закрыт для не-админов на уровне маршрута,
@@ -42,9 +43,9 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
   const canEditScreen = hasPermission(session?.user?.permissions || [], "scada_storage", "update");
 
   const { data: screenResp, isLoading: isLoadingScreen } = useGetQuery({
-    key: `${KEYS.screens}:detail:${screenId}`,
+    key: `${KEYS.screens}:detail:${backendId}:${screenId}`,
     url: `${URLS.screens}/${screenId}`,
-    apiClient: requestScreens,
+    apiClient,
     headers: { ...authHeaders, Accept: "application/json" },
     enabled: Boolean(screenId),
   });
@@ -136,7 +137,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
           <button
             type="button"
             onClick={() =>
-              canEditScreen ? router.push(`/dashboard/screens/${screenId}`) : router.back()
+              canEditScreen ? router.push(`${basePath}/${screenId}`) : router.back()
             }
             className="text-sm text-text-muted hover:text-text-primary active:scale-95 transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >

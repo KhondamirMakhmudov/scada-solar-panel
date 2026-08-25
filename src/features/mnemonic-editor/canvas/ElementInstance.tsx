@@ -6,6 +6,7 @@ import { useDocumentStore } from "../store/documentStore";
 import { useRuntimeStore } from "../store/runtimeStore";
 import { useElementLiveValue } from "../runtime/useElementLiveValue";
 import { applyLiveValueToElement, deriveLiveStatus } from "../runtime/resolveVisual";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 import ConnectionAnchors from "./ConnectionAnchors";
 import type { ConnectionHandle } from "../types";
 
@@ -33,6 +34,7 @@ const ElementInstance = memo(
     );
     const live = useElementLiveValue(element?.dataBinding?.tagId);
     const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
+    const { basePath } = useScreensBackend();
 
     const displayElement = useMemo(
       () => (element ? applyLiveValueToElement(element, live) : element),
@@ -64,7 +66,7 @@ const ElementInstance = memo(
             onClick={(event) => {
               event.stopPropagation();
               window.open(
-                `/dashboard/screens/${element.navigateToScreenId}/runtime`,
+                `${basePath}/${element.navigateToScreenId}/runtime`,
                 "scada_runtime_preview",
               );
             }}

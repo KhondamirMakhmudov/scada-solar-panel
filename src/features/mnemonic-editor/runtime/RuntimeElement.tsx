@@ -6,6 +6,7 @@ import { useDocumentStore } from "../store/documentStore";
 import { useRuntimeStore } from "../store/runtimeStore";
 import { useElementLiveValue } from "./useElementLiveValue";
 import { applyLiveValueToElement, deriveLiveStatus } from "./resolveVisual";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 
 interface RuntimeElementProps {
   elementId: string;
@@ -24,6 +25,7 @@ const RuntimeElement = memo(({ elementId }: RuntimeElementProps) => {
   );
   const live = useElementLiveValue(element?.dataBinding?.tagId);
   const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
+  const { basePath } = useScreensBackend();
 
   const displayElement = useMemo(
     () => (element ? applyLiveValueToElement(element, live) : element),
@@ -44,7 +46,7 @@ const RuntimeElement = memo(({ elementId }: RuntimeElementProps) => {
     <>
       {targetScreenId ? (
         <g
-          onClick={() => router.push(`/dashboard/screens/${targetScreenId}/runtime`)}
+          onClick={() => router.push(`${basePath}/${targetScreenId}/runtime`)}
           style={{ cursor: "pointer" }}
         >
           <title>Перейти к экрану</title>

@@ -4,7 +4,7 @@ import { get } from "lodash";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
-import { requestScreens } from "@/services/api";
+import { useScreensBackend } from "../../context/ScreensBackendContext";
 import { useDocumentStore } from "../../store/documentStore";
 import { commitImmediate } from "../../store/history/historyActions";
 import type { MnemonicElement } from "../../types";
@@ -24,11 +24,12 @@ interface NavigationSectionProps {
 const NavigationSection = ({ element, currentScreenId }: NavigationSectionProps) => {
   const { data: session } = useSession();
   const updateElement = useDocumentStore((state) => state.updateElement);
+  const { apiClient, backendId } = useScreensBackend();
 
   const { data: screensResp, isLoading } = useGetQuery({
-    key: `${KEYS.screens}:nav-picker`,
+    key: `${KEYS.screens}:nav-picker:${backendId}`,
     url: URLS.screens,
-    apiClient: requestScreens,
+    apiClient,
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
