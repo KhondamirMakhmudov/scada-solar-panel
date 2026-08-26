@@ -50,6 +50,9 @@ interface UiStoreState {
    */
   focusRequestId: string | null;
 
+  /** Smart-guide coordinates (document space) currently matched while dragging an element — see lib/alignmentGuides.ts. Empty outside of a move drag. */
+  alignmentGuides: { vertical: number[]; horizontal: number[] };
+
   setActiveTool: (tool: EditorTool) => void;
   requestFocus: (elementId: string) => void;
   clearFocusRequest: () => void;
@@ -71,6 +74,8 @@ interface UiStoreState {
   startDrawing: (point: { x: number; y: number }) => void;
   appendDrawingPoint: (point: { x: number; y: number }) => void;
   clearDrawing: () => void;
+  setAlignmentGuides: (guides: { vertical: number[]; horizontal: number[] }) => void;
+  clearAlignmentGuides: () => void;
 }
 
 /**
@@ -94,6 +99,7 @@ export const useUiStore = create<UiStoreState>((set) => ({
   gridStyle: "dots",
   snapToGrid: false,
   focusRequestId: null,
+  alignmentGuides: { vertical: [], horizontal: [] },
 
   setActiveTool: (tool) => set({ activeTool: tool, drawingPoints: null }),
   requestFocus: (elementId) =>
@@ -128,4 +134,6 @@ export const useUiStore = create<UiStoreState>((set) => ({
       state.drawingPoints ? { drawingPoints: [...state.drawingPoints, point] } : state,
     ),
   clearDrawing: () => set({ drawingPoints: null }),
+  setAlignmentGuides: (alignmentGuides) => set({ alignmentGuides }),
+  clearAlignmentGuides: () => set({ alignmentGuides: { vertical: [], horizontal: [] } }),
 }));

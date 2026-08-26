@@ -6,7 +6,6 @@ import MonitorRoundedIcon from "@mui/icons-material/MonitorRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 
 /**
  * Единственное описание навигации: из него строятся боковое меню, глобальный
@@ -73,13 +72,6 @@ export const NAV_GROUPS = [
         Icon: SellRoundedIcon,
         path: "/dashboard/tags",
         hint: "Параметры опроса",
-        roles: ["admin", "super_admin"],
-      },
-      {
-        text: "Пользователи",
-        Icon: PeopleAltRoundedIcon,
-        path: "/dashboard/users",
-        hint: "Учётные записи и роли",
         roles: ["admin", "super_admin"],
       },
     ],

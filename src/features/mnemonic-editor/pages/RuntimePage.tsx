@@ -24,6 +24,7 @@ import { migrateMnemonicParams } from "../document/migrate";
 import RuntimeCanvas from "../runtime/RuntimeCanvas";
 import FullscreenKiosk from "../runtime/FullscreenKiosk";
 import ConnectionStatusBadge from "../runtime/ConnectionStatusBadge";
+import AlarmBanner from "../runtime/AlarmBanner";
 
 interface RuntimePageProps {
   screenId: string;
@@ -165,6 +166,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
       <div className="flex-1 min-h-0">
         <RuntimeCanvas />
       </div>
+      <AlarmBanner />
       {isArchiveOpen && (
         <ScreenArchiveModal
           screenName={screen.name}

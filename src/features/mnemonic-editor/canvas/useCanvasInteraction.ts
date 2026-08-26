@@ -9,6 +9,7 @@ import { useUiStore } from "../store/uiStore";
 import { clampZoom, getElementAnchorPoint, nearestHandleFacing, screenToDocumentPoint, zoomAtPoint } from "../lib/geometry";
 import { findElementAtPoint } from "../lib/hitTest";
 import { commitImmediate, commitSnapshotDiff, snapshotDocumentArrays } from "../store/history/historyActions";
+import { computeAlignmentSnap } from "../lib/alignmentGuides";
 import { generateId } from "../lib/idGen";
 import { SHAPE_REGISTRY } from "../shapes/registry";
 import { DEFAULT_LAYER_ID } from "../document/defaults";
@@ -17,6 +18,8 @@ import type { ConnectionHandle } from "../types";
 export type ResizeHandle = "nw" | "ne" | "sw" | "se";
 
 const MIN_SIZE = 12;
+/** Screen pixels within which a dragged edge/center snaps to another element's — converted to document units by dividing by zoom. */
+const ALIGN_SNAP_PX = 6;
 
 interface DragState {
   mode: "pan" | "move" | "resize" | "rotate" | "connect" | "draw";
@@ -49,6 +52,8 @@ export function useCanvasInteraction() {
   const startConnecting = useUiStore((state) => state.startConnecting);
   const updateConnectingPreview = useUiStore((state) => state.updateConnectingPreview);
   const cancelConnecting = useUiStore((state) => state.cancelConnecting);
+  const setAlignmentGuides = useUiStore((state) => state.setAlignmentGuides);
+  const clearAlignmentGuides = useUiStore((state) => state.clearAlignmentGuides);
 
   const updateElement = useDocumentStore((state) => state.updateElement);
 
@@ -226,9 +231,26 @@ export function useCanvasInteraction() {
       };
 
       if (drag.mode === "move" && drag.elementId) {
+        const rawX = (drag.startElementX ?? 0) + dx / zoom;
+        const rawY = (drag.startElementY ?? 0) + dy / zoom;
+
+        const document = useDocumentStore.getState().document;
+        const dragged = document.elements.find((el) => el.id === drag.elementId);
+        const width = dragged?.width ?? 0;
+        const height = dragged?.height ?? 0;
+        const others = document.elements.filter((el) => el.id !== drag.elementId);
+
+        const alignment = computeAlignmentSnap(
+          { x: rawX, y: rawY, width, height },
+          others,
+          document.canvasSize,
+          ALIGN_SNAP_PX / zoom,
+        );
+        setAlignmentGuides({ vertical: alignment.verticalGuides, horizontal: alignment.horizontalGuides });
+
         updateElement(drag.elementId, {
-          x: snap((drag.startElementX ?? 0) + dx / zoom),
-          y: snap((drag.startElementY ?? 0) + dy / zoom),
+          x: alignment.verticalGuides.length > 0 ? alignment.x : snap(rawX),
+          y: alignment.horizontalGuides.length > 0 ? alignment.y : snap(rawY),
         });
       } else if (drag.mode === "resize" && drag.elementId && drag.resizeHandle) {
         const rawDx = dx / zoom;
@@ -287,12 +309,14 @@ export function useCanvasInteraction() {
         }
       }
     },
-    [setViewport, updateElement, updateConnectingPreview, appendDrawingPoint],
+    [setViewport, updateElement, updateConnectingPreview, appendDrawingPoint, setAlignmentGuides],
   );
 
   const handlePointerUp = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>) => {
       const drag = dragRef.current;
+
+      if (drag?.mode === "move") clearAlignmentGuides();
 
       if (drag?.mode === "draw") {
         const points = useUiStore.getState().drawingPoints;
@@ -373,7 +397,7 @@ export function useCanvasInteraction() {
       }
       dragRef.current = null;
     },
-    [cancelConnecting, clearDrawing, select],
+    [cancelConnecting, clearDrawing, select, clearAlignmentGuides],
   );
 
   const handleWheel = useCallback(

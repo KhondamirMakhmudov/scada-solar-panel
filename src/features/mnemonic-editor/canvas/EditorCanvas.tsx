@@ -19,6 +19,7 @@ import ConnectionLayer from "./ConnectionLayer";
 import PanelLayer from "./PanelLayer";
 import SelectionOverlay from "./SelectionOverlay";
 import GridBackground from "./GridBackground";
+import AlignmentGuides from "./AlignmentGuides";
 import ContextMenu from "./ContextMenu";
 
 const MAX_DROPPED_IMAGE_DIM = 320;
@@ -224,6 +225,7 @@ const EditorCanvas = () => {
             />
           ))}
           <PanelLayer />
+          <AlignmentGuides />
           <SelectionOverlay
             onResizeHandlePointerDown={handleResizeHandlePointerDown}
             onRotateHandlePointerDown={handleRotateHandlePointerDown}

@@ -91,36 +91,92 @@ const ConnectionLine = ({
       : energized
         ? LIVE_STATUS_COLORS.ok
         : connection.style?.stroke || "#64748b";
-  const strokeWidth = isSelected ? 4 : connection.style?.strokeWidth || 3;
+  const baseWidth = connection.style?.strokeWidth || 5;
+  const strokeWidth = isSelected ? baseWidth + 2 : baseWidth;
   const showFlowAnimation = energized && !isSelected;
+
+  // "Бусины" пропорциональны толщине линии — сегмент чуть длиннее ширины,
+  // разрыв чуть короче, round linecap скругляет каждую бусину в капсулу.
+  const beadDash = `${strokeWidth * 1.5} ${strokeWidth * 1.1}`;
+  const dashLength = strokeWidth * 2.6;
 
   return (
     <g>
+      {/* Мягкое свечение под основной линией — только в рабочем режиме, чтобы
+          не превращать выделение/аварию/остановленное состояние в лишний шум */}
+      {showFlowAnimation && (
+        <polyline
+          points={pointsAttr}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={strokeWidth * 2.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.18}
+          pointerEvents="none"
+        />
+      )}
+
+      <polyline
+        points={pointsAttr}
+        fill="none"
+        stroke={connection.style?.dashed || faulted || !energized ? stroke : "#1e293b"}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={faulted ? 0.35 : 1}
+        style={interactive ? { cursor: "pointer" } : undefined}
+        onPointerDown={interactive ? onPointerDown : undefined}
+      />
+
+      {/* Бегущие бусины поверх базовой линии — направление потока читается
+          по движению, а не только по стрелкам, ближе к референсу WinCC */}
       <polyline
         points={pointsAttr}
         fill="none"
         stroke={stroke}
         strokeWidth={strokeWidth}
-        strokeDasharray={connection.style?.dashed ? "6 4" : showFlowAnimation ? "8 6" : undefined}
+        strokeDasharray={connection.style?.dashed ? "6 4" : beadDash}
         strokeLinecap="round"
         strokeLinejoin="round"
         style={interactive ? { cursor: "pointer" } : undefined}
         onPointerDown={interactive ? onPointerDown : undefined}
       >
         {showFlowAnimation && (
-          <animate attributeName="stroke-dashoffset" values="14;0" dur="0.6s" repeatCount="indefinite" />
+          <animate attributeName="stroke-dashoffset" values={`${dashLength};0`} dur="0.7s" repeatCount="indefinite" />
+        )}
+        {faulted && !isSelected && (
+          <animate attributeName="opacity" values="1;0.4;1" dur="0.8s" repeatCount="indefinite" />
         )}
       </polyline>
+
       {arrows.map((arrow, index) => (
         <polygon
           key={index}
           points={`${ARROW_HALF_LENGTH},0 ${-ARROW_HALF_LENGTH},${-ARROW_HALF_WIDTH} ${-ARROW_HALF_LENGTH},${ARROW_HALF_WIDTH}`}
           transform={`translate(${arrow.x}, ${arrow.y}) rotate(${arrow.angle})`}
           fill={stroke}
-          opacity={0.55}
+          opacity={0.75}
           pointerEvents="none"
         />
       ))}
+
+      {/* Узловые точки на концах связи — как в референсе WinCC: маленький
+          кружок там, где провод входит в оборудование или в другой провод */}
+      {points.length > 0 && (
+        <>
+          <circle cx={points[0].x} cy={points[0].y} r={Math.max(3, strokeWidth * 0.7)} fill="#0f172a" stroke={stroke} strokeWidth={1.5} pointerEvents="none" />
+          <circle
+            cx={points[points.length - 1].x}
+            cy={points[points.length - 1].y}
+            r={Math.max(3, strokeWidth * 0.7)}
+            fill="#0f172a"
+            stroke={stroke}
+            strokeWidth={1.5}
+            pointerEvents="none"
+          />
+        </>
+      )}
     </g>
   );
 };
