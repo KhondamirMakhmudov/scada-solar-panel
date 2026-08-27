@@ -73,6 +73,11 @@ function buildRow(binding: DataBinding, live: TagValue | undefined, valueMap: Re
  * self-computed — a single top-level layer (PanelLayer) lays out every
  * element's panel together so none overlap. The border tints to the node's
  * own stroke color so panel and node visually read as one group.
+ *
+ * `element.panelDisplay` (see PropertiesPanel → BindingSection) switches
+ * this to a plain hidden state ("hidden") or a small single-value badge
+ * overlapping the shape's corner ("compact") for dense screens — see the
+ * early returns below. Default ("full") is the table described above.
  */
 const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
   const bindings: DataBinding[] = [
@@ -86,7 +91,33 @@ const PanelInstance = ({ element, slot }: PanelInstanceProps) => {
   );
   const valueMaps = useTagValueMaps();
 
-  if (!bindings.length || !slot) return null;
+  const panelDisplay = element.panelDisplay ?? "full";
+  if (!bindings.length || panelDisplay === "hidden") return null;
+
+  if (panelDisplay === "compact") {
+    const row = buildRow(bindings[0], values[0], valueMaps.get(bindings[0].tagId));
+    const value = truncate(row.value, 12);
+    const fontSize = Math.max(8, (element.style?.labelFontSize ?? 11) - 2);
+    const paddingX = 6;
+    const charW = fontSize * 0.62;
+    const width = value.length * charW + paddingX * 2;
+    const height = fontSize + 8;
+    // Overlaps the shape's own top-right corner — no shared slot needed
+    // (see panelLayout.computePanelSlots skipping "compact"/"hidden").
+    const x = element.x + element.width - width * 0.4;
+    const y = element.y - height / 2;
+    return (
+      <g>
+        <title>{`${row.name}: ${row.value}`}</title>
+        <rect x={x} y={y} width={width} height={height} rx={height / 2} fill="#0b1220" fillOpacity={0.94} stroke={row.fill} strokeOpacity={0.7} strokeWidth={1} />
+        <text x={x + width / 2} y={y + height / 2 + fontSize * 0.35} textAnchor="middle" fontSize={fontSize} fontFamily="monospace" fill={row.fill}>
+          {value}
+        </text>
+      </g>
+    );
+  }
+
+  if (!slot) return null;
 
   const labelFontSize = element.style?.labelFontSize ?? 11;
   const fontSize = Math.max(8, labelFontSize - 1);

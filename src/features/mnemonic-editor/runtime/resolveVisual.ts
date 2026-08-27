@@ -104,18 +104,16 @@ const STATUS_DOT_EXCLUDED_KINDS = new Set<ShapeKind>([
 ]);
 
 /**
- * Standardized WinCC-style status dot color for a bound element — separate
- * from applyLiveValueToElement's per-kind state merge (which drives shape
- * geometry/animation), this only decides the small header LED. Unbound
- * elements return null (no dot) so a screen mid-design doesn't get cluttered
- * with meaningless indicators.
+ * Same rules as deriveLiveStatus, minus the status-dot exclusion — used
+ * where the *equipment's* health matters even for kinds that don't get
+ * their own LED (a Connection ending at a "building"/load node still needs
+ * to know whether that node is faulted, just doesn't draw a dot for it).
  */
-export function deriveLiveStatus(
+function computeEquipmentStatus(
   element: MnemonicElement,
   live: TagValue | undefined,
   wsStatus: ConnectionStatus,
 ): LiveStatus | null {
-  if (STATUS_DOT_EXCLUDED_KINDS.has(element.type)) return null;
   if (!element.dataBinding?.tagId) return null;
 
   if (wsStatus !== "online") return "stopped";
@@ -132,4 +130,35 @@ export function deriveLiveStatus(
   }
 
   return "ok";
+}
+
+/**
+ * Standardized WinCC-style status dot color for a bound element — separate
+ * from applyLiveValueToElement's per-kind state merge (which drives shape
+ * geometry/animation), this only decides the small header LED. Unbound
+ * elements return null (no dot) so a screen mid-design doesn't get cluttered
+ * with meaningless indicators.
+ */
+export function deriveLiveStatus(
+  element: MnemonicElement,
+  live: TagValue | undefined,
+  wsStatus: ConnectionStatus,
+): LiveStatus | null {
+  if (STATUS_DOT_EXCLUDED_KINDS.has(element.type)) return null;
+  return computeEquipmentStatus(element, live, wsStatus);
+}
+
+/**
+ * Health used to color a Connection line — deliberately NOT gated by
+ * STATUS_DOT_EXCLUDED_KINDS: a wire into a "building"/load/panel-only node
+ * (no standalone status LED makes sense there) should still read as
+ * energized off the upstream equipment's state, not silently stay grey
+ * because that endpoint's *kind* opts out of a dot.
+ */
+export function deriveEquipmentStatus(
+  element: MnemonicElement,
+  live: TagValue | undefined,
+  wsStatus: ConnectionStatus,
+): LiveStatus | null {
+  return computeEquipmentStatus(element, live, wsStatus);
 }

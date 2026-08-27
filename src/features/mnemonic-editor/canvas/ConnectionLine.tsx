@@ -6,7 +6,7 @@ import { computeOrthogonalPath } from "../lib/routing";
 import type { Rect } from "../lib/routing";
 import { useElementLiveValue } from "../runtime/useElementLiveValue";
 import { useRuntimeStore } from "../store/runtimeStore";
-import { deriveLiveStatus, LIVE_STATUS_COLORS } from "../runtime/resolveVisual";
+import { deriveEquipmentStatus, LIVE_STATUS_COLORS } from "../runtime/resolveVisual";
 
 interface ConnectionLineProps {
   connection: Connection;
@@ -47,11 +47,17 @@ const ConnectionLine = ({
   const targetLive = useElementLiveValue(target.dataBinding?.tagId);
   const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
 
-  const sourceStatus = deriveLiveStatus(source, sourceLive, connectionStatus);
-  const targetStatus = deriveLiveStatus(target, targetLive, connectionStatus);
+  const sourceStatus = deriveEquipmentStatus(source, sourceLive, connectionStatus);
+  const targetStatus = deriveEquipmentStatus(target, targetLive, connectionStatus);
 
   const faulted = sourceStatus === "fault" || targetStatus === "fault";
-  const energized = sourceStatus === "ok" && targetStatus === "ok";
+  // A wire needs at least one confirmed-"ok" endpoint to glow — but an
+  // unbound passive node (a building/load with no tag of its own, or a
+  // shape kind that opts out of its own status dot) shouldn't block that:
+  // it's neutral, not "not ok". Only an explicit fault or stopped/off state
+  // on either end kills the flow.
+  const isBad = (status: typeof sourceStatus) => status === "fault" || status === "stopped";
+  const energized = !isBad(sourceStatus) && !isBad(targetStatus) && (sourceStatus === "ok" || targetStatus === "ok");
 
   const points = useMemo(() => {
     const p1 = getElementAnchorPoint(source, connection.source.handle);

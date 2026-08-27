@@ -35,8 +35,11 @@ export function computePanelSlots(elements: MnemonicElement[]): Map<string, Pane
     elements.map((el) => [el.id, { x: el.x, y: el.y, width: el.width, height: el.height }]),
   );
 
+  // "compact" — a small badge overlapping the shape's own corner — and
+  // "hidden" don't need a below-node slot at all (see PanelInstance): only
+  // "full" panels compete for space here.
   const candidates = elements
-    .filter((el) => el.type !== "chart")
+    .filter((el) => el.type !== "chart" && (el.panelDisplay ?? "full") === "full")
     .map((el) => ({
       el,
       bindingCount: (el.dataBinding?.tagId ? 1 : 0) + (el.extraBindings?.length ?? 0),

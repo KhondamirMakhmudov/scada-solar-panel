@@ -50,6 +50,15 @@ export interface AnimationRule {
 /** Shape-specific state, e.g. { running: true } for a pump, { open: false } for a valve, { level: 0.6 } for a tank. */
 export type ShapeState = Record<string, unknown>;
 
+/**
+ * How this element's live tag values are shown on the canvas:
+ * "full" (default) — the table under the shape, one row per bound tag;
+ * "compact" — a single small badge overlapping the shape's corner, primary
+ * tag only, for dense screens where a full panel per node is too much;
+ * "hidden" — nothing, the shape's own color/state is the only live cue.
+ */
+export type PanelDisplay = "full" | "compact" | "hidden";
+
 export interface MnemonicElement {
   id: string;
   type: ShapeKind;
@@ -67,6 +76,8 @@ export interface MnemonicElement {
   dataBinding?: DataBinding | null;
   /** Дополнительные теги: каждый выводится отдельной строкой живого значения под фигурой */
   extraBindings?: DataBinding[] | null;
+  /** См. PanelDisplay. Не задано = "full" (существующее поведение, обратная совместимость со старыми экранами). */
+  panelDisplay?: PanelDisplay;
   animationRules?: AnimationRule[];
   /** Переход по клику в режиме просмотра: id экрана, который откроется */
   navigateToScreenId?: string | null;

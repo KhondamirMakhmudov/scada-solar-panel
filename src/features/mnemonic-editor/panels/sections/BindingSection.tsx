@@ -8,7 +8,7 @@ import { requestPython } from "@/services/api";
 import { formatTagLabel } from "@/lib/tagNameTranslation";
 import { useDocumentStore } from "../../store/documentStore";
 import { commitImmediate } from "../../store/history/historyActions";
-import type { MnemonicElement } from "../../types";
+import type { MnemonicElement, PanelDisplay } from "../../types";
 
 interface Tag {
   id: string;
@@ -32,6 +32,12 @@ interface TagGroup {
   label: string;
   tags: Tag[];
 }
+
+const PANEL_DISPLAY_OPTIONS: { value: PanelDisplay; label: string; hint: string }[] = [
+  { value: "full", label: "Полная", hint: "Табличка со всеми тегами под фигурой" },
+  { value: "compact", label: "Компакт", hint: "Один значок со значением на углу фигуры" },
+  { value: "hidden", label: "Скрыта", hint: "Ничего — только цвет/состояние самой фигуры" },
+];
 
 interface BindingSectionProps {
   element: MnemonicElement;
@@ -177,6 +183,11 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
     );
   };
 
+  const panelDisplay: PanelDisplay = element.panelDisplay ?? "full";
+  const handlePanelDisplayChange = (value: PanelDisplay) => {
+    commitImmediate(() => updateElement(element.id, { panelDisplay: value }));
+  };
+
   const extraBindings = element.extraBindings ?? [];
   const isExtra = (tagId: string) =>
     extraBindings.some((binding) => binding.tagId === tagId);
@@ -243,6 +254,31 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
         <p className="text-[10px] text-text-faint">
           Основной тег управляет состоянием элемента в реальном времени.
         </p>
+      )}
+
+      {(element.dataBinding?.tagId || extraBindings.length > 0) && (
+        <div className="pt-1">
+          <p className="text-[10.5px] text-text-dim mb-1">Показ данных на экране</p>
+          <div className="flex rounded-[2px] border border-surface-border overflow-hidden">
+            {PANEL_DISPLAY_OPTIONS.map((option, idx) => (
+              <button
+                key={option.value}
+                type="button"
+                title={option.hint}
+                onClick={() => handlePanelDisplayChange(option.value)}
+                className={`flex-1 h-7 text-[10.5px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset ${
+                  idx > 0 ? "border-l border-surface-border" : ""
+                } ${
+                  panelDisplay === option.value
+                    ? "bg-blue-600 text-white"
+                    : "bg-background-dark text-text-secondary hover:bg-surface-border/40"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Дополнительные теги: каждый — своя строка живого значения под фигурой */}

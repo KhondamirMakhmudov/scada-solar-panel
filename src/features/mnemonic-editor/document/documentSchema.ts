@@ -62,6 +62,7 @@ const elementSchema = z.object({
   label: z.string().optional(),
   dataBinding: dataBindingSchema.nullable().optional(),
   extraBindings: z.array(dataBindingSchema).nullable().optional(),
+  panelDisplay: z.enum(["full", "compact", "hidden"]).optional(),
   animationRules: z.array(animationRuleSchema).optional(),
   navigateToScreenId: z.string().nullable().optional(),
 });

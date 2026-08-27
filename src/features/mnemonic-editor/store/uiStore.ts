@@ -61,6 +61,7 @@ interface UiStoreState {
   setGridStyle: (style: GridStyle) => void;
   toggleSnapToGrid: () => void;
   select: (id: string | null) => void;
+  toggleSelect: (id: string) => void;
   clearSelection: () => void;
   selectConnection: (id: string | null) => void;
   setViewport: (viewport: Partial<Viewport>) => void;
@@ -115,6 +116,15 @@ export const useUiStore = create<UiStoreState>((set) => ({
   setGridStyle: (gridStyle) => set({ gridStyle }),
   toggleSnapToGrid: () => set((state) => ({ snapToGrid: !state.snapToGrid })),
   select: (id) => set({ selectedElementIds: id ? [id] : [], selectedConnectionIds: [] }),
+  // Ctrl/Cmd/Shift-click: adds or removes one element from the selection
+  // instead of replacing it — see useCanvasInteraction.handleElementPointerDown.
+  toggleSelect: (id) =>
+    set((state) => ({
+      selectedElementIds: state.selectedElementIds.includes(id)
+        ? state.selectedElementIds.filter((elId) => elId !== id)
+        : [...state.selectedElementIds, id],
+      selectedConnectionIds: [],
+    })),
   clearSelection: () => set({ selectedElementIds: [], selectedConnectionIds: [] }),
   selectConnection: (id) => set({ selectedConnectionIds: id ? [id] : [], selectedElementIds: [] }),
   setViewport: (viewport) =>

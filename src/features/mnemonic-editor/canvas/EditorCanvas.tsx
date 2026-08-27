@@ -46,6 +46,7 @@ const EditorCanvas = () => {
     handleElementPointerDown,
     handleElementContextMenu,
     handleResizeHandlePointerDown,
+    handleGroupResizeHandlePointerDown,
     handleRotateHandlePointerDown,
     handleAnchorPointerDown,
     handleConnectionPointerDown,
@@ -228,6 +229,7 @@ const EditorCanvas = () => {
           <AlignmentGuides />
           <SelectionOverlay
             onResizeHandlePointerDown={handleResizeHandlePointerDown}
+            onGroupResizeHandlePointerDown={handleGroupResizeHandlePointerDown}
             onRotateHandlePointerDown={handleRotateHandlePointerDown}
           />
           {/* Живой предпросмотр мазка кисти */}

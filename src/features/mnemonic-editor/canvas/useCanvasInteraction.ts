@@ -13,7 +13,7 @@ import { computeAlignmentSnap } from "../lib/alignmentGuides";
 import { generateId } from "../lib/idGen";
 import { SHAPE_REGISTRY } from "../shapes/registry";
 import { DEFAULT_LAYER_ID } from "../document/defaults";
-import type { ConnectionHandle } from "../types";
+import type { ConnectionHandle, MnemonicElement } from "../types";
 
 export type ResizeHandle = "nw" | "ne" | "sw" | "se";
 
@@ -21,8 +21,14 @@ const MIN_SIZE = 12;
 /** Screen pixels within which a dragged edge/center snaps to another element's — converted to document units by dividing by zoom. */
 const ALIGN_SNAP_PX = 6;
 
+interface GroupResizeStart {
+  elements: Map<string, { x: number; y: number; width: number; height: number }>;
+  bbox: { minX: number; minY: number; maxX: number; maxY: number };
+  handle: ResizeHandle;
+}
+
 interface DragState {
-  mode: "pan" | "move" | "resize" | "rotate" | "connect" | "draw";
+  mode: "pan" | "move" | "resize" | "rotate" | "connect" | "draw" | "group-resize";
   startClientX: number;
   startClientY: number;
   startPanX: number;
@@ -35,6 +41,9 @@ interface DragState {
   resizeHandle?: ResizeHandle;
   connectHandle?: ConnectionHandle;
   historyBefore?: ReturnType<typeof snapshotDocumentArrays>;
+  /** Every selected element's starting x/y when a move drag covers more than one — see handleElementPointerDown. */
+  groupStartPositions?: Map<string, { x: number; y: number }>;
+  groupResizeStart?: GroupResizeStart;
 }
 
 /** Wires pointer/wheel events for the canvas: space-drag/middle-click pan, click-drag move/resize/rotate on a selected element, cursor-anchored wheel zoom, click-empty-space to deselect, right-click to open the context menu. Interactive gestures (move/resize/rotate) commit exactly one undo/redo entry on pointer-up, never per intermediate frame. */
@@ -45,6 +54,7 @@ export function useCanvasInteraction() {
   const setViewport = useUiStore((state) => state.setViewport);
   const isSpaceDown = useUiStore((state) => state.isSpaceDown);
   const select = useUiStore((state) => state.select);
+  const toggleSelect = useUiStore((state) => state.toggleSelect);
   const clearSelection = useUiStore((state) => state.clearSelection);
   const openContextMenu = useUiStore((state) => state.openContextMenu);
   const closeContextMenu = useUiStore((state) => state.closeContextMenu);
@@ -111,9 +121,35 @@ export function useCanvasInteraction() {
         if (svg) beginDrawStroke(event.clientX, event.clientY, svg);
         return;
       }
-      select(id);
-      const element = useDocumentStore.getState().document.elements.find((el) => el.id === id);
-      if (!element) return;
+
+      const currentSelection = useUiStore.getState().selectedElementIds;
+      const isAdditive = event.ctrlKey || event.metaKey || event.shiftKey;
+
+      if (isAdditive) {
+        // Ctrl/Cmd/Shift-click только меняет состав выделения — перетаскивание
+        // начинается отдельным, обычным нажатием на уже выделенный элемент.
+        toggleSelect(id);
+        return;
+      }
+
+      // Клик по элементу вне текущего множественного выделения сбрасывает его
+      // до одного этого элемента — как в любом графическом редакторе. Клик по
+      // уже выделенному участнику группы сохраняет всё выделение, и группа
+      // двигается вместе.
+      const groupIds = currentSelection.includes(id) ? currentSelection : [id];
+      if (!currentSelection.includes(id)) select(id);
+
+      const elements = useDocumentStore.getState().document.elements;
+      const primary = elements.find((el) => el.id === id);
+      if (!primary) return;
+
+      const groupStartPositions = new Map(
+        groupIds
+          .map((elId) => elements.find((el) => el.id === elId))
+          .filter((el): el is MnemonicElement => Boolean(el))
+          .map((el) => [el.id, { x: el.x, y: el.y }]),
+      );
+
       dragRef.current = {
         mode: "move",
         startClientX: event.clientX,
@@ -121,12 +157,13 @@ export function useCanvasInteraction() {
         startPanX: viewport.panX,
         startPanY: viewport.panY,
         elementId: id,
-        startElementX: element.x,
-        startElementY: element.y,
+        startElementX: primary.x,
+        startElementY: primary.y,
+        groupStartPositions,
         historyBefore: snapshotDocumentArrays(),
       };
     },
-    [select, viewport.panX, viewport.panY, closeContextMenu, beginDrawStroke],
+    [select, toggleSelect, viewport.panX, viewport.panY, closeContextMenu, beginDrawStroke],
   );
 
   const handleElementContextMenu = useCallback(
@@ -157,6 +194,35 @@ export function useCanvasInteraction() {
         startElementHeight: element.height,
         resizeHandle: handle,
         historyBefore: snapshotDocumentArrays(),
+      };
+    },
+    [viewport.panX, viewport.panY],
+  );
+
+  const handleGroupResizeHandlePointerDown = useCallback(
+    (handle: ResizeHandle) => (event: ReactPointerEvent<SVGElement>) => {
+      event.stopPropagation();
+      const ids = useUiStore.getState().selectedElementIds;
+      const elements = useDocumentStore.getState().document.elements.filter((el) => ids.includes(el.id));
+      if (elements.length < 2) return;
+
+      const minX = Math.min(...elements.map((el) => el.x));
+      const minY = Math.min(...elements.map((el) => el.y));
+      const maxX = Math.max(...elements.map((el) => el.x + el.width));
+      const maxY = Math.max(...elements.map((el) => el.y + el.height));
+
+      dragRef.current = {
+        mode: "group-resize",
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startPanX: viewport.panX,
+        startPanY: viewport.panY,
+        historyBefore: snapshotDocumentArrays(),
+        groupResizeStart: {
+          elements: new Map(elements.map((el) => [el.id, { x: el.x, y: el.y, width: el.width, height: el.height }])),
+          bbox: { minX, minY, maxX, maxY },
+          handle,
+        },
       };
     },
     [viewport.panX, viewport.panY],
@@ -238,7 +304,13 @@ export function useCanvasInteraction() {
         const dragged = document.elements.find((el) => el.id === drag.elementId);
         const width = dragged?.width ?? 0;
         const height = dragged?.height ?? 0;
-        const others = document.elements.filter((el) => el.id !== drag.elementId);
+        // Whole group excluded from alignment candidates — a fellow group
+        // member is about to move by the same delta, so "aligning" to it is
+        // meaningless (and, since it hasn't updated yet this tick, misleading).
+        const groupIdSet = new Set(
+          drag.groupStartPositions ? [...drag.groupStartPositions.keys()] : [drag.elementId],
+        );
+        const others = document.elements.filter((el) => !groupIdSet.has(el.id));
 
         const alignment = computeAlignmentSnap(
           { x: rawX, y: rawY, width, height },
@@ -248,10 +320,18 @@ export function useCanvasInteraction() {
         );
         setAlignmentGuides({ vertical: alignment.verticalGuides, horizontal: alignment.horizontalGuides });
 
-        updateElement(drag.elementId, {
-          x: alignment.verticalGuides.length > 0 ? alignment.x : snap(rawX),
-          y: alignment.horizontalGuides.length > 0 ? alignment.y : snap(rawY),
-        });
+        const finalX = alignment.verticalGuides.length > 0 ? alignment.x : snap(rawX);
+        const finalY = alignment.horizontalGuides.length > 0 ? alignment.y : snap(rawY);
+
+        if (drag.groupStartPositions && drag.groupStartPositions.size > 1) {
+          const deltaX = finalX - (drag.startElementX ?? 0);
+          const deltaY = finalY - (drag.startElementY ?? 0);
+          drag.groupStartPositions.forEach((start, elId) => {
+            updateElement(elId, { x: start.x + deltaX, y: start.y + deltaY });
+          });
+        } else {
+          updateElement(drag.elementId, { x: finalX, y: finalY });
+        }
       } else if (drag.mode === "resize" && drag.elementId && drag.resizeHandle) {
         const rawDx = dx / zoom;
         const rawDy = dy / zoom;
@@ -280,6 +360,40 @@ export function useCanvasInteraction() {
           y: snap(nextY),
           width: Math.max(MIN_SIZE, snap(nextW)),
           height: Math.max(MIN_SIZE, snap(nextH)),
+        });
+      } else if (drag.mode === "group-resize" && drag.groupResizeStart) {
+        // Scales every selected element's position/size around the fixed
+        // opposite corner of the group's combined bounding box — same
+        // corner-anchor convention as the single-element resize above, just
+        // applied as one shared scale factor per axis instead of a direct
+        // width/height delta.
+        const { elements: startEls, bbox, handle } = drag.groupResizeStart;
+        const rawDx = dx / zoom;
+        const rawDy = dy / zoom;
+        const { minX, minY, maxX, maxY } = bbox;
+
+        let newMinX = minX;
+        let newMinY = minY;
+        let newMaxX = maxX;
+        let newMaxY = maxY;
+
+        if (handle.includes("e")) newMaxX = Math.max(minX + MIN_SIZE, maxX + rawDx);
+        if (handle.includes("s")) newMaxY = Math.max(minY + MIN_SIZE, maxY + rawDy);
+        if (handle.includes("w")) newMinX = Math.min(maxX - MIN_SIZE, minX + rawDx);
+        if (handle.includes("n")) newMinY = Math.min(maxY - MIN_SIZE, minY + rawDy);
+
+        const scaleX = (newMaxX - newMinX) / (maxX - minX);
+        const scaleY = (newMaxY - newMinY) / (maxY - minY);
+        const anchorX = handle.includes("w") ? maxX : minX;
+        const anchorY = handle.includes("n") ? maxY : minY;
+
+        startEls.forEach((start, elId) => {
+          updateElement(elId, {
+            x: anchorX + (start.x - anchorX) * scaleX,
+            y: anchorY + (start.y - anchorY) * scaleY,
+            width: Math.max(MIN_SIZE, start.width * scaleX),
+            height: Math.max(MIN_SIZE, start.height * scaleY),
+          });
         });
       } else if (drag.mode === "rotate" && drag.elementId) {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -392,7 +506,11 @@ export function useCanvasInteraction() {
         return;
       }
 
-      if (drag && drag.historyBefore && (drag.mode === "move" || drag.mode === "resize" || drag.mode === "rotate")) {
+      if (
+        drag &&
+        drag.historyBefore &&
+        (drag.mode === "move" || drag.mode === "resize" || drag.mode === "rotate" || drag.mode === "group-resize")
+      ) {
         commitSnapshotDiff(drag.historyBefore);
       }
       dragRef.current = null;
@@ -419,6 +537,7 @@ export function useCanvasInteraction() {
     handleElementPointerDown,
     handleElementContextMenu,
     handleResizeHandlePointerDown,
+    handleGroupResizeHandlePointerDown,
     handleRotateHandlePointerDown,
     handleAnchorPointerDown,
     handleConnectionPointerDown,
