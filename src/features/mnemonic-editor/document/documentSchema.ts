@@ -111,8 +111,27 @@ export const mnemonicParamsSchema = z.object({
   updatedAt: z.string(),
 });
 
+/** Clipboard payload for "copy diagram" / "paste diagram" (EditorToolbar via
+ * EditorPage) — deliberately just elements + connections, not
+ * canvasSize/background/gridSize/layers: those are per-screen canvas
+ * settings, not "drawn elements", and copy/paste is meant to work between
+ * any two screens (draft ↔ prod) regardless of how each one's canvas is
+ * configured. */
+export const diagramClipboardSchema = z.object({
+  kind: z.literal("mnemonic-diagram-elements"),
+  version: z.literal(1),
+  elements: z.array(elementSchema),
+  connections: z.array(connectionSchema),
+});
+
 /** Safely parses `params.mnemonic`; returns null if missing or invalid so the caller can fall back to a blank document. */
 export function parseMnemonicParams(raw: unknown) {
   const result = mnemonicParamsSchema.safeParse(raw);
+  return result.success ? result.data : null;
+}
+
+/** Safely parses a diagram-clipboard payload; null if the clipboard doesn't hold one (wrong app, stale/foreign JSON, etc.). */
+export function parseDiagramClipboard(raw: unknown) {
+  const result = diagramClipboardSchema.safeParse(raw);
   return result.success ? result.data : null;
 }

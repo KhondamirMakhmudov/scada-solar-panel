@@ -984,7 +984,7 @@ const ScreensDraftPage = () => {
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="поиск экранов…"
-                className="w-[230px] h-8 px-2.5 rounded-[2px] border border-surface-border bg-surface-dark text-[11.5px] font-ibmPlexMono text-text-primary placeholder:text-text-faint outline-none focus:border-primary/60 transition-colors"
+                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[13.5px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
               />
               <div className="w-[160px]">
                 <CustomSelect

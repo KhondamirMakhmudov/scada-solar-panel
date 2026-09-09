@@ -20,10 +20,12 @@ import ShapePalette from "../toolbar/ShapePalette";
 import EditorCanvas from "../canvas/EditorCanvas";
 import PropertiesPanel from "../panels/PropertiesPanel";
 import { createEmptyDocument } from "../document/defaults";
-import { parseMnemonicParams } from "../document/documentSchema";
+import { parseDiagramClipboard, parseMnemonicParams } from "../document/documentSchema";
 import { migrateMnemonicParams } from "../document/migrate";
 import { serializeDocument } from "../document/serialize";
 import { mergeTagIds } from "../document/tagSync";
+import { buildDiagramClipboardPayload, remapDiagramForPaste } from "../document/diagramClipboard";
+import { commitImmediate } from "../store/history/historyActions";
 
 interface EditorPageProps {
   screenId: string;
@@ -133,6 +135,55 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
     }
   };
 
+  // Копирует только нарисованное (элементы + связи между ними) — не имя, не
+  // теги экрана, не настройки холста. Работает между любыми двумя экранами,
+  // включая черновой ↔ прод: id тегов общие для обоих бэкендов (см.
+  // ScreensBackendContext), так что привязки переносятся рабочими как есть.
+  const handleCopyDiagram = async () => {
+    if (document.elements.length === 0) {
+      toast.error("На схеме нет элементов для копирования");
+      return;
+    }
+    try {
+      const payload = buildDiagramClipboardPayload(document.elements, document.connections);
+      await navigator.clipboard.writeText(JSON.stringify(payload));
+      toast.success(`Скопировано элементов: ${document.elements.length}`);
+    } catch {
+      toast.error("Буфер обмена недоступен в этом браузере");
+    }
+  };
+
+  const handlePasteDiagram = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const parsed = parseDiagramClipboard(JSON.parse(text));
+      if (!parsed) {
+        toast.error("В буфере обмена нет схемы, скопированной из редактора");
+        return;
+      }
+
+      const { elements: newElements, connections: newConnections } = remapDiagramForPaste(
+        parsed.elements,
+        parsed.connections,
+      );
+
+      commitImmediate(() => {
+        const current = useDocumentStore.getState().document;
+        useDocumentStore.getState().setElementsAndConnections(
+          [...current.elements, ...newElements],
+          [...current.connections, ...newConnections],
+        );
+      });
+
+      useUiStore.getState().select(null);
+      newElements.forEach((el) => useUiStore.getState().toggleSelect(el.id));
+
+      toast.success(`Вставлено элементов: ${newElements.length} — не забудьте сохранить`);
+    } catch {
+      toast.error("Буфер обмена пуст или содержит не JSON");
+    }
+  };
+
   if (isLoadingScreen || !screen) {
     return (
       <div className="fixed inset-0 z-50 bg-[#0e0e0e] font-ibmPlexSans">
@@ -157,6 +208,26 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
         isDirty={isDirty}
         onPreview={handlePreview}
         isPreviewing={isPreviewing}
+        rightSlot={
+          <>
+            <button
+              type="button"
+              onClick={handleCopyDiagram}
+              title="Скопировать нарисованные элементы схемы в буфер обмена"
+              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[13px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+            >
+              Копировать
+            </button>
+            <button
+              type="button"
+              onClick={handlePasteDiagram}
+              title="Вставить элементы схемы, скопированные с другого экрана"
+              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[13px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+            >
+              Вставить
+            </button>
+          </>
+        }
       />
       <div className="flex flex-1 min-h-0">
         <ShapePalette />
