@@ -24,18 +24,6 @@ export const ROUTE_ACCESS_RULES = [
     roles: ["admin", "super_admin"],
   },
   {
-    prefix: "/dashboard/modbus",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    prefix: "/dashboard/opc",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    prefix: "/dashboard/nodes",
-    roles: ["admin", "super_admin"],
-  },
-  {
     prefix: "/dashboard/test",
     roles: ["admin", "super_admin"],
   },
