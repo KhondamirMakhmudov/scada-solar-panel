@@ -35,7 +35,10 @@ const Grid = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =>
         </linearGradient>
         {connected && (
           <filter id={glowId} x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="1.4" result="blur" />
+            {/* Breathing blur radius — idle "alive" cue on the default connected=true state, not only once a live tag confirms it. */}
+            <feGaussianBlur stdDeviation="1.4" result="blur">
+              <animate attributeName="stdDeviation" values="1;2;1" dur="2.4s" repeatCount="indefinite" />
+            </feGaussianBlur>
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />

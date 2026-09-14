@@ -33,7 +33,10 @@ const Transformer = ({ element, onPointerDown, onContextMenu }: ShapeComponentPr
         </radialGradient>
         {energized && (
           <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="1.6" result="blur" />
+            {/* Breathing blur radius — idle "alive" cue on the default energized=true state, not only once a live tag confirms it. */}
+            <feGaussianBlur stdDeviation="1.6" result="blur">
+              <animate attributeName="stdDeviation" values="1.1;2.2;1.1" dur="2.6s" repeatCount="indefinite" />
+            </feGaussianBlur>
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />

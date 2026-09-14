@@ -58,8 +58,10 @@ const Inverter = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps
         strokeWidth={1.5}
       />
 
-      {/* Status LED */}
-      <circle cx={width * 0.12} cy={height * 0.16} r={2.2} fill={statusColor} style={{ filter: `drop-shadow(0 0 2.5px ${statusColor})` }} />
+      {/* Status LED — breathes on the default status="running" state too, not only once a real tag confirms it, so a freshly placed inverter doesn't look powered-off before anyone wires it up. */}
+      <circle cx={width * 0.12} cy={height * 0.16} r={2.2} fill={statusColor} style={{ filter: `drop-shadow(0 0 2.5px ${statusColor})` }}>
+        {status === "running" && <animate attributeName="opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite" />}
+      </circle>
 
       <text x={width / 2} y={height * 0.85} textAnchor="middle" fontSize={9} fill={style.stroke}>
         INV

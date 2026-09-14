@@ -53,7 +53,10 @@ const Breaker = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps)
         strokeWidth={0.75}
         opacity={style.opacity}
       />
-      <circle cx={midX} cy={cy - height * 0.42 + 4} r={1.6} fill={stateColor} style={{ filter: `drop-shadow(0 0 2px ${stateColor})` }} />
+      <circle cx={midX} cy={cy - height * 0.42 + 4} r={1.6} fill={stateColor} style={{ filter: `drop-shadow(0 0 2px ${stateColor})` }}>
+        {/* Idle "alive" breathing — not tied to any live binding, just the default closed=true state, so a freshly placed breaker doesn't look dead before anyone wires it up. */}
+        {closed && <animate attributeName="opacity" values="1;0.45;1" dur="2.2s" repeatCount="indefinite" />}
+      </circle>
 
       {/* Switching blade */}
       {closed ? (

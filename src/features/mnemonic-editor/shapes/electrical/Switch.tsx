@@ -35,7 +35,10 @@ const Switch = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) 
         stroke={bladeColor}
         strokeWidth={style.strokeWidth + 1.5}
         strokeLinecap="round"
-      />
+      >
+        {/* Idle "alive" breathing on the default on=true state — mirrors Breaker's status LED so the two read as one family. */}
+        {on && <animate attributeName="opacity" values="1;0.5;1" dur="2.2s" repeatCount="indefinite" />}
+      </line>
       {/* Pivot hub at the fixed end */}
       <circle cx={p1x} cy={cy} r={3.2} fill="none" stroke={darken(bladeColor, 0.2)} strokeWidth={1} opacity={0.7} />
 

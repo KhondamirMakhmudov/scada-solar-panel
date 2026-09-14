@@ -7,6 +7,7 @@ import GroupedTagCharts from "@/features/archive/GroupedTagCharts";
 import RangePicker from "@/features/archive/RangePicker";
 import ViewModeToggle from "@/features/archive/ViewModeToggle";
 import { useTagValueMaps } from "../hooks/useTagValueMaps";
+import { useScreensBackend } from "../context/ScreensBackendContext";
 
 /**
  * In-place history view for the tags bound on the *current* mnemonic screen —
@@ -19,6 +20,7 @@ import { useTagValueMaps } from "../hooks/useTagValueMaps";
  * the background when the modal is closed.
  */
 const ScreenArchiveModal = ({ onClose, screenName, groups }) => {
+  const { apiClient, backendId } = useScreensBackend();
   const [range, setRange] = useState("24h");
   const [customFrom, setCustomFrom] = useState(() => toDatetimeLocal(new Date(Date.now() - 24 * 60 * 60 * 1000)));
   const [customTo, setCustomTo] = useState(() => toDatetimeLocal(new Date()));
@@ -38,6 +40,8 @@ const ScreenArchiveModal = ({ onClose, screenName, groups }) => {
     timeFrom,
     timeTo,
     interval,
+    apiClient,
+    backendId,
   });
   const valueMaps = useTagValueMaps();
 
