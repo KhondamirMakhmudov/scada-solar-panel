@@ -165,7 +165,7 @@ export function computeContentViewBox(
       (el.dataBinding?.tagId ? 1 : 0) + (el.extraBindings?.length ?? 0);
     const labelFontSize = el.style?.labelFontSize ?? 11;
 
-    if (bindingCount > 0 && el.type !== "chart") {
+    if (bindingCount > 0 && el.type !== "chart" && el.type !== "dataTable") {
       const { width: panelWidth, height: panelHeight } = estimatePanelSize(
         bindingCount,
         el.width,

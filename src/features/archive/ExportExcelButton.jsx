@@ -18,6 +18,7 @@ const ExportExcelButton = ({
   valueMaps,
   fileName,
   periodLabel,
+  title,
   disabled = false,
   isFetching = false,
 }) => {
@@ -36,6 +37,7 @@ const ExportExcelButton = ({
         valueMaps,
         fileName,
         periodLabel,
+        title,
       });
       if (result.written && result.rowCount === 0) {
         toast.error("За выбранный период нет данных — файл выгружен только с заголовками");

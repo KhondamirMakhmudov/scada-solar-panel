@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { ConnectionHandle, MnemonicElement } from "../types";
+import type { Workspace } from "../lib/workspace";
 
 export type EditorTool = "select" | "pan" | "draw";
 
@@ -41,6 +42,8 @@ interface UiStoreState {
   /** Закреплена ли правая панель раскрытой, даже когда ничего не выбрано */
   isInspectorPinned: boolean;
   gridStyle: GridStyle;
+  /** Активная рабочая область редактора (фильтр отображения, см. lib/workspace.ts) */
+  workspace: Workspace;
   /** Притягивать координаты к шагу сетки при перетаскивании и изменении размера */
   snapToGrid: boolean;
   /**
@@ -59,6 +62,7 @@ interface UiStoreState {
   togglePalette: () => void;
   toggleInspectorPinned: () => void;
   setGridStyle: (style: GridStyle) => void;
+  setWorkspace: (workspace: Workspace) => void;
   toggleSnapToGrid: () => void;
   select: (id: string | null) => void;
   toggleSelect: (id: string) => void;
@@ -98,6 +102,7 @@ export const useUiStore = create<UiStoreState>((set) => ({
   isPaletteCollapsed: false,
   isInspectorPinned: false,
   gridStyle: "dots",
+  workspace: "all",
   snapToGrid: false,
   focusRequestId: null,
   alignmentGuides: { vertical: [], horizontal: [] },
@@ -114,6 +119,17 @@ export const useUiStore = create<UiStoreState>((set) => ({
   toggleInspectorPinned: () =>
     set((state) => ({ isInspectorPinned: !state.isInspectorPinned })),
   setGridStyle: (gridStyle) => set({ gridStyle }),
+  // Выделение и незавершённые жесты сбрасываются: выделенный элемент мог
+  // оказаться скрытым в новой области — рамка без фигуры выглядела бы сбоем.
+  setWorkspace: (workspace) =>
+    set({
+      workspace,
+      selectedElementIds: [],
+      selectedConnectionIds: [],
+      contextMenu: null,
+      connecting: null,
+      drawingPoints: null,
+    }),
   toggleSnapToGrid: () => set((state) => ({ snapToGrid: !state.snapToGrid })),
   select: (id) => set({ selectedElementIds: id ? [id] : [], selectedConnectionIds: [] }),
   // Ctrl/Cmd/Shift-click: adds or removes one element from the selection

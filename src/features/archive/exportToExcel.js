@@ -34,7 +34,7 @@ const THIN_BORDERS = { top: BORDER, left: BORDER, bottom: BORDER, right: BORDER 
  * request (shared range + interval), so a single global time column is
  * valid — it isn't approximating anything.
  */
-export async function exportTagHistoryToExcel({ groups, seriesByTagId, valueMaps, fileName, periodLabel }) {
+export async function exportTagHistoryToExcel({ groups, seriesByTagId, valueMaps, fileName, periodLabel, title }) {
   const groupsWithData = groups.filter((g) => g.tags.length > 0);
   if (groupsWithData.length === 0) return { written: false, rowCount: 0 };
 
@@ -68,7 +68,7 @@ export async function exportTagHistoryToExcel({ groups, seriesByTagId, valueMaps
   // Row 1: title
   sheet.mergeCells(1, 1, 1, totalCols);
   const titleCell = sheet.getCell(1, 1);
-  titleCell.value = "Архив значений тегов SCADA";
+  titleCell.value = title || "Архив значений тегов SCADA";
   titleCell.font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
   titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
   titleCell.alignment = { vertical: "middle", horizontal: "left" };

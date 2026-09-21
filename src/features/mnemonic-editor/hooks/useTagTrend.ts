@@ -99,7 +99,9 @@ export function useTagTrend(tags: DataBinding[], range: TrendRange) {
     const rows = new Map<number, TrendSeriesPoint>();
     const list = get(data, "data.data", []) as AggregateSeries[];
     list.forEach((s) => {
-      const name = s.tagName || tagNameById[s.tagId] || s.tagId;
+      // Имя из привязки в приоритете: по нему строятся tagNames (колонки), и
+      // только так можно различить одноимённые теги разных устройств
+      const name = tagNameById[s.tagId] || s.tagName || s.tagId;
       (s.buckets || []).forEach((b) => {
         const ms = new Date(b.time).getTime();
         if (!Number.isFinite(ms) || b.avg == null) return;

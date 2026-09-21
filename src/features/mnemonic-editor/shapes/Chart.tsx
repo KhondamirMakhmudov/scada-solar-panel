@@ -6,41 +6,19 @@ import { useTagTrend, TREND_RANGE_META, type TrendRange } from "../hooks/useTagT
 import { useDeviceNameForTag } from "../hooks/useDeviceNameForTag";
 import type { DataBinding } from "../types";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
+import { ROW_COLORS, formatClockTime, formatValue, pad2, truncate } from "../lib/chartFormat";
 
-const ROW_COLORS = ["#38bdf8", "#4ade80", "#f59e0b", "#f472b6"];
-
-const HEADER_HEIGHT = 22; // device name only — each row names its own parameter
+const HEADER_HEIGHT = 26; // device name
 const ROW_HEADER_HEIGHT = 20; // "name ........ current value" line
 const ROW_GAP = 8;
 const LEFT_PADDING = 42; // room for larger min/max Y labels
 const RIGHT_PADDING = 6;
 const TIME_AXIS_HEIGHT = 16; // shown once, under the last row (shared X window)
 
-function truncate(text: string, maxChars: number): string {
-  return text.length > maxChars ? `${text.slice(0, Math.max(1, maxChars - 1))}…` : text;
-}
-
-function formatValue(v: number | undefined): string {
-  if (v === undefined || !Number.isFinite(v)) return "—";
-  const abs = Math.abs(v);
-  const decimals = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
-  return v.toFixed(decimals);
-}
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
 function formatAxisTime(ms: number): string {
   if (!Number.isFinite(ms)) return "";
   const d = new Date(ms);
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-function formatClockTime(ms: number): string {
-  if (!Number.isFinite(ms)) return "";
-  const d = new Date(ms);
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
 interface RowDatum {
@@ -169,11 +147,11 @@ const Chart = ({ element, onPointerDown, onContextMenu }: ShapeComponentProps) =
         opacity={style.opacity}
       />
 
-      {/* Header: device name only — each row below names its own parameter */}
+      {/* Header: device name — each row below names its own parameter */}
       <rect x={0} y={0} width={width} height={HEADER_HEIGHT} fill="#0f172a" opacity={0.7} />
-      <text x={10} y={16} textAnchor="start" fontSize={13} fontWeight={700} fill="#f1f5f9">
+      <text x={10} y={18} textAnchor="start" fontSize={13} fontWeight={700} fill="#f1f5f9">
         <title>{titleText}</title>
-        {truncate(titleText, Math.floor((width - 16) / 7))}
+        {truncate(titleText, Math.max(1, Math.floor((width - 16) / 7)))}
       </text>
 
       {tags.length === 0 ? (
@@ -317,24 +295,32 @@ interface ChartTooltipProps {
   value: number;
 }
 
-/** Hover tooltip for one row: bucket time range + that parameter's name/value. Anchored just above the hovered row's sparkline so it never covers the trace it's describing. */
+/**
+ * Hover tooltip for one row: bucket time range + that parameter's name/value.
+ * Anchored just above the hovered row's sparkline so it never covers the
+ * trace it's describing. Three stacked lines (time / name / value) rather
+ * than cramming name and value onto one line — a long Cyrillic tag name at
+ * a readable size collided with the value number when they shared a row.
+ * The value gets its own line, biggest and boldest, since that's the actual
+ * point of hovering.
+ */
 function ChartTooltip({ anchorX, topY, boxWidth, time, rangeEnd, color, name, value }: ChartTooltipProps) {
-  const width = 152;
-  const height = 40;
+  const width = 176;
+  const height = 66;
   const y = Math.max(2, topY - height - 4);
   const x = Math.min(Math.max(anchorX - width / 2, 2), boxWidth - width - 2);
 
   return (
     <g pointerEvents="none">
-      <rect x={x} y={y} width={width} height={height} rx={4} fill="#0f172a" fillOpacity={0.97} stroke="#334155" strokeWidth={1} />
-      <text x={x + 8} y={y + 14} fontSize={10} fill="#94a3b8">
+      <rect x={x} y={y} width={width} height={height} rx={5} fill="#0f172a" fillOpacity={0.97} stroke="#334155" strokeWidth={1} />
+      <text x={x + 10} y={y + 17} fontSize={11} fill="#94a3b8">
         {formatClockTime(time)} – {formatClockTime(rangeEnd)}
       </text>
-      <circle cx={x + 10} cy={y + 28} r={3.5} fill={color} />
-      <text x={x + 17} y={y + 31} fontSize={11} fill="#cbd5e1">
-        {truncate(name, 14)}
+      <circle cx={x + 12} cy={y + 34} r={4} fill={color} />
+      <text x={x + 20} y={y + 38} fontSize={12} fill="#cbd5e1">
+        {truncate(name, 18)}
       </text>
-      <text x={x + width - 8} y={y + 31} textAnchor="end" fontSize={12} fontWeight={700} fontFamily="monospace" fill="#e2e8f0">
+      <text x={x + width - 10} y={y + 58} textAnchor="end" fontSize={19} fontWeight={700} fontFamily="monospace" fill="#e2e8f0">
         {formatValue(value)}
       </text>
     </g>

@@ -90,7 +90,7 @@ export const LIVE_STATUS_COLORS: Record<LiveStatus, string> = {
  * Kinds where a standardized status dot doesn't add anything: lamp already
  * *is* a status light, gauge already shows a live numeric readout, and the
  * rest have no on/off notion at all (text/image/building/freehand/basicShape/
- * chart).
+ * chart/dataTable).
  */
 const STATUS_DOT_EXCLUDED_KINDS = new Set<ShapeKind>([
   "text",
@@ -99,6 +99,7 @@ const STATUS_DOT_EXCLUDED_KINDS = new Set<ShapeKind>([
   "freehand",
   "basicShape",
   "chart",
+  "dataTable",
   "lamp",
   "gauge",
 ]);

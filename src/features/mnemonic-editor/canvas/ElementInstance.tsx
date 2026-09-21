@@ -4,6 +4,8 @@ import ShapeRenderer from "../shapes/ShapeRenderer";
 import StatusDot from "../shapes/base/StatusDot";
 import { useDocumentStore } from "../store/documentStore";
 import { useRuntimeStore } from "../store/runtimeStore";
+import { useUiStore } from "../store/uiStore";
+import { getWorkspaceVisibility } from "../lib/workspace";
 import { useElementLiveValue } from "../runtime/useElementLiveValue";
 import { applyLiveValueToElement, deriveLiveStatus } from "../runtime/resolveVisual";
 import { useScreensBackend } from "../context/ScreensBackendContext";
@@ -34,6 +36,7 @@ const ElementInstance = memo(
     );
     const live = useElementLiveValue(element?.dataBinding?.tagId);
     const connectionStatus = useRuntimeStore((state) => state.connectionStatus);
+    const workspace = useUiStore((state) => state.workspace);
     const { basePath } = useScreensBackend();
 
     const displayElement = useMemo(
@@ -47,8 +50,16 @@ const ElementInstance = memo(
 
     if (!element || !displayElement) return null;
 
+    const visibility = getWorkspaceVisibility(element.type, workspace);
+    if (visibility === "hidden") return null;
+
+    // Чужая область: фигура остаётся бледным фоном без взаимодействия
+    // (pointerEvents наследуется потомками, так что клики уходят на холст)
+    const ghostProps =
+      visibility === "ghost" ? { opacity: 0.16, pointerEvents: "none" as const } : {};
+
     return (
-      <>
+      <g {...ghostProps}>
         <ShapeRenderer
           element={displayElement}
           onPointerDown={onElementPointerDown(elementId)}
@@ -79,7 +90,7 @@ const ElementInstance = memo(
             </text>
           </g>
         )}
-      </>
+      </g>
     );
   },
 );

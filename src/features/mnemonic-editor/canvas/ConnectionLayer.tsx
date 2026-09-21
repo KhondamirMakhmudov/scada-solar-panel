@@ -11,10 +11,12 @@ interface ConnectionLayerProps {
   onConnectionPointerDown?: (id: string) => PointerEventHandler<SVGElement>;
   /** Runtime/kiosk mode renders connections read-only — no click-to-select. */
   interactive?: boolean;
+  /** Редактор в области «Тренды»/«Таблицы»: провода — бледный фон без кликов. */
+  ghost?: boolean;
 }
 
 /** Renders Connection[] as orthogonal routes recomputed from each endpoint element's *current* geometry — so a wire stays attached as either shape moves, resizes, or rotates, instead of being fixed coordinates. Also renders the in-progress preview line while a connection is being dragged. */
-const ConnectionLayer = ({ onConnectionPointerDown, interactive = true }: ConnectionLayerProps) => {
+const ConnectionLayer = ({ onConnectionPointerDown, interactive = true, ghost = false }: ConnectionLayerProps) => {
   const connections = useDocumentStore((state) => state.document.connections);
   const elements = useDocumentStore((state) => state.document.elements);
   const selectedConnectionIds = useUiStore((state) => state.selectedConnectionIds);
@@ -30,7 +32,7 @@ const ConnectionLayer = ({ onConnectionPointerDown, interactive = true }: Connec
   const panelSlots = useMemo(() => computePanelSlots(elements), [elements]);
 
   return (
-    <g>
+    <g opacity={ghost ? 0.16 : 1} pointerEvents={ghost ? "none" : undefined}>
       {connections.map((conn) => {
         const source = elementById.get(conn.source.elementId);
         const target = elementById.get(conn.target.elementId);

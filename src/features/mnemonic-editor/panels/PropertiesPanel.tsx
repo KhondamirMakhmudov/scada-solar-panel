@@ -9,6 +9,7 @@ import GeometrySection from "./sections/GeometrySection";
 import StyleSection from "./sections/StyleSection";
 import ShapeStateSection, { hasEditableShapeState } from "./sections/ShapeStateSection";
 import BindingSection from "./sections/BindingSection";
+import TableBindingSection from "./sections/TableBindingSection";
 import NavigationSection from "./sections/NavigationSection";
 import TextField from "./fields/TextField";
 import PropertyGroup from "./PropertyGroup";
@@ -157,10 +158,18 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
         />
 
         <PropertyGroup
-          title="Привязка к тегу"
-          badge={element.dataBinding?.tagName ?? (element.dataBinding ? "привязан" : "нет")}
+          title={element.type === "dataTable" ? "Теги таблицы" : "Привязка к тегу"}
+          badge={
+            element.type === "dataTable"
+              ? String((element.dataBinding ? 1 : 0) + (element.extraBindings?.length ?? 0))
+              : (element.dataBinding?.tagName ?? (element.dataBinding ? "привязан" : "нет"))
+          }
         >
-          <BindingSection element={element} screenTagIds={screenTagIds} />
+          {element.type === "dataTable" ? (
+            <TableBindingSection element={element} screenTagIds={screenTagIds} />
+          ) : (
+            <BindingSection element={element} screenTagIds={screenTagIds} />
+          )}
         </PropertyGroup>
 
         {hasEditableShapeState(element.type) && (

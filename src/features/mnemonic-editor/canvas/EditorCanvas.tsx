@@ -35,6 +35,7 @@ const EditorCanvas = () => {
   const activeTool = useUiStore((state) => state.activeTool);
   const drawingPoints = useUiStore((state) => state.drawingPoints);
   const gridStyle = useUiStore((state) => state.gridStyle);
+  const workspace = useUiStore((state) => state.workspace);
   const focusRequestId = useUiStore((state) => state.focusRequestId);
   const clearFocusRequest = useUiStore((state) => state.clearFocusRequest);
   const setViewport = useUiStore((state) => state.setViewport);
@@ -215,7 +216,10 @@ const EditorCanvas = () => {
             style={gridStyle}
             zoom={viewport.zoom}
           />
-          <ConnectionLayer onConnectionPointerDown={handleConnectionPointerDown} />
+          <ConnectionLayer
+            onConnectionPointerDown={handleConnectionPointerDown}
+            ghost={workspace === "trends" || workspace === "tables"}
+          />
           {layers.map((layer) => (
             <CanvasLayer
               key={layer.id}
@@ -225,7 +229,7 @@ const EditorCanvas = () => {
               onAnchorPointerDown={handleAnchorPointerDown}
             />
           ))}
-          <PanelLayer />
+          <PanelLayer workspace={workspace} />
           <AlignmentGuides />
           <SelectionOverlay
             onResizeHandlePointerDown={handleResizeHandlePointerDown}

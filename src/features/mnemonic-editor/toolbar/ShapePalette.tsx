@@ -6,6 +6,7 @@ import { useUiStore } from "../store/uiStore";
 import { commitImmediate } from "../store/history/historyActions";
 import { createShapeElement } from "../lib/createShapeElement";
 import type { ShapeKind } from "../types";
+import { WORKSPACE_LABELS, getWorkspaceVisibility, workspaceOfKind } from "../lib/workspace";
 import ShapeThumbnail from "./ShapeThumbnail";
 import {
   SHAPE_CATEGORIES,
@@ -41,20 +42,50 @@ const ShapePalette = () => {
   const isCollapsed = useUiStore((state) => state.isPaletteCollapsed);
   const togglePalette = useUiStore((state) => state.togglePalette);
 
+  const workspace = useUiStore((state) => state.workspace);
+  const requestFocus = useUiStore((state) => state.requestFocus);
+  const elements = useDocumentStore((state) => state.document.elements);
+
   const [query, setQuery] = useState("");
   const [openIds, setOpenIds] = useState<string[]>(INITIALLY_OPEN);
 
   const normalizedQuery = query.trim().toLowerCase();
+  // В «Трендах»/«Таблицах» палитра — это один короткий список виджетов, его
+  // не нужно сворачивать в аккордеон
+  const isDataWorkspace = workspace === "trends" || workspace === "tables";
 
-  const visibleCategories = useMemo(
+  // Палитра следует за рабочей областью: в «Схеме» нет графиков и таблиц, в
+  // «Трендах»/«Таблицах» — только соответствующий виджет. Иначе эксперт
+  // ищет нужное среди фигур, которые в этой области всё равно скрыты.
+  const availableCategories = useMemo(
     () =>
       SHAPE_CATEGORIES.map((category) => ({
         ...category,
+        label: isDataWorkspace ? WORKSPACE_LABELS[workspace] : category.label,
         kinds: category.kinds.filter(
-          (kind) => SHAPE_REGISTRY[kind] && matchesQuery(kind, normalizedQuery),
+          (kind) => getWorkspaceVisibility(kind, workspace) === "active",
         ),
       })).filter((category) => category.kinds.length > 0),
-    [normalizedQuery],
+    [workspace, isDataWorkspace],
+  );
+
+  const visibleCategories = useMemo(
+    () =>
+      availableCategories
+        .map((category) => ({
+          ...category,
+          kinds: category.kinds.filter(
+            (kind) => SHAPE_REGISTRY[kind] && matchesQuery(kind, normalizedQuery),
+          ),
+        }))
+        .filter((category) => category.kinds.length > 0),
+    [availableCategories, normalizedQuery],
+  );
+
+  // Уже созданные виджеты области — для быстрого перехода к ним на холсте
+  const existingWidgets = useMemo(
+    () => (isDataWorkspace ? elements.filter((el) => workspaceOfKind(el.type) === workspace) : []),
+    [elements, workspace, isDataWorkspace],
   );
 
   const totalMatches = visibleCategories.reduce((sum, c) => sum + c.kinds.length, 0);
@@ -93,7 +124,7 @@ const ShapePalette = () => {
         </button>
         <div className="w-6 h-px bg-background-dark my-1" />
         <div className="flex-1 overflow-y-auto flex flex-col items-center gap-1 w-full">
-          {SHAPE_CATEGORIES.flatMap((category) => category.kinds).map((kind) => {
+          {availableCategories.flatMap((category) => category.kinds).map((kind) => {
             const definition = SHAPE_REGISTRY[kind];
             if (!definition) return null;
             return (
@@ -118,7 +149,9 @@ const ShapePalette = () => {
   return (
     <div className="w-60 flex-shrink-0 border-r border-surface-border bg-surface-dark/40 flex flex-col">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <p className="text-[11px] uppercase tracking-wide text-text-dim">Оборудование</p>
+        <p className="text-[11px] uppercase tracking-wide text-text-dim">
+          {isDataWorkspace ? "Виджеты данных" : "Оборудование"}
+        </p>
         <button
           type="button"
           onClick={togglePalette}
@@ -148,7 +181,8 @@ const ShapePalette = () => {
         {visibleCategories.map((category) => {
           // При активном поиске категории раскрыты принудительно: иначе
           // совпадения прячутся в свёрнутой группе и поиск выглядит сломанным
-          const isOpen = Boolean(normalizedQuery) || openIds.includes(category.id);
+          const isOpen =
+            Boolean(normalizedQuery) || isDataWorkspace || openIds.includes(category.id);
 
           return (
             <div key={category.id}>
@@ -216,6 +250,42 @@ const ShapePalette = () => {
           <p className="px-2 py-6 text-center text-[11px] text-text-faint">
             Ничего не найдено по запросу «{query.trim()}»
           </p>
+        )}
+
+        {isDataWorkspace && (
+          <div className="pt-2">
+            <p className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] uppercase tracking-wide text-text-muted">
+              <span className="flex-1">На экране</span>
+              <span className="text-[10px] text-text-faint font-ibmPlexMono">
+                {existingWidgets.length}
+              </span>
+            </p>
+            {existingWidgets.length === 0 ? (
+              <p className="px-2 py-2 text-[11px] text-text-faint">
+                Пока пусто — добавьте виджет из списка выше.
+              </p>
+            ) : (
+              <div className="pl-1 space-y-0.5">
+                {existingWidgets.map((widget, index) => (
+                  <button
+                    key={widget.id}
+                    type="button"
+                    onClick={() => requestFocus(widget.id)}
+                    title="Показать на холсте"
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[2px] border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:scale-[0.98] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+                  >
+                    <ShapeThumbnail kind={widget.type} size={16} />
+                    <span className="min-w-0 flex-1 text-[12px] text-text-primary truncate">
+                      {widget.label || `${SHAPE_REGISTRY[widget.type]?.label ?? widget.type} ${index + 1}`}
+                    </span>
+                    <span className="text-[10px] text-text-faint font-ibmPlexMono">
+                      {widget.dataBinding?.tagId ? "тег" : "без тега"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

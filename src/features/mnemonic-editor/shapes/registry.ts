@@ -23,6 +23,7 @@ import Building from "./Building";
 import Freehand from "./Freehand";
 import BasicShape from "./BasicShape";
 import Chart from "./Chart";
+import DataTable from "./DataTable";
 
 export interface ShapeDefinition {
   kind: ShapeKind;
@@ -215,6 +216,14 @@ export const SHAPE_REGISTRY: Partial<Record<ShapeKind, ShapeDefinition>> = {
     label: "График (тренд)",
     Component: Chart,
     defaultSize: { width: 320, height: 240 },
+    defaultStyle: { fill: "#0c1118", stroke: "#334155", strokeWidth: 1, opacity: 1 },
+    defaultState: { range: "1h" },
+  },
+  dataTable: {
+    kind: "dataTable",
+    label: "Таблица данных",
+    Component: DataTable,
+    defaultSize: { width: 420, height: 260 },
     defaultStyle: { fill: "#0c1118", stroke: "#334155", strokeWidth: 1, opacity: 1 },
     defaultState: { range: "1h" },
   },

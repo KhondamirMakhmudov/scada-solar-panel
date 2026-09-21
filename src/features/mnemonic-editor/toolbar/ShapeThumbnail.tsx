@@ -17,9 +17,9 @@ const STATIC_STATE: ShapeState = {
 
 /**
  * Кинды, для которых настоящий компонент фигуры не годится как иконка:
- * `chart` тянет исторические данные через useTagTrend (палитра не должна
- * инициировать сетевые запросы), а у остальных «пустое» состояние — это
- * заглушка с текстом, нечитаемым в масштабе иконки.
+ * `chart` и `dataTable` тянут исторические данные через useTagTrend
+ * (палитра не должна инициировать сетевые запросы), а у остальных «пустое»
+ * состояние — это заглушка с текстом, нечитаемым в масштабе иконки.
  */
 const GLYPHS: Partial<Record<ShapeKind, ReactNode>> = {
   chart: (
@@ -27,6 +27,13 @@ const GLYPHS: Partial<Record<ShapeKind, ReactNode>> = {
       <rect x={1} y={1} width={22} height={18} rx={2} opacity={0.5} />
       <path d="M4 14.5l4.5-5 3.5 3 6-7.5" />
       <path d="M4 17.5h16" opacity={0.4} />
+    </g>
+  ),
+  dataTable: (
+    <g fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round">
+      <rect x={1} y={1} width={22} height={18} rx={2} opacity={0.5} />
+      <path d="M1 7.5h22" opacity={0.7} />
+      <path d="M8.5 7.5v11.5M15.5 7.5v11.5" opacity={0.5} />
     </g>
   ),
   text: (

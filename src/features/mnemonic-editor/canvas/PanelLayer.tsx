@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useDocumentStore } from "../store/documentStore";
 import { computePanelSlots } from "../lib/panelLayout";
+import { getWorkspaceVisibility, type Workspace } from "../lib/workspace";
 import PanelInstance from "../runtime/PanelInstance";
 
 /**
@@ -12,13 +13,17 @@ import PanelInstance from "../runtime/PanelInstance";
  * last (after all shape layers) in both EditorCanvas and RuntimeCanvas so
  * panels sit visually on top.
  */
-const PanelLayer = () => {
+const PanelLayer = ({ workspace = "all" }: { workspace?: Workspace }) => {
   const elements = useDocumentStore((state) => state.document.elements);
   const slots = useMemo(() => computePanelSlots(elements), [elements]);
 
+  // Раскладка считается по всем элементам (слоты не «прыгают» при смене
+  // вкладки), а рисуются панели только тех, что активны в текущей области
   return (
     <g>
-      {elements.map((element) => (
+      {elements
+        .filter((element) => getWorkspaceVisibility(element.type, workspace) === "active")
+        .map((element) => (
         <PanelInstance key={element.id} element={element} slot={slots.get(element.id)} />
       ))}
     </g>

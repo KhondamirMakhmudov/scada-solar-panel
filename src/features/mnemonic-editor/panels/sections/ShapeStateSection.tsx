@@ -29,6 +29,7 @@ const KINDS_WITH_OWN_BRANCH: ShapeKind[] = [
   "image",
   "text",
   "chart",
+  "dataTable",
   "tank",
   "battery",
   "inverter",
@@ -143,7 +144,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
     );
   }
 
-  if (element.type === "chart") {
+  if (element.type === "chart" || element.type === "dataTable") {
     const range = (element.state?.range as TrendRange) ?? "1h";
     return (
       <div className="space-y-2">
@@ -160,9 +161,9 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           ))}
         </select>
         <p className="text-[10px] text-text-faint">
-          Теги для графика выбираются ниже, в разделе «Привязка к тегу»
-          (основной тег + доп. теги) — каждый показывается отдельной строкой
-          со своим масштабом, без переключения.
+          {element.type === "chart"
+            ? "Теги для графика выбираются ниже, в разделе «Привязка к тегу» (основной тег + доп. теги) — каждый показывается отдельной строкой со своим масштабом, без переключения."
+            : "Теги выбираются в разделе «Теги таблицы» — с любых подключений и устройств; в таблице они раскладываются по вкладкам-устройствам. Самые новые записи сверху."}
         </p>
       </div>
     );

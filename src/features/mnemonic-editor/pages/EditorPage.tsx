@@ -17,6 +17,7 @@ import { useRuntimeStore } from "../store/runtimeStore";
 import { useMnemonicWebSocket } from "../hooks/useMnemonicWebSocket";
 import EditorToolbar from "../toolbar/EditorToolbar";
 import ShapePalette from "../toolbar/ShapePalette";
+import WorkspaceTabs from "../toolbar/WorkspaceTabs";
 import EditorCanvas from "../canvas/EditorCanvas";
 import PropertiesPanel from "../panels/PropertiesPanel";
 import { createEmptyDocument } from "../document/defaults";
@@ -75,6 +76,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
       // into this one.
       useHistoryStore.getState().clear();
       useUiStore.getState().clearSelection();
+      useUiStore.getState().setWorkspace("all");
       useRuntimeStore.getState().clear();
       hydratedFor.current = screenId;
     }
@@ -229,6 +231,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
           </>
         }
       />
+      <WorkspaceTabs />
       <div className="flex flex-1 min-h-0">
         <ShapePalette />
         <div className="flex-1 min-w-0">

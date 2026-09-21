@@ -41,7 +41,7 @@ export const SHAPE_CATEGORIES: ShapeCategory[] = [
   {
     id: "annotation",
     label: "Оформление",
-    kinds: ["chart", "text", "image", "building"],
+    kinds: ["chart", "dataTable", "text", "image", "building"],
   },
 ];
 
@@ -71,6 +71,7 @@ export const SHAPE_SEARCH_ALIASES: Partial<Record<ShapeKind, string[]>> = {
   text: ["text", "подпись", "надпись"],
   building: ["building", "цех", "сооружение"],
   chart: ["chart", "тренд", "trend", "история"],
+  dataTable: ["table", "таблица", "данные", "значения"],
 };
 
 /** Подсказка под названием в палитре — что элемент делает на схеме. */
@@ -95,6 +96,7 @@ export const SHAPE_HINTS: Partial<Record<ShapeKind, string>> = {
   text: "Статическая подпись",
   building: "Контур здания или площадки",
   chart: "Исторический тренд по тегу",
+  dataTable: "Точные значения тегов построчно, с прокруткой",
 };
 
 /** MIME-тип для перетаскивания из палитры на холст. */

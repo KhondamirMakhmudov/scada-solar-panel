@@ -20,7 +20,8 @@ export type ShapeKind =
   | "building"
   | "freehand"
   | "basicShape"
-  | "chart";
+  | "chart"
+  | "dataTable";
 
 export interface ElementStyle {
   fill: string;
