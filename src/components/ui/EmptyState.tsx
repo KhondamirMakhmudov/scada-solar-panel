@@ -25,10 +25,10 @@ const EmptyState = ({ title, description, action, icon, compact = false }: Empty
     }`}
   >
     {icon && <div className="mb-2 text-[#475569]">{icon}</div>}
-    <p className={`font-medium text-[#bfc7d4] ${compact ? "text-[12px]" : "text-sm"}`}>{title}</p>
+    <p className={`font-medium text-[#bfc7d4] ${compact ? "text-[14px]" : "text-sm"}`}>{title}</p>
     {description && (
       <p
-        className={`mt-1 text-[#6b7280] max-w-md ${compact ? "text-[11px]" : "text-[12px]"}`}
+        className={`mt-1 text-[#6b7280] max-w-md ${compact ? "text-[13px]" : "text-[14px]"}`}
       >
         {description}
       </p>

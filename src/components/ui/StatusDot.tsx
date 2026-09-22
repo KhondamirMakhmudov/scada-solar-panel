@@ -26,7 +26,7 @@ const StatusDot = ({ status, label, pulse = false }: StatusDotProps) => {
         style={{ backgroundColor: color }}
       />
       {text && (
-        <span className="text-[11px]" style={{ color }}>
+        <span className="text-[13px]" style={{ color }}>
           {text}
         </span>
       )}

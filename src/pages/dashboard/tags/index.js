@@ -1,20 +1,33 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { get } from "lodash";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { translateApiError } from "@/lib/apiErrorTranslation";
 import { Button } from "@mui/material";
-import { KeyboardArrowDown, Cable, Memory } from "@mui/icons-material";
+import {
+  KeyboardArrowDown,
+  Cable,
+  Memory,
+  TableRows,
+  AccountTree,
+  VisibilityRounded,
+  EditRounded,
+  DeleteRounded,
+} from "@mui/icons-material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
+import NoData from "@/components/no-data";
+import CustomTable from "@/components/table";
 import CustomSelect from "@/components/select";
+import ChipSelect from "@/components/chip-select";
 import Input from "@/components/input";
 import MethodModal from "@/components/modal/method-modal";
 import DeleteModal from "@/components/modal/delete-modal";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useGetQuery from "@/hooks/all/useGetQuery";
+import useAllPages from "@/hooks/all/useAllPages";
 import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
 import { requestPython, requestScreens } from "@/services/api";
@@ -94,11 +107,35 @@ const Index = () => {
   const [editErrors, setEditErrors] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // "Таблица" — обычный список тегов (по умолчанию: раньше единственным
+  // способом вообще увидеть теги было сначала развернуть дерево слева и
+  // выбрать устройство — списка тегов как такового не было). "Живые
+  // значения" — прежнее дерево + текущие значения/спарклайны/статистика,
+  // сохранено как отдельный, явно подписанный режим для диагностики, а не
+  // единственный вход на страницу.
+  const [viewMode, setViewMode] = useState("table");
+  const [searchValue, setSearchValue] = useState("");
+  const [protocolFilter, setProtocolFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deviceFilter, setDeviceFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchValue, protocolFilter, statusFilter, deviceFilter]);
+
+  // /tags и /devices постраничные, и — как выяснилось — сервер не гарантирует
+  // честно отдать ровно тот pageSize, что запрошен (запрос pageSize=1000 тихо
+  // возвращал только первую сотню с чем-то, дерево и таблица показывали не
+  // все теги). useAllPages читает реальный pagination.totalPages из ответа
+  // на первую страницу и, если страниц больше одной, дотягивает остальные —
+  // независимо от того, какой лимит сервер на самом деле применяет.
   const {
     data: tags,
     isLoading: isLoadingTags,
     isFetching: isFetchingTags,
-  } = useGetQuery({
+  } = useAllPages({
     key: KEYS.tags,
     url: URLS.tags,
     headers: {
@@ -107,7 +144,7 @@ const Index = () => {
     },
   });
 
-  const { data: devices } = useGetQuery({
+  const { data: devices } = useAllPages({
     key: KEYS.devices,
     url: URLS.devices,
     headers: {
@@ -118,7 +155,7 @@ const Index = () => {
 
   // Только для дерева «Подключение → Устройство → Тег» ниже — та же связка,
   // что уже строит TagTreeSelect на странице «Экраны».
-  const { data: connectsForTree } = useGetQuery({
+  const { data: connectsForTree } = useAllPages({
     key: [KEYS.connects, "tags-tree"],
     url: URLS.connects,
     headers: {
@@ -211,6 +248,144 @@ const Index = () => {
       })),
     [devicesList],
   );
+
+  // ── Обычный список тегов (вкладка «Таблица») ──────────────────────────
+  const protocolFilterOptions = useMemo(
+    () => [
+      { label: "ВСЕ", value: "all" },
+      ...Array.from(new Set(list.map((t) => t.protocolType).filter((v) => v && v !== "—"))).map((v) => ({
+        label: v,
+        value: v,
+      })),
+    ],
+    [list],
+  );
+
+  const deviceFilterOptions = useMemo(
+    () => [{ label: "Все устройства", value: "all" }, ...deviceOptions.map((o) => ({ label: o.label, value: o.value }))],
+    [deviceOptions],
+  );
+
+  const filteredList = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+    return list.filter((item) => {
+      const matchesSearch =
+        !query ||
+        item.name?.toLowerCase().includes(query) ||
+        item.deviceName?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query);
+      const matchesProtocol = protocolFilter === "all" || item.protocolType === protocolFilter;
+      const matchesStatus =
+        statusFilter === "all" || (statusFilter === "enabled" ? item.enabled : !item.enabled);
+      const matchesDevice = deviceFilter === "all" || item.deviceId === deviceFilter;
+      return matchesSearch && matchesProtocol && matchesStatus && matchesDevice;
+    });
+  }, [list, searchValue, protocolFilter, statusFilter, deviceFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const paginatedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const tagColumns = [
+    {
+      accessorKey: "name",
+      header: "Тег",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-ibmPlexMono text-[13.5px] text-text-primary truncate max-w-[220px]" title={row.original.name}>
+            {row.original.name}
+          </p>
+          {row.original.description && (
+            <p className="font-ibmPlexSans text-[11px] text-text-faint truncate max-w-[220px]">
+              {row.original.description}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "deviceName",
+      header: "Устройство",
+      cell: ({ row }) => (
+        <span className="font-ibmPlexMono text-[12.5px] text-text-secondary truncate block max-w-[160px]" title={row.original.deviceName}>
+          {row.original.deviceName}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "dataType",
+      header: "Тип данных",
+      cell: ({ row }) => (
+        <span className="font-ibmPlexMono text-[12px] text-blue-300">{row.original.dataType}</span>
+      ),
+    },
+    {
+      id: "register",
+      header: "Регистр",
+      cell: ({ row }) => (
+        <span className="font-ibmPlexMono text-[12px] text-text-secondary">
+          {row.original.registerType !== "—" ? `${row.original.registerType} @${row.original.address}` : "—"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "scanRateMs",
+      header: "Опрос",
+      meta: { align: "right" },
+      cell: ({ row }) => (
+        <span className="font-ibmPlexMono text-[12.5px] text-text-secondary block text-right">
+          {row.original.scanRateMs === "—" ? "—" : `${row.original.scanRateMs} мс`}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "enabled",
+      header: "Статус",
+      cell: ({ row }) => (
+        <span
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[10.5px] font-semibold uppercase tracking-wide ${
+            row.original.enabled ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: row.original.enabled ? "#22c55e" : "#f59e0b" }} />
+          {row.original.enabled ? "Включено" : "Отключено"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Действия",
+      meta: { align: "right" },
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            type="button"
+            title="Просмотр"
+            onClick={() => openViewModal(row.original)}
+            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          >
+            <VisibilityRounded sx={{ fontSize: 15 }} />
+          </button>
+          <button
+            type="button"
+            title="Изменить"
+            onClick={() => openEditModal(row.original)}
+            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          >
+            <EditRounded sx={{ fontSize: 15 }} />
+          </button>
+          <button
+            type="button"
+            title="Удалить"
+            onClick={() => openDeleteModal(row.original)}
+            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-status-fault hover:border-status-fault transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
+          >
+            <DeleteRounded sx={{ fontSize: 15 }} />
+          </button>
+        </div>
+      ),
+      enableSorting: false,
+    },
+  ];
 
   // ── Живой браузер значений: дерево «Подключение → Устройство → Теги» +
   // текущие значения/агрегаты/статистика по /tag-values/*. Отдельно от
@@ -660,288 +835,335 @@ const Index = () => {
   return (
     <DashboardLayout headerTitle={"Теги"}>
       <div style={{ fontFamily: "'IBM Plex Sans'" }} className="space-y-2.5">
-        <div style={{ display: "grid", gridTemplateColumns: "230px 1fr 250px", gap: 10, alignItems: "start" }}>
-          <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
-            <div
-              style={{
-                padding: "7px 10px",
-                borderBottom: "1px solid #2a2a2a",
-                font: "600 11px/1 'IBM Plex Sans'",
-                letterSpacing: ".06em",
-                textTransform: "uppercase",
-                color: "#bfc7d4",
-              }}
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder="поиск тегов…"
+            className="w-[230px] h-9 px-3 rounded-lg border border-white/15 bg-[#2c2c32] text-[13px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
+          />
+          <ChipSelect value={protocolFilter} onChange={setProtocolFilter} label="ПРОТОКОЛ" options={protocolFilterOptions} />
+          <ChipSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            label="СТАТУС"
+            options={[
+              { label: "ВСЕ", value: "all" },
+              { label: "ВКЛЮЧЕНО", value: "enabled" },
+              { label: "ОТКЛЮЧЕНО", value: "disabled" },
+            ]}
+          />
+          <div className="w-[200px]">
+            <CustomSelect value={deviceFilter} onChange={setDeviceFilter} options={deviceFilterOptions} placeholder="Устройство" />
+          </div>
+
+          <div className="flex-1" />
+
+          <div className="flex rounded-lg border border-white/15 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 h-9 px-3 text-[11px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
+                viewMode === "table" ? "bg-primary text-white hover:bg-primary/90" : "text-text-muted hover:bg-white/[0.04]"
+              }`}
             >
+              <TableRows sx={{ fontSize: 15 }} />
+              Таблица
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("browser")}
+              className={`flex items-center gap-1.5 h-9 px-3 text-[11px] font-ibmPlexMono uppercase tracking-wide border-l border-white/15 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
+                viewMode === "browser" ? "bg-primary text-white hover:bg-primary/90" : "text-text-muted hover:bg-white/[0.04]"
+              }`}
+              title="Дерево «Подключение → Устройство → Тег» + текущие значения, спарклайны и статистика"
+            >
+              <AccountTree sx={{ fontSize: 15 }} />
+              Живые значения
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              resetCreateForm();
+              setShowCreateModal(true);
+            }}
+            className="h-9 px-4 rounded-lg border border-primary text-primary text-[11px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+          >
+            + ТЕГ
+          </button>
+        </div>
+
+        {viewMode === "table" ? (
+          <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
+            {filteredList.length === 0 ? (
+              <NoData title="Теги не найдены" description="Измените фильтры или создайте новый тег." />
+            ) : (
+              <CustomTable columns={tagColumns} data={paginatedList} />
+            )}
+
+            {filteredList.length > 0 && (
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-white/[0.08] px-3 py-3 sm:flex-row">
+                <div className="flex items-center gap-2 text-[11px] text-text-muted">
+                  <span>Строк на странице:</span>
+                  {[10, 20, 50].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        setPageSize(size);
+                        setCurrentPage(1);
+                      }}
+                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                        pageSize === size
+                          ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
+                          : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                  >
+                    ‹
+                  </button>
+                  <span className="text-[11px] text-text-muted px-1">
+                    <span className="font-semibold text-text-primary">{currentPage}</span> из{" "}
+                    <span className="font-semibold text-text-primary">{totalPages}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                  >
+                    ›
+                  </button>
+                </div>
+                <span className="text-[11px] text-text-muted">
+                  <span className="font-semibold text-text-primary">{filteredList.length}</span> из{" "}
+                  <span className="font-semibold text-text-primary">{list.length}</span> тегов
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_260px] gap-3 items-start">
+          {/* Дерево тегов */}
+          <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary">
               Дерево тегов
             </div>
             {connTree.length === 0 ? (
-              <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
-                Теги не найдены
-              </p>
+              <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Теги не найдены</p>
             ) : (
-              connTree.map((connGroup) => {
-                const isOpen = expandedConnIds.has(connGroup.connId);
-                return (
-                  <div key={connGroup.connId}>
-                    <div
-                      onClick={() => toggleConn(connGroup.connId)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "4px 10px",
-                        borderBottom: "1px solid #232222",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <KeyboardArrowDown
-                        sx={{
-                          fontSize: 15,
-                          color: "#5c6270",
-                          flexShrink: 0,
-                          transform: isOpen ? "none" : "rotate(-90deg)",
-                          transition: "transform 0.15s",
-                        }}
-                      />
-                      <Cable sx={{ fontSize: 13, color: "#3b82f6", flexShrink: 0 }} />
-                      <span
-                        style={{
-                          font: "400 11px/1.4 'IBM Plex Mono'",
-                          color: "#bfc7d4",
-                          flex: 1,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
+              <div className="max-h-[480px] overflow-y-auto">
+                {connTree.map((connGroup) => {
+                  const isOpen = expandedConnIds.has(connGroup.connId);
+                  return (
+                    <div key={connGroup.connId}>
+                      <button
+                        type="button"
+                        onClick={() => toggleConn(connGroup.connId)}
+                        className="w-full flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.05] hover:bg-white/[0.03] transition-colors text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset"
                       >
-                        {connGroup.connName}
-                      </span>
-                      <span style={{ font: "400 9.5px/1.4 'IBM Plex Mono'", color: "#7c8290" }}>{connGroup.tagCount}</span>
-                    </div>
+                        <KeyboardArrowDown
+                          sx={{ fontSize: 15, color: "#5c6270", flexShrink: 0 }}
+                          className="transition-transform"
+                          style={{ transform: isOpen ? "none" : "rotate(-90deg)" }}
+                        />
+                        <Cable sx={{ fontSize: 13 }} className="text-primary flex-shrink-0" />
+                        <span className="flex-1 min-w-0 font-ibmPlexMono text-[12.5px] text-text-secondary truncate">
+                          {connGroup.connName}
+                        </span>
+                        <span className="font-ibmPlexMono text-[10.5px] px-1.5 py-0.5 rounded-full bg-white/5 text-text-faint">
+                          {connGroup.tagCount}
+                        </span>
+                      </button>
 
-                    {isOpen &&
-                      connGroup.devices.map((device) => (
-                        <div
-                          key={device.deviceId || "none"}
-                          onClick={() => {
-                            setBrowserDeviceId(device.deviceId);
-                            setBrowserTagId(null);
-                          }}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "4px 10px 4px 28px",
-                            borderBottom: "1px solid #232222",
-                            cursor: "pointer",
-                            background: device.deviceId === browserDeviceId ? "rgba(59,130,246,0.08)" : "transparent",
-                          }}
-                        >
-                          <Memory sx={{ fontSize: 13, color: "#22c55e", flexShrink: 0 }} />
-                          <span
-                            style={{
-                              font: "400 11px/1.4 'IBM Plex Mono'",
-                              color: "#bfc7d4",
-                              flex: 1,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {device.deviceName || "Без устройства"}
-                          </span>
-                          <span style={{ font: "400 9.5px/1.4 'IBM Plex Mono'", color: "#7c8290" }}>{device.tags.length}</span>
-                        </div>
-                      ))}
-                  </div>
-                );
-              })
+                      {isOpen &&
+                        connGroup.devices.map((device) => {
+                          const isSelected = device.deviceId === browserDeviceId;
+                          return (
+                            <button
+                              type="button"
+                              key={device.deviceId || "none"}
+                              onClick={() => {
+                                setBrowserDeviceId(device.deviceId);
+                                setBrowserTagId(null);
+                              }}
+                              className={`w-full flex items-center gap-1.5 pl-8 pr-3 py-1.5 border-b border-white/[0.05] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+                                isSelected ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-white/[0.03] border-l-2 border-l-transparent"
+                              }`}
+                            >
+                              <Memory sx={{ fontSize: 13 }} className="text-status-ok flex-shrink-0" />
+                              <span
+                                className={`flex-1 min-w-0 font-ibmPlexMono text-[12.5px] truncate ${
+                                  isSelected ? "text-text-primary" : "text-text-secondary"
+                                }`}
+                              >
+                                {device.deviceName || "Без устройства"}
+                              </span>
+                              <span className="font-ibmPlexMono text-[10.5px] px-1.5 py-0.5 rounded-full bg-white/5 text-text-faint">
+                                {device.tags.length}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 
-          <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "7px 10px",
-                borderBottom: "1px solid #2a2a2a",
-              }}
-            >
-              <span
-                style={{
-                  font: "600 11px/1 'IBM Plex Sans'",
-                  letterSpacing: ".06em",
-                  textTransform: "uppercase",
-                  color: "#bfc7d4",
-                }}
-              >
+          {/* Текущие значения выбранного устройства */}
+          <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
+            <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-white/[0.08]">
+              <span className="text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary truncate">
                 {browserDeviceId
                   ? `${visibleTags[0]?.deviceName || ""} · ${visibleTags.length} тегов`
                   : "Выберите устройство слева"}
               </span>
               {browserDeviceId && (
-                <span style={{ font: "400 10px/1 'IBM Plex Mono'", color: "#7c8290" }}>/tag-values/latest</span>
+                <span className="flex-shrink-0 font-ibmPlexMono text-[10.5px] text-text-faint">/tag-values/latest</span>
               )}
             </div>
             {!browserDeviceId ? (
-              <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
+              <p className="px-3 py-4 text-[12.5px] text-text-faint italic">
                 Выберите устройство, чтобы увидеть текущие значения его тегов
               </p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
-                    {["Тег", "Значение", "Ед.", "Тренд", "Мин", "Сред", "Макс", "Качество", "Действия"].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          padding: "6px 10px",
-                          textAlign: "left",
-                          font: "600 9.5px/1.2 'IBM Plex Sans'",
-                          letterSpacing: ".09em",
-                          textTransform: "uppercase",
-                          color: "#7c8290",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {browserRows.map(({ tag, live, spark, min, max, avg }) => {
-                    const hasError = live?.isError;
-                    const quality = hasError ? "ОШИБКА" : live ? "НОРМА" : "—";
-                    return (
-                      <tr
-                        key={tag.id}
-                        onClick={() => setBrowserTagId(tag.id)}
-                        style={{
-                          borderBottom: "1px solid #232222",
-                          cursor: "pointer",
-                          background: tag.id === browserTagId ? "rgba(59,130,246,0.08)" : "transparent",
-                        }}
-                      >
-                        <td
-                          style={{
-                            padding: "5px 10px",
-                            font: "400 11.5px/1.3 'IBM Plex Mono'",
-                            color: "#e5e2e1",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: 160,
-                          }}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-background-dark/40 border-b border-white/[0.08]">
+                      {["Тег", "Значение", "Ед.", "Тренд", "Мин", "Сред", "Макс", "Качество", "Действия"].map((h) => (
+                        <th
+                          key={h}
+                          className="px-3 py-2 text-[10px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-faint whitespace-nowrap"
                         >
-                          {tag.name}
-                        </td>
-                        <td
-                          style={{
-                            padding: "5px 10px",
-                            textAlign: "right",
-                            font: "500 11.5px/1.3 'IBM Plex Mono'",
-                            color: hasError ? "#ef4444" : "#e5e2e1",
-                          }}
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {browserRows.map(({ tag, live, spark, min, max, avg }) => {
+                      const hasError = live?.isError;
+                      const quality = hasError ? "ОШИБКА" : live ? "НОРМА" : "—";
+                      const isSelected = tag.id === browserTagId;
+                      return (
+                        <tr
+                          key={tag.id}
+                          onClick={() => setBrowserTagId(tag.id)}
+                          className={`border-b border-white/[0.04] cursor-pointer transition-colors ${
+                            isSelected ? "bg-primary/10" : "hover:bg-white/[0.03]"
+                          }`}
                         >
-                          {live ? (hasError ? "ОШБК" : fmt(live.value)) : "—"}
-                        </td>
-                        <td style={{ padding: "5px 10px", font: "400 10.5px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
-                          {tag.unit || live?.unit || ""}
-                        </td>
-                        <td style={{ padding: "5px 10px" }}>
-                          {spark ? (
-                            <svg width="72" height="16" style={{ display: "block" }}>
-                              <polyline fill="none" stroke="#3b82f6" strokeWidth="1" points={spark} />
-                            </svg>
-                          ) : (
-                            <span style={{ color: "#5c6270", fontSize: 10 }}>—</span>
-                          )}
-                        </td>
-                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
-                          {fmt(min)}
-                        </td>
-                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
-                          {fmt(avg)}
-                        </td>
-                        <td style={{ padding: "5px 10px", textAlign: "right", font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
-                          {fmt(max)}
-                        </td>
-                        <td
-                          style={{
-                            padding: "5px 10px",
-                            font: "500 10px/1.3 'IBM Plex Mono'",
-                            color: quality === "НОРМА" ? "#22c55e" : quality === "ОШИБКА" ? "#ef4444" : "#7c8290",
-                          }}
-                        >
-                          {quality}
-                        </td>
-                        <td style={{ padding: "5px 10px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 5, font: "500 9.5px/1.2 'IBM Plex Mono'" }}>
+                          <td className="px-3 py-1.5 font-ibmPlexMono text-[13px] text-text-primary truncate max-w-[160px]">
+                            {tag.name}
+                          </td>
+                          <td
+                            className={`px-3 py-1.5 text-right font-ibmPlexMono text-[13px] font-medium ${
+                              hasError ? "text-status-fault" : "text-text-primary"
+                            }`}
+                          >
+                            {live ? (hasError ? "ОШБК" : fmt(live.value)) : "—"}
+                          </td>
+                          <td className="px-3 py-1.5 font-ibmPlexMono text-[12px] text-text-faint">
+                            {tag.unit || live?.unit || ""}
+                          </td>
+                          <td className="px-3 py-1.5">
+                            {spark ? (
+                              <svg width="72" height="16" className="block">
+                                <polyline fill="none" stroke="#3987e5" strokeWidth="1" points={spark} />
+                              </svg>
+                            ) : (
+                              <span className="text-text-faint text-[12px]">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-faint">{fmt(min)}</td>
+                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-secondary">{fmt(avg)}</td>
+                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-faint">{fmt(max)}</td>
+                          <td className="px-3 py-1.5">
                             <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openViewModal(tag);
-                              }}
-                              style={{ color: "#3b82f6", cursor: "pointer" }}
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded-[2px] text-[10px] font-ibmPlexMono font-semibold uppercase ${
+                                quality === "НОРМА"
+                                  ? "text-status-ok bg-status-ok/10"
+                                  : quality === "ОШИБКА"
+                                    ? "text-status-fault bg-status-fault/10"
+                                    : "text-text-faint bg-white/5"
+                              }`}
                             >
-                              ПРОСМОТР
+                              {quality}
                             </span>
-                            <span style={{ color: "#5c6270" }}>·</span>
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(tag);
-                              }}
-                              style={{ color: "#3b82f6", cursor: "pointer" }}
-                            >
-                              ИЗМЕНИТЬ
-                            </span>
-                            <span style={{ color: "#5c6270" }}>·</span>
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDeleteModal(tag);
-                              }}
-                              style={{ color: "#ef4444", cursor: "pointer" }}
-                            >
-                              УДАЛИТЬ
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                title="Просмотр"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openViewModal(tag);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-primary hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                              >
+                                <VisibilityRounded sx={{ fontSize: 14 }} />
+                              </button>
+                              <button
+                                type="button"
+                                title="Изменить"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(tag);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-primary hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                              >
+                                <EditRounded sx={{ fontSize: 14 }} />
+                              </button>
+                              <button
+                                type="button"
+                                title="Удалить"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openDeleteModal(tag);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-status-fault hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
+                              >
+                                <DeleteRounded sx={{ fontSize: 14 }} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
-              <div
-                style={{
-                  padding: "7px 10px",
-                  borderBottom: "1px solid #2a2a2a",
-                  font: "600 11px/1 'IBM Plex Sans'",
-                  letterSpacing: ".06em",
-                  textTransform: "uppercase",
-                  color: "#bfc7d4",
-                }}
-              >
+          {/* Статистика + агрегаты выбранного тега */}
+          <div className="flex flex-col gap-3">
+            <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
+              <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary truncate">
                 Статистика {browserTagId ? `· ${visibleTags.find((t) => t.id === browserTagId)?.name}` : ""}
               </div>
               {!browserTagId ? (
-                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
-                  Выберите тег в таблице
-                </p>
+                <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Выберите тег в таблице</p>
               ) : !statisticsForSelectedTag ? (
-                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#7c8290", padding: "16px 10px" }}>Загрузка…</p>
+                <p className="px-3 py-4 text-[12.5px] text-text-muted">Загрузка…</p>
               ) : (
-                <div style={{ padding: "8px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
+                <div className="px-3 py-2 space-y-0.5">
                   {[
                     ["Отсчётов (1ч)", statisticsForSelectedTag.count],
                     ["Среднее", fmt(statisticsForSelectedTag.avg)],
@@ -950,52 +1172,28 @@ const Index = () => {
                     ["Первое значение", fmt(statisticsForSelectedTag.firstValue)],
                     ["Последнее значение", fmt(statisticsForSelectedTag.lastValue)],
                   ].map(([k, v]) => (
-                    <div
-                      key={k}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "3px 0",
-                        borderBottom: "1px solid #232222",
-                      }}
-                    >
-                      <span style={{ font: "400 10.5px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>{k}</span>
-                      <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>{v}</span>
+                    <div key={k} className="flex items-center justify-between gap-2 py-1.5 border-b border-white/[0.05] last:border-b-0">
+                      <span className="text-[12px] font-ibmPlexSans text-text-faint">{k}</span>
+                      <span className="font-ibmPlexMono text-[13px] font-medium text-text-primary">{v}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <div style={{ background: "#1c1b1b", border: "1px solid #2a2a2a" }}>
-              <div
-                style={{
-                  padding: "7px 10px",
-                  borderBottom: "1px solid #2a2a2a",
-                  font: "600 11px/1 'IBM Plex Sans'",
-                  letterSpacing: ".06em",
-                  textTransform: "uppercase",
-                  color: "#bfc7d4",
-                }}
-              >
+            <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
+              <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary">
                 Агрегаты · бакеты 5 мин
               </div>
               {!browserTagId ? (
-                <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
-                  Выберите тег в таблице
-                </p>
+                <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Выберите тег в таблице</p>
               ) : (
                 (() => {
                   const buckets = aggregatesByTagId.get(browserTagId) || [];
                   const avgs = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
                   const maxs = buckets.map((b) => b.max).filter((v) => v !== null && v !== undefined);
                   if (avgs.length < 2) {
-                    return (
-                      <p style={{ font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic", padding: "16px 10px" }}>
-                        Недостаточно данных
-                      </p>
-                    );
+                    return <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Недостаточно данных</p>;
                   }
                   const all = [...avgs, ...maxs];
                   const min = Math.min(...all);
@@ -1012,20 +1210,20 @@ const Index = () => {
                       })
                       .join(" ");
                   return (
-                    <div style={{ padding: 10 }}>
+                    <div className="p-3">
                       <svg width="100%" height="90" viewBox="0 0 220 90" preserveAspectRatio="none">
                         <line x1="0" y1="88" x2="220" y2="88" stroke="#2a2a2a" />
                         <line x1="0" y1="44" x2="220" y2="44" stroke="#232222" strokeDasharray="3 3" />
-                        <polyline fill="none" stroke="#3b82f6" strokeWidth="1.4" points={toPoints(avgs)} />
-                        <polyline fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 2" points={toPoints(maxs)} />
+                        <polyline fill="none" stroke="#3987e5" strokeWidth="1.4" points={toPoints(avgs)} />
+                        <polyline fill="none" stroke="#c98500" strokeWidth="1" strokeDasharray="3 2" points={toPoints(maxs)} />
                       </svg>
-                      <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, font: "400 9.5px/1 'IBM Plex Mono'", color: "#7c8290" }}>
-                          <span style={{ width: 10, height: 2, background: "#3b82f6", display: "inline-block" }} />
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="flex items-center gap-1.5 font-ibmPlexMono text-[11px] text-text-faint">
+                          <span className="w-2.5 h-0.5 inline-block bg-[#3987e5]" />
                           сред.
                         </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, font: "400 9.5px/1 'IBM Plex Mono'", color: "#7c8290" }}>
-                          <span style={{ width: 10, height: 2, background: "#f59e0b", display: "inline-block" }} />
+                        <span className="flex items-center gap-1.5 font-ibmPlexMono text-[11px] text-text-faint">
+                          <span className="w-2.5 h-0.5 inline-block bg-[#c98500]" />
                           макс.
                         </span>
                       </div>
@@ -1036,24 +1234,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 4 }}>
-          <span
-            onClick={() => setShowCreateModal(true)}
-            style={{
-              padding: "6px 11px",
-              border: "1px solid #3b82f6",
-              color: "#3b82f6",
-              font: "500 10.5px/1.2 'IBM Plex Mono'",
-              cursor: "pointer",
-            }}
-          >
-            + ТЕГ
-          </span>
-          <span style={{ font: "400 10.5px/1.2 'IBM Plex Mono'", color: "#5c6270" }}>
-            {list.length} тегов зарегистрировано · нажмите на тег в таблице для статистики
-          </span>
-        </div>
+        )}
       </div>
 
       <MethodModal

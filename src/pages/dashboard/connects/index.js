@@ -19,16 +19,11 @@ import Input from "@/components/input";
 import CustomSelect from "@/components/select";
 import ChipSelect from "@/components/chip-select";
 import { Button } from "@mui/material";
-import {
-  Add,
-  GridView,
-  TableRows,
-  Lan,
-  Usb,
-  ElectricBoltOutlined,
-  Schedule,
-} from "@mui/icons-material";
+import { Add, GridView, TableRows } from "@mui/icons-material";
 import { toast } from "react-hot-toast";
+import ConnectionDetailsModal, { connectionIcon } from "@/features/connections/ConnectionDetailsModal";
+import ConnectionParamFields from "@/features/connections/ConnectionParamFields";
+import { connectionAddressLabel, connectionTimeoutMs } from "@/features/connections/connectionDisplay";
 import {
   CONNECTION_TYPE_OPTIONS,
   DEFAULT_FORM,
@@ -88,9 +83,14 @@ const Index = () => {
 
   // Только для колонки «Устройства» в таблице ниже — реального счётчика
   // на бэкенде подключений нет, считаем на клиенте по connectionId.
+  // /devices — постраничный (см. deviceDisplay.js): без явного pageSize
+  // сервер отдаёт только первую страницу (обычно 20 записей), из-за чего
+  // счётчик молча считал бы устройства только по первым ~20 из всех — берём
+  // заведомо широкую страницу, чтобы посчитать реально все.
   const { data: devicesForCount } = useGetQuery({
     key: [KEYS.devices, "connects-count"],
     url: URLS.devices,
+    params: { page: 1, pageSize: 500 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -126,7 +126,7 @@ const Index = () => {
     const matchesSearch =
       !query ||
       item.name?.toLowerCase().includes(query) ||
-      get(item, "params.host", "")?.toLowerCase?.().includes(query);
+      connectionAddressLabel(item.params).toLowerCase().includes(query);
     const matchesProtocol = protocolFilter === "all" || item.type === protocolFilter;
     const matchesStatus =
       statusFilter === "all" || (statusFilter === "enabled" ? item.enabled : !item.enabled);
@@ -532,7 +532,7 @@ const Index = () => {
       accessorKey: "name",
       header: "Название",
       cell: ({ row }) => (
-        <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+        <span style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
           {row.original.name}
         </span>
       ),
@@ -541,7 +541,7 @@ const Index = () => {
       accessorKey: "type",
       header: "Протокол",
       cell: ({ row }) => (
-        <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+        <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
           {row.original.type}
         </span>
       ),
@@ -549,16 +549,15 @@ const Index = () => {
     {
       id: "endpoint",
       header: "Адрес",
-      cell: ({ row }) => {
-        const host = get(row.original, "params.host");
-        const port = get(row.original, "params.port");
-        const serialPort = get(row.original, "params.serial_port");
-        return (
-          <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
-            {host ? `${host}${port ? `:${port}` : ""}` : serialPort || "—"}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <span
+          className="block max-w-[220px] truncate"
+          style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#7c8290" }}
+          title={connectionAddressLabel(row.original.params)}
+        >
+          {connectionAddressLabel(row.original.params)}
+        </span>
+      ),
     },
     {
       accessorKey: "enabled",
@@ -574,7 +573,7 @@ const Index = () => {
               padding: "1px 6px",
               border: `1px solid ${color}`,
               borderRadius: 2,
-              font: "600 9.5px/1.6 'IBM Plex Mono'",
+              font: "600 12px/1.6 'IBM Plex Mono'",
               color,
             }}
           >
@@ -587,10 +586,11 @@ const Index = () => {
     {
       id: "devices",
       header: "Устройства",
+      meta: { align: "right" },
       cell: ({ row }) => (
         <span
           className="block text-right"
-          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+          style={{ font: "400 13.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
         >
           {deviceCountByConnection.get(row.original.id) || 0}
         </span>
@@ -599,8 +599,9 @@ const Index = () => {
     {
       id: "actions",
       header: "Действия",
+      meta: { align: "right" },
       cell: ({ row }) => (
-        <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
+        <div className="text-right" style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}>
           <button
             type="button"
             onClick={() => setSelectedConnection(row.original)}
@@ -656,7 +657,7 @@ const Index = () => {
             border: "1px solid rgba(255,255,255,0.15)",
             borderRadius: 8,
             color: "#e5e2e1",
-            font: "400 12px/1.3 'IBM Plex Mono'",
+            font: "400 14px/1.3 'IBM Plex Mono'",
           }}
         />
         <ChipSelect
@@ -681,7 +682,7 @@ const Index = () => {
         <div className="flex border border-white/15 rounded-lg overflow-hidden">
           <button
             onClick={() => setActiveTab("table")}
-            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[13px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
               activeTab === "table"
                 ? "bg-primary/15 text-primary hover:bg-primary/25"
                 : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
@@ -692,7 +693,7 @@ const Index = () => {
           </button>
           <button
             onClick={() => setActiveTab("card")}
-            className={`flex items-center gap-1.5 h-8 px-2.5 text-[10.5px] font-ibmPlexMono uppercase tracking-wide border-l border-white/15 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
+            className={`flex items-center gap-1.5 h-8 px-2.5 text-[13px] font-ibmPlexMono uppercase tracking-wide border-l border-white/15 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
               activeTab === "card"
                 ? "bg-primary/15 text-primary hover:bg-primary/25"
                 : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
@@ -706,7 +707,7 @@ const Index = () => {
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="h-9 px-4 rounded-lg border border-primary text-primary text-[10.5px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+          className="h-9 px-4 rounded-lg border border-primary text-primary text-[13px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
         >
           + ПОДКЛЮЧЕНИЕ
         </button>
@@ -728,18 +729,18 @@ const Index = () => {
           {activeTab === "card" && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 font-ibmPlexSans">
               {filteredConnections.map((connection) => {
-                const isTcp = connection?.type?.includes("TCP");
+                const ProtocolIcon = connectionIcon(connection.type);
                 return (
                   <div
                     key={connection.id}
                     className="rounded-xl bg-surface-dark border border-white/[0.08] p-3 hover:border-primary/40 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2.5">
-                      <span className="font-ibmPlexMono text-[12.5px] font-semibold text-text-primary">
+                      <span className="font-ibmPlexMono text-[14.5px] font-semibold text-text-primary">
                         {connection.name}
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
+                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[12px] font-semibold uppercase tracking-wide ${
                           connection.enabled
                             ? "border-status-ok text-status-ok"
                             : "border-status-fault text-status-fault"
@@ -751,29 +752,29 @@ const Index = () => {
 
                     <div className="flex items-center gap-2 mb-2.5">
                       <span className="w-7 h-7 rounded-[2px] bg-background-dark border border-surface-border flex items-center justify-center text-primary">
-                        {isTcp ? <Lan sx={{ fontSize: 15 }} /> : <Usb sx={{ fontSize: 15 }} />}
+                        <ProtocolIcon sx={{ fontSize: 15 }} />
                       </span>
-                      <span className="text-[10.5px] font-ibmPlexMono text-text-secondary">
+                      <span className="text-[13px] font-ibmPlexMono text-text-secondary">
                         {connection.type}
                       </span>
                     </div>
 
-                    <div className="space-y-1 text-[11px] font-ibmPlexMono text-text-muted">
-                      <p>
-                        Хост: <span className="text-text-primary">{get(connection, "params.host", "-")}</span>
-                      </p>
-                      <p>
-                        Порт: <span className="text-text-primary">{get(connection, "params.port", "-")}</span>
-                      </p>
-                      <p>
-                        Таймаут:{" "}
-                        <span className="text-text-primary">
-                          {get(connection, "params.timeout_ms", "-")} ms
+                    <div className="space-y-1 text-[13px] font-ibmPlexMono text-text-muted">
+                      <p className="truncate">
+                        Адрес:{" "}
+                        <span className="text-text-primary" title={connectionAddressLabel(connection.params)}>
+                          {connectionAddressLabel(connection.params)}
                         </span>
                       </p>
+                      {connectionTimeoutMs(connection.params) !== null && (
+                        <p>
+                          Таймаут:{" "}
+                          <span className="text-text-primary">{connectionTimeoutMs(connection.params)} ms</span>
+                        </p>
+                      )}
                     </div>
 
-                    <div className="mt-3 pt-2.5 border-t border-surface-border flex justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+                    <div className="mt-3 pt-2.5 border-t border-surface-border flex justify-end gap-1.5 font-ibmPlexMono text-[12.5px] font-medium">
                       <button
                         type="button"
                         onClick={() => setSelectedConnection(connection)}
@@ -885,43 +886,12 @@ const Index = () => {
               {PARAM_HINTS[createForm.type]}
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentParamFields.map((field) => {
-                if (field.type === "select") {
-                  return (
-                    <CustomSelect
-                      key={field.name}
-                      label={field.label}
-                      required={field.required}
-                      options={field.options || []}
-                      value={paramsForm[field.name]}
-                      onChange={(value) => handleChangeParam(field.name, value)}
-                      placeholder={
-                        field.placeholder || `Выберите ${field.label}`
-                      }
-                      error={paramsErrors[field.name]}
-                      sortOptions={false}
-                    />
-                  );
-                }
-
-                return (
-                  <Input
-                    key={field.name}
-                    label={field.label}
-                    required={field.required}
-                    name={field.name}
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    value={paramsForm[field.name] ?? ""}
-                    onChange={(event) =>
-                      handleChangeParam(field.name, event.target.value)
-                    }
-                    error={paramsErrors[field.name]}
-                  />
-                );
-              })}
-            </div>
+            <ConnectionParamFields
+              fields={currentParamFields}
+              values={paramsForm}
+              errors={paramsErrors}
+              onChange={handleChangeParam}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2 ">
@@ -1058,45 +1028,12 @@ const Index = () => {
               {PARAM_HINTS[editForm.type]}
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentEditParamFields.map((field) => {
-                if (field.type === "select") {
-                  return (
-                    <CustomSelect
-                      key={field.name}
-                      label={field.label}
-                      required={field.required}
-                      options={field.options || []}
-                      value={editParamsForm[field.name]}
-                      onChange={(value) =>
-                        handleChangeEditParam(field.name, value)
-                      }
-                      placeholder={
-                        field.placeholder || `Выберите ${field.label}`
-                      }
-                      error={editParamsErrors[field.name]}
-                      sortOptions={false}
-                    />
-                  );
-                }
-
-                return (
-                  <Input
-                    key={field.name}
-                    label={field.label}
-                    required={field.required}
-                    name={field.name}
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    value={editParamsForm[field.name] ?? ""}
-                    onChange={(event) =>
-                      handleChangeEditParam(field.name, event.target.value)
-                    }
-                    error={editParamsErrors[field.name]}
-                  />
-                );
-              })}
-            </div>
+            <ConnectionParamFields
+              fields={currentEditParamFields}
+              values={editParamsForm}
+              errors={editParamsErrors}
+              onChange={handleChangeEditParam}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">
@@ -1167,106 +1104,7 @@ const Index = () => {
         </DeleteModal>
       )}
 
-      {selectedConnection && (
-        <MethodModal
-          open={!!selectedConnection}
-          onClose={() => setSelectedConnection(null)}
-          closeClick={() => setSelectedConnection(null)}
-          showCloseIcon={true}
-          title={"Детали подключения"}
-          width={700}
-        >
-          <div className="mb-4 p-4 rounded-[2px] border border-[#2a2a2a] bg-[#1c1b1b]">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-[2px] bg-primary/20 border border-primary/50 flex items-center justify-center text-blue-200">
-                  {selectedConnection?.type?.includes("TCP") ? (
-                    <Lan fontSize="small" />
-                  ) : (
-                    <Usb fontSize="small" />
-                  )}
-                </span>
-                <div>
-                  <p className="text-white text-base font-semibold">
-                    {selectedConnection.name}
-                  </p>
-                  <p className="text-text-muted text-xs">
-                    ID: {selectedConnection.id}
-                  </p>
-                </div>
-              </div>
-
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-xs border ${
-                  selectedConnection.enabled
-                    ? "border-green-500 bg-green-500/20 text-green-300"
-                    : "border-surface-border-hover bg-text-dim/20 text-text-secondary"
-                }`}
-              >
-                {selectedConnection.enabled ? "Включен" : "Отключен"}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Название</p>
-              <p className="text-white font-medium">
-                {selectedConnection.name}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Тип</p>
-              <p className="text-white font-medium">
-                {selectedConnection.type}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Статус</p>
-              <p className="text-white font-medium">
-                {selectedConnection.enabled ? "Включен" : "Отключен"}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Хост</p>
-              <p className="text-white font-medium">
-                {get(selectedConnection, "params.host", "-")}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Порт</p>
-              <p className="text-white font-medium">
-                {get(selectedConnection, "params.port", "-")}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Таймаут</p>
-              <p className="text-white font-medium flex items-center gap-2">
-                <Schedule fontSize="inherit" className="text-text-muted" />
-                {get(selectedConnection, "params.timeout_ms", "-")} ms
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Протокол</p>
-              <p className="text-white font-medium flex items-center gap-2">
-                <ElectricBoltOutlined
-                  fontSize="inherit"
-                  className="text-amber-300"
-                />
-                {get(selectedConnection, "params.type", "-")}
-              </p>
-            </div>
-            <div className="bg-[#1c1b1b] rounded-[2px] p-3 border border-[#2a2a2a]">
-              <p className="text-text-muted">Создано</p>
-              <p className="text-white font-medium">
-                {selectedConnection.createdAt
-                  ? new Date(selectedConnection.createdAt).toLocaleString()
-                  : "-"}
-              </p>
-            </div>
-          </div>
-        </MethodModal>
-      )}
+      <ConnectionDetailsModal connection={selectedConnection} onClose={() => setSelectedConnection(null)} />
     </DashboardLayout>
   );
 };

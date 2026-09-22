@@ -8,7 +8,7 @@ import CustomSelect from "@/components/select";
 import { PageHeader, Panel, StatTile, Chip, EmptyState, seriesColor } from "@/components/ui";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
-import useGetQuery from "@/hooks/all/useGetQuery";
+import useAllPages from "@/hooks/all/useAllPages";
 import {
   toDatetimeLocal,
   pickInterval,
@@ -57,14 +57,20 @@ const Index = () => {
 
   const initializedFromQuery = useRef(false);
 
-  const { data: devicesResp, isLoading: isLoadingDevices } = useGetQuery({
+  // /devices и /tags постраничные, и без явного постраничного дотягивания
+  // сервер молча отдаёт только первую страницу — тогда выбор устройства,
+  // чьи теги не попали в неё, показывал бы пустой список тегов ("Теги не
+  // найдены"), хотя у устройства теги есть. useAllPages читает реальное
+  // число страниц из ответа и дотягивает остальные, а не гадает с большим
+  // pageSize (см. ту же правку на /dashboard/tags).
+  const { data: devicesResp, isLoading: isLoadingDevices } = useAllPages({
     key: KEYS.devices,
     url: URLS.devices,
     headers: authHeaders,
     enabled: !!session?.accessToken,
   });
 
-  const { data: tagsResp, isLoading: isLoadingTags } = useGetQuery({
+  const { data: tagsResp, isLoading: isLoadingTags } = useAllPages({
     key: KEYS.tags,
     url: URLS.tags,
     headers: authHeaders,
@@ -268,7 +274,7 @@ const Index = () => {
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <p
                     style={{
-                      font: "600 9.5px/1 'IBM Plex Sans'",
+                      font: "600 12px/1 'IBM Plex Sans'",
                       letterSpacing: ".09em",
                       textTransform: "uppercase",
                       color: "#7c8290",
@@ -276,7 +282,7 @@ const Index = () => {
                   >
                     Теги
                   </p>
-                  <span style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#5c6270" }}>
+                  <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#5c6270" }}>
                     {selectedTagIds.length} из {visibleTags.length}
                   </span>
                   <input
@@ -291,7 +297,7 @@ const Index = () => {
                       background: "#131313",
                       border: "1px solid #2a2a2a",
                       color: "#e5e2e1",
-                      font: "400 11px/1.3 'IBM Plex Mono'",
+                      font: "400 13px/1.3 'IBM Plex Mono'",
                       outline: "none",
                     }}
                   />
@@ -306,7 +312,7 @@ const Index = () => {
                       }
                       className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-primary/10 enabled:active:scale-[0.96] enabled:active:bg-primary/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
                       style={{
-                        font: "500 10.5px/1.2 'IBM Plex Mono'",
+                        font: "500 13px/1.2 'IBM Plex Mono'",
                         color: visibleTags.length === 0 ? "#3a3a3a" : "#3b82f6",
                       }}
                     >
@@ -318,7 +324,7 @@ const Index = () => {
                       onClick={() => setSelectedTagIds([])}
                       className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-red-500/10 enabled:active:scale-[0.96] enabled:active:bg-red-500/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
                       style={{
-                        font: "500 10.5px/1.2 'IBM Plex Mono'",
+                        font: "500 13px/1.2 'IBM Plex Mono'",
                         color: selectedTagIds.length === 0 ? "#3a3a3a" : "#ef4444",
                       }}
                     >

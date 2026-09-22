@@ -35,12 +35,12 @@ const Panel = ({
       <header className="flex items-start gap-3 px-4 py-3 border-b border-surface-border">
         <div className="min-w-0 flex-1">
           {title && (
-            <h3 className="text-[13px] font-semibold text-[#e5e2e1] leading-tight truncate">
+            <h3 className="text-[14.5px] font-semibold text-[#e5e2e1] leading-tight truncate">
               {title}
             </h3>
           )}
           {description && (
-            <p className="mt-0.5 text-[11px] text-[#6b7280] leading-snug">{description}</p>
+            <p className="mt-0.5 text-[13px] text-[#6b7280] leading-snug">{description}</p>
           )}
         </div>
         {toolbar && <div className="flex-shrink-0 flex items-center gap-2">{toolbar}</div>}

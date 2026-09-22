@@ -40,11 +40,11 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
             style={{ backgroundColor: STATUS_COLOR[status] }}
           />
         )}
-        <p className="text-[10px] uppercase tracking-wide text-[#6b7280] truncate">{label}</p>
+        <p className="text-[12.5px] uppercase tracking-wide text-[#6b7280] truncate">{label}</p>
       </div>
       <p
         className={`font-ibmPlexMono tabular-nums leading-none text-[#e5e2e1] ${
-          dense ? "text-[15px]" : "text-xl"
+          dense ? "text-[16px]" : "text-xl"
         }`}
         style={color ? { color } : undefined}
       >
@@ -59,9 +59,9 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
         ) : (
           value
         )}
-        {unit && <span className="ml-1 text-[11px] text-[#6b7280] font-normal">{unit}</span>}
+        {unit && <span className="ml-1 text-[13px] text-[#6b7280] font-normal">{unit}</span>}
       </p>
-      {hint && <p className="mt-1 text-[10px] text-[#6b7280] truncate">{hint}</p>}
+      {hint && <p className="mt-1 text-[12.5px] text-[#6b7280] truncate">{hint}</p>}
     </div>
   );
 };

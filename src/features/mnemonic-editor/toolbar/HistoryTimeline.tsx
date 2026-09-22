@@ -26,7 +26,7 @@ const HistoryTimeline = () => {
         className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
         title="История правок пуста"
       >
-        <span className="text-[10px] text-text-faint">нет правок</span>
+        <span className="text-[12.5px] text-text-faint">нет правок</span>
       </div>
     );
   }
@@ -49,7 +49,7 @@ const HistoryTimeline = () => {
       className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
       title={`Правок: ${past.length} выполнено, ${future.length} отменено`}
     >
-      {skipped > 0 && <span className="text-[9px] text-text-faint mr-0.5">+{skipped}</span>}
+      {skipped > 0 && <span className="text-[11.5px] text-text-faint mr-0.5">+{skipped}</span>}
       {ticks.map((index) => {
         const isApplied = index < past.length;
         return (

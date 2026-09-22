@@ -9,25 +9,19 @@ import { useSession } from "next-auth/react";
 import ContentLoader from "@/components/loader";
 import { motion } from "framer-motion";
 import { get } from "lodash";
-import { formatTagLabel } from "@/lib/tagNameTranslation";
-import {
-  Cable,
-  Devices,
-  LocalOffer,
-  Settings,
-  CheckCircle,
-  WarningAmber,
-} from "@mui/icons-material";
-import {
-  STATUS_COLOR,
-  STATUS_LABEL,
-  deriveGroupStatus,
-} from "@/constants/statusPalette";
+import { Cable, Devices, LocalOffer, Settings } from "@mui/icons-material";
+import { STATUS_COLOR, deriveGroupStatus } from "@/constants/statusPalette";
+import ConnectionsBarChart from "@/features/dashboard-overview/ConnectionsBarChart";
+import StatusMeter from "@/features/dashboard-overview/StatusMeter";
+import LiveMetricsPanel from "@/features/dashboard-overview/LiveMetricsPanel";
+import { useTagValueMaps } from "@/features/mnemonic-editor/hooks/useTagValueMaps";
+import StationsOverviewSection from "@/features/overview/StationsOverviewSection";
 
-// Сколько параметров показывать в панели «Текущие значения» — снимок первых
-// N тегов проекта, а не курируемый список (у бэкенда нет понятия «важные
-// теги»), поэтому панель — это просто живой срез, а не дашборд по избранному.
-const LIVE_VALUES_LIMIT = 8;
+// Сколько параметров показывать в панели «Мониторинг параметров» — снимок
+// первых N тегов проекта, а не курируемый список (у бэкенда нет понятия
+// «важные теги»), поэтому панель — это просто живой срез, а не дашборд по
+// избранному.
+const LIVE_VALUES_LIMIT = 9;
 
 const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
   // Драйверы приходят одним числом без «сколько из скольких» — для них
@@ -41,7 +35,7 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
     >
       <div className="flex items-center gap-2 mb-2.5">
         <Icon sx={{ fontSize: 15, color: "#7c8290" }} />
-        <p className="text-[10px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
+        <p className="text-[12.5px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
           {label}
         </p>
       </div>
@@ -49,66 +43,13 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
         {value}
       </p>
       {status ? (
-        <p className="flex items-center gap-1.5 text-[10.5px] font-ibmPlexMono" style={{ color: STATUS_COLOR[status] }}>
+        <p className="flex items-center gap-1.5 text-[13px] font-ibmPlexMono" style={{ color: STATUS_COLOR[status] }}>
           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />
           {active === total ? "все активны" : `${total - active} неактивны`}
         </p>
       ) : (
-        <p className="text-[10.5px] font-ibmPlexMono text-text-muted">{hint}</p>
+        <p className="text-[13px] font-ibmPlexMono text-text-muted">{hint}</p>
       )}
-    </div>
-  );
-};
-
-const StatusRow = ({ label, count, total }) => {
-  const status = deriveGroupStatus(count, total);
-  const color = STATUS_COLOR[status];
-  const StatusIcon = status === "ok" ? CheckCircle : WarningAmber;
-
-  return (
-    <div className="flex items-center gap-4 py-2.5 px-3 border-b border-surface-border last:border-b-0 hover:bg-[#232222] transition-colors">
-      <p className="flex-1 text-[12px] font-ibmPlexSans text-text-secondary truncate">{label}</p>
-      <span className="text-[12px] font-ibmPlexMono text-text-muted tabular-nums">
-        {count}/{total}
-      </span>
-      <span
-        className="flex items-center gap-1.5 min-w-[100px] justify-end text-[10.5px] font-ibmPlexMono font-medium"
-        style={{ color }}
-      >
-        <StatusIcon sx={{ fontSize: 14 }} />
-        {STATUS_LABEL[status]}
-      </span>
-    </div>
-  );
-};
-
-const ConnectionTypeCard = ({ name, count }) => (
-  <div className="bg-surface-dark border border-surface-border rounded-[2px] p-3">
-    <p className="text-[10px] font-ibmPlexSans uppercase tracking-wider text-text-muted mb-1.5 truncate">
-      {name}
-    </p>
-    <div className="flex items-baseline gap-1.5">
-      <span className="text-text-primary text-lg font-ibmPlexMono font-semibold tabular-nums">{count}</span>
-      <span className="text-[10.5px] font-ibmPlexMono text-text-faint">
-        соединени{count === 1 ? "е" : "й"}
-      </span>
-    </div>
-  </div>
-);
-
-const LiveValueRow = ({ tag, value }) => {
-  const hasValue = value && !value.isError && value.value !== null && value.value !== undefined;
-  return (
-    <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-background-dark border border-surface-border rounded-[2px]">
-      <span className="text-[10px] font-ibmPlexMono text-text-muted truncate">{tag}</span>
-      <span
-        className={`text-[12px] font-ibmPlexMono font-medium tabular-nums ${
-          value?.isError ? "text-status-fault" : "text-text-primary"
-        }`}
-      >
-        {hasValue ? String(value.value) : value?.isError ? "ошибка" : "—"}
-        {hasValue && value.unit ? ` ${value.unit}` : ""}
-      </span>
     </div>
   );
 };
@@ -149,6 +90,8 @@ const Index = () => {
     enabled: !!session?.accessToken && liveTagIds.length > 0,
   });
 
+  const valueMaps = useTagValueMaps();
+
   const latestValuesByTagId = useMemo(() => {
     const list = get(latestValuesResp, "data.data", []);
     const map = new Map();
@@ -175,6 +118,7 @@ const Index = () => {
 
   const tagsTotal = tags.total || 0;
   const tagsActive = tagsTotal - (tags.disabled || 0);
+  const hasConnectionTypes = Object.keys(connectionTypes).length > 0;
 
   return (
     <DashboardLayout headerTitle={"Обзор системы"}>
@@ -186,6 +130,8 @@ const Index = () => {
         transition={{ duration: 0.2 }}
         className="font-ibmPlexSans space-y-5 max-w-[1600px]"
       >
+        <StationsOverviewSection />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <MetricCard
             icon={Cable}
@@ -211,62 +157,34 @@ const Index = () => {
           <MetricCard icon={Settings} label="Драйверы" value={drivers} hint="работают" />
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-4 items-start">
-          <div className="space-y-4">
-            {Object.keys(connectionTypes).length > 0 && (
-              <section>
-                <h3 className="text-[10.5px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted mb-2.5">
-                  Типы соединений
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {Object.entries(connectionTypes).map(([type, count]) => (
-                    <ConnectionTypeCard key={type} name={type.replace(/_/g, " ")} count={count} />
-                  ))}
-                </div>
-              </section>
-            )}
+        <div className={`grid grid-cols-1 ${hasConnectionTypes ? "xl:grid-cols-2" : ""} gap-4 items-start`}>
+          {hasConnectionTypes && <ConnectionsBarChart data={connectionTypes} />}
 
-            <section>
-              <h3 className="text-[10.5px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted mb-2.5">
-                Статус системы
-              </h3>
-              <div className="bg-surface-dark border border-surface-border rounded-[2px] overflow-hidden">
-                <StatusRow
-                  label="Активные соединения"
-                  count={connections.enabled || 0}
-                  total={connections.total || 0}
-                />
-                <StatusRow
-                  label="Доступные устройства"
-                  count={devices.enabled || 0}
-                  total={devices.total || 0}
-                />
-                <StatusRow label="Активные параметры" count={tagsActive} total={tagsTotal} />
-              </div>
-            </section>
-          </div>
-
-          <section className="bg-surface-dark border border-surface-border rounded-[2px]">
-            <div className="px-3 py-2.5 border-b border-surface-border">
-              <h3 className="text-[10.5px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
-                Текущие значения
-              </h3>
-            </div>
-            <div className="p-2.5 grid grid-cols-1 gap-1.5">
-              {liveTags.length === 0 ? (
-                <p className="text-[11px] text-text-faint px-1 py-2">Параметры не найдены</p>
-              ) : (
-                liveTags.map((tag) => (
-                  <LiveValueRow
-                    key={tag.id}
-                    tag={tag.name ? formatTagLabel(tag.name) : tag.id}
-                    value={latestValuesByTagId.get(tag.id)}
-                  />
-                ))
-              )}
-            </div>
+          <section className="bg-surface-dark border border-surface-border rounded-[2px] overflow-hidden">
+            <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted px-3.5 pt-3.5 pb-1">
+              Статус системы
+            </h3>
+            <StatusMeter
+              label="Соединения"
+              active={connections.enabled || 0}
+              total={connections.total || 0}
+            />
+            <StatusMeter label="Устройства" active={devices.enabled || 0} total={devices.total || 0} />
+            <StatusMeter label="Параметры" active={tagsActive} total={tagsTotal} />
           </section>
         </div>
+
+        <section className="bg-surface-dark border border-surface-border rounded-[2px]">
+          <div className="flex items-baseline justify-between px-3.5 py-2.5 border-b border-surface-border">
+            <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
+              Мониторинг параметров
+            </h3>
+            <span className="text-[12.5px] font-ibmPlexMono text-text-faint">тренд за последний час</span>
+          </div>
+          <div className="p-3">
+            <LiveMetricsPanel tags={liveTags} latestValuesByTagId={latestValuesByTagId} valueMaps={valueMaps} />
+          </div>
+        </section>
       </motion.div>
     </DashboardLayout>
   );

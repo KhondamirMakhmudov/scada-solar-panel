@@ -39,7 +39,7 @@ const GroupedTagCharts = ({
     <div className="space-y-5">
       {groups.map((group) => (
         <div key={group.id}>
-          <h3 className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[#6b7280]">
+          <h3 className="mb-2.5 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wide text-[#6b7280]">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             {group.label}
             <span className="font-normal normal-case tracking-normal text-[#5c6270]">

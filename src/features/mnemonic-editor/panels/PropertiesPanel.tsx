@@ -57,7 +57,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
       return (
         <div className="w-72 flex-shrink-0 border-l border-surface-border bg-surface-dark/40 flex flex-col">
           <div className="flex items-center justify-between px-3 pt-3">
-            <p className="text-[11px] uppercase tracking-wide text-text-dim">
+            <p className="text-[13px] uppercase tracking-wide text-text-dim">
               Настройки холста
             </p>
             <button
@@ -85,7 +85,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           «
         </button>
         <p
-          className="text-[10px] text-text-faint tracking-wide"
+          className="text-[12.5px] text-text-faint tracking-wide"
           style={{ writingMode: "vertical-rl" }}
         >
           Выберите элемент
@@ -116,18 +116,18 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           <ShapeThumbnail kind={element.type} size={24} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] text-text-primary truncate leading-tight">
+          <span className="block text-[14.5px] text-text-primary truncate leading-tight">
             {element.label?.trim() || definition?.label || element.type}
           </span>
           <span className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-[10px] text-text-faint truncate">
+            <span className="text-[12.5px] text-text-faint truncate">
               {definition?.label ?? element.type}
             </span>
             {status && (
               <>
-                <span className="text-text-faint text-[10px]">·</span>
+                <span className="text-text-faint text-[12.5px]">·</span>
                 <span
-                  className="flex items-center gap-1 text-[10px]"
+                  className="flex items-center gap-1 text-[12.5px]"
                   style={{ color: LIVE_STATUS_COLORS[status] }}
                 >
                   <span

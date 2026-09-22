@@ -149,7 +149,7 @@ const ShapePalette = () => {
   return (
     <div className="w-60 flex-shrink-0 border-r border-surface-border bg-surface-dark/40 flex flex-col">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <p className="text-[11px] uppercase tracking-wide text-text-dim">
+        <p className="text-[13px] uppercase tracking-wide text-text-dim">
           {isDataWorkspace ? "Виджеты данных" : "Оборудование"}
         </p>
         <button
@@ -195,16 +195,16 @@ const ShapePalette = () => {
                       : [...ids, category.id],
                   )
                 }
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[2px] text-[11px] uppercase tracking-wide text-text-muted hover:bg-background-dark/60 hover:text-text-primary transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[2px] text-[13px] uppercase tracking-wide text-text-muted hover:bg-background-dark/60 hover:text-text-primary transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
               >
                 <span
-                  className="text-[9px] text-text-faint transition-transform duration-150"
+                  className="text-[11.5px] text-text-faint transition-transform duration-150"
                   style={{ transform: isOpen ? "rotate(90deg)" : "none" }}
                 >
                   ▶
                 </span>
                 <span className="flex-1 text-left">{category.label}</span>
-                <span className="text-[10px] text-text-faint font-ibmPlexMono">
+                <span className="text-[12.5px] text-text-faint font-ibmPlexMono">
                   {category.kinds.length}
                 </span>
               </button>
@@ -228,11 +228,11 @@ const ShapePalette = () => {
                           <ShapeThumbnail kind={kind} size={22} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] leading-tight text-text-primary truncate">
+                          <span className="block text-[14.5px] leading-tight text-text-primary truncate">
                             {definition.label}
                           </span>
                           {SHAPE_HINTS[kind] && (
-                            <span className="block text-[10px] leading-tight text-text-faint truncate">
+                            <span className="block text-[12.5px] leading-tight text-text-faint truncate">
                               {SHAPE_HINTS[kind]}
                             </span>
                           )}
@@ -247,21 +247,21 @@ const ShapePalette = () => {
         })}
 
         {totalMatches === 0 && (
-          <p className="px-2 py-6 text-center text-[11px] text-text-faint">
+          <p className="px-2 py-6 text-center text-[13px] text-text-faint">
             Ничего не найдено по запросу «{query.trim()}»
           </p>
         )}
 
         {isDataWorkspace && (
           <div className="pt-2">
-            <p className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] uppercase tracking-wide text-text-muted">
+            <p className="flex items-center gap-1.5 px-2 py-1.5 text-[13px] uppercase tracking-wide text-text-muted">
               <span className="flex-1">На экране</span>
-              <span className="text-[10px] text-text-faint font-ibmPlexMono">
+              <span className="text-[12.5px] text-text-faint font-ibmPlexMono">
                 {existingWidgets.length}
               </span>
             </p>
             {existingWidgets.length === 0 ? (
-              <p className="px-2 py-2 text-[11px] text-text-faint">
+              <p className="px-2 py-2 text-[13px] text-text-faint">
                 Пока пусто — добавьте виджет из списка выше.
               </p>
             ) : (
@@ -275,10 +275,10 @@ const ShapePalette = () => {
                     className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[2px] border border-transparent hover:border-blue-500/40 hover:bg-blue-500/10 active:scale-[0.98] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
                   >
                     <ShapeThumbnail kind={widget.type} size={16} />
-                    <span className="min-w-0 flex-1 text-[12px] text-text-primary truncate">
+                    <span className="min-w-0 flex-1 text-[14px] text-text-primary truncate">
                       {widget.label || `${SHAPE_REGISTRY[widget.type]?.label ?? widget.type} ${index + 1}`}
                     </span>
-                    <span className="text-[10px] text-text-faint font-ibmPlexMono">
+                    <span className="text-[12.5px] text-text-faint font-ibmPlexMono">
                       {widget.dataBinding?.tagId ? "тег" : "без тега"}
                     </span>
                   </button>
@@ -289,7 +289,7 @@ const ShapePalette = () => {
         )}
       </div>
 
-      <p className="px-3 py-2 border-t border-surface-border/80 text-[10px] leading-relaxed text-text-faint">
+      <p className="px-3 py-2 border-t border-surface-border/80 text-[12.5px] leading-relaxed text-text-faint">
         Кликните по элементу или перетащите его на холст. Пробел + перетаскивание —
         панорамирование, колесо мыши — масштаб.
       </p>

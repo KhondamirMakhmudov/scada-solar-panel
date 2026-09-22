@@ -74,7 +74,7 @@ const BasicShapesMenu = () => {
 
       {isOpen && (
         <div className="absolute left-0 top-full mt-2 z-50 w-[180px] rounded-[2px] border border-surface-border bg-surface-dark p-2 shadow-xl">
-          <p className="text-[10px] uppercase tracking-wide text-text-dim mb-1.5 px-0.5">
+          <p className="text-[12.5px] uppercase tracking-wide text-text-dim mb-1.5 px-0.5">
             Фигуры
           </p>
           <div className="grid grid-cols-4 gap-1">

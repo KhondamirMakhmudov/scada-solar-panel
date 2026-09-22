@@ -88,34 +88,44 @@ const CustomTable = ({ data, columns, pagination }) => {
         <thead className="bg-[#18181c] border-b border-white/[0.08]">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="px-4 py-3 text-[10.5px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-secondary cursor-pointer select-none transition-colors"
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  <span className="flex items-center gap-1">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
-                    {header.column.getIsSorted() === "asc" ? (
-                      <ArrowUpwardIcon sx={{ fontSize: 13 }} />
-                    ) : header.column.getIsSorted() === "desc" ? (
-                      <ArrowDownwardIcon sx={{ fontSize: 13 }} />
-                    ) : (
-                      <UnfoldMoreIcon
-                        sx={{ fontSize: 13 }}
-                        className="text-text-faint"
-                      />
-                    )}
-                  </span>
-                </th>
-              ))}
+              {headerGroup.headers.map((header) => {
+                // A column whose cells are right-aligned (numeric counts, a
+                // trailing action-links group) needs its header right-aligned
+                // too — otherwise the header text sits at the column's left
+                // edge while every value under it hugs the right edge, which
+                // reads as broken rather than deliberate.
+                const align = header.column.columnDef.meta?.align;
+                return (
+                  <th
+                    key={header.id}
+                    className={`px-4 py-3 text-[13px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-secondary cursor-pointer select-none transition-colors ${
+                      align === "right" ? "text-right" : ""
+                    }`}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <span className={`flex items-center gap-1 ${align === "right" ? "justify-end" : ""}`}>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      {header.column.getIsSorted() === "asc" ? (
+                        <ArrowUpwardIcon sx={{ fontSize: 13 }} />
+                      ) : header.column.getIsSorted() === "desc" ? (
+                        <ArrowDownwardIcon sx={{ fontSize: 13 }} />
+                      ) : (
+                        <UnfoldMoreIcon
+                          sx={{ fontSize: 13 }}
+                          className="text-text-faint"
+                        />
+                      )}
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
-        <motion.tbody layout className="bg-surface-dark text-text-primary text-[12.5px] font-ibmPlexMono">
+        <motion.tbody layout className="bg-surface-dark text-text-primary text-[14.5px] font-ibmPlexMono">
           <AnimatePresence>
             {table.getRowModel().rows.map((row) => (
               <motion.tr
@@ -157,7 +167,7 @@ const CustomTable = ({ data, columns, pagination }) => {
               key={i}
               onClick={() => handlePageClick(p)}
               disabled={p === "..."}
-              className={`min-w-8 h-8 px-1.5 border rounded-lg text-[11px] font-ibmPlexMono cursor-pointer transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
+              className={`min-w-8 h-8 px-1.5 border rounded-lg text-[13px] font-ibmPlexMono cursor-pointer transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
                 p === currentPage
                   ? "bg-primary border-primary text-white"
                   : p === "..."

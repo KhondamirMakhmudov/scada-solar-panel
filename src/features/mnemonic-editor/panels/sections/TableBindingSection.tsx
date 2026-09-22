@@ -132,7 +132,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] text-text-secondary">
+        <p className="text-[13px] text-text-secondary">
           Выбрано:{" "}
           <span className="font-ibmPlexMono text-text-primary">
             {bound.length}/{DATA_TABLE_MAX_TAGS}
@@ -142,7 +142,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
           <button
             type="button"
             onClick={() => apply([])}
-            className="text-[10.5px] px-2 py-0.5 rounded border border-surface-border text-text-muted hover:text-rose-300 hover:border-rose-900/60 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="text-[13px] px-2 py-0.5 rounded border border-surface-border text-text-muted hover:text-rose-300 hover:border-rose-900/60 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             Очистить
           </button>
@@ -158,16 +158,16 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
       />
 
       <div className="max-h-72 overflow-y-auto rounded-[2px] border border-surface-border/60 bg-background-dark/40">
-        {isLoading && <p className="px-2 py-4 text-center text-[11px] text-text-faint">Загрузка тегов…</p>}
+        {isLoading && <p className="px-2 py-4 text-center text-[13px] text-text-faint">Загрузка тегов…</p>}
         {!isLoading && tree.length === 0 && (
-          <p className="px-2 py-4 text-center text-[11px] text-text-faint">
+          <p className="px-2 py-4 text-center text-[13px] text-text-faint">
             {normalizedQuery ? `Ничего не найдено по «${query.trim()}»` : "Нет доступных тегов"}
           </p>
         )}
 
         {tree.map((conn) => (
           <div key={conn.key}>
-            <p className="sticky top-0 z-10 px-2 py-1 text-[9.5px] uppercase tracking-wide text-text-faint bg-surface-dark/95 border-b border-surface-border/40 truncate">
+            <p className="sticky top-0 z-10 px-2 py-1 text-[12px] uppercase tracking-wide text-text-faint bg-surface-dark/95 border-b border-surface-border/40 truncate">
               {conn.name}
             </p>
             {conn.devices.map((device) => {
@@ -183,7 +183,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
                       type="button"
                       onClick={() => toggleOpen(deviceKey)}
                       title={isOpen ? "Свернуть" : "Развернуть"}
-                      className="w-4 h-4 flex items-center justify-center text-[9px] text-text-faint focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[2px]"
+                      className="w-4 h-4 flex items-center justify-center text-[11.5px] text-text-faint focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[2px]"
                     >
                       <span style={{ display: "inline-block", transform: isOpen ? "rotate(90deg)" : "none", transition: "transform .15s" }}>
                         ▶
@@ -207,7 +207,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
                       {device.name}
                     </button>
                     <span
-                      className={`text-[10px] font-ibmPlexMono ${selectedCount > 0 ? "text-blue-300" : "text-text-faint"}`}
+                      className={`text-[12.5px] font-ibmPlexMono ${selectedCount > 0 ? "text-blue-300" : "text-text-faint"}`}
                     >
                       {selectedCount}/{device.tags.length}
                     </span>
@@ -236,11 +236,11 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
       </div>
 
       {isAtLimit && (
-        <p className="text-[10px] text-amber-400/80">
+        <p className="text-[12.5px] text-amber-400/80">
           Достигнут предел в {DATA_TABLE_MAX_TAGS} тегов — уберите лишние, чтобы добавить другие.
         </p>
       )}
-      <p className="text-[10px] text-text-faint">
+      <p className="text-[12.5px] text-text-faint">
         В таблице теги раскладываются по вкладкам — по одной на устройство, плюс общая «Все».
       </p>
     </div>

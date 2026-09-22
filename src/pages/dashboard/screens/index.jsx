@@ -12,6 +12,10 @@ import {
   Sell,
   Cable,
   Memory,
+  VisibilityRounded,
+  EditRounded,
+  ContentCopyRounded,
+  DeleteRounded,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
@@ -30,6 +34,8 @@ import useGetQuery from "@/hooks/all/useGetQuery";
 import usePostQuery from "@/hooks/all/usePostQuery";
 import useDeleteQuery from "@/hooks/all/useDeleteQuery";
 import { requestPython, requestScreens } from "@/services/api";
+import { useOverviewStations } from "@/features/overview/useOverviewStations";
+import { humanizeDriverId } from "@/features/overview/overviewDisplay";
 
 const STATUS_OPTIONS = [
   { label: "Все статусы", value: "all" },
@@ -367,7 +373,13 @@ const ScreenCard = ({
   canDelete,
 }) => {
   const stateColor = screen.isActive ? "#22c55e" : "#f59e0b";
-  const actionBtnStyle = "flex-1 text-center py-[3px] border font-ibmPlexMono text-[9.5px] font-medium transition-colors enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
+  // Round icon buttons, not the earlier text labels (ПРОСМОТР/ИЗМЕНИТЬ/КЛОН/
+  // УДАЛИТЬ) — four Cyrillic labels split across flex-1 slots in a ~215px
+  // card stopped fitting once the base font size grew project-wide, and
+  // "УДАЛИТЬ" was clipping to "УДАЛИ". An icon has no such breakpoint; the
+  // title attribute carries the label for anyone who needs it spelled out.
+  const iconBtnStyle =
+    "w-7 h-7 flex items-center justify-center rounded-[2px] border transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 disabled:opacity-30 disabled:cursor-not-allowed";
 
   return (
     <div
@@ -385,7 +397,7 @@ const ScreenCard = ({
               onEditDetails();
             }}
             title={canUpdate ? "Изменить название, описание, теги" : undefined}
-            className={`font-ibmPlexSans text-[11.5px] font-semibold text-[#e5e2e1] truncate ${canUpdate ? "hover:underline" : ""}`}
+            className={`font-ibmPlexSans text-[13.5px] font-semibold text-[#e5e2e1] truncate ${canUpdate ? "hover:underline" : ""}`}
           >
             {screen.name}
           </span>
@@ -402,60 +414,77 @@ const ScreenCard = ({
             onOpenDetails();
           }}
           className="font-ibmPlexMono truncate hover:text-[#bfc7d4]"
-          style={{ fontSize: 10, color: "#7c8290" }}
+          style={{ fontSize: 12.5, color: "#7c8290" }}
           title="Показать детали экрана"
         >
           {screen.id.slice(0, 8)} · {screen.tagNames.length} тегов · {formatDate(screen.updatedAt)}
         </span>
-        <div className="flex gap-1 mt-0.5">
+        {screen.stationIds.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {screen.stationIds.map((id) => (
+              <span
+                key={id}
+                className="inline-flex items-center rounded-[2px] px-1.5 py-0.5 text-[12px] border border-blue-400/30 bg-blue-500/10 text-blue-300 font-ibmPlexMono"
+              >
+                {humanizeDriverId(id)}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-1.5 mt-1">
           <button
             type="button"
+            title="Просмотр"
             onClick={(e) => {
               e.stopPropagation();
               onOpenRuntime();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            ПРОСМОТР
+            <VisibilityRounded sx={{ fontSize: 16 }} />
           </button>
           <button
             type="button"
+            title="Изменить"
             disabled={!canUpdate}
             onClick={(e) => {
               e.stopPropagation();
               onOpen();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary disabled:opacity-30 disabled:cursor-not-allowed`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            ИЗМЕНИТЬ
+            <EditRounded sx={{ fontSize: 16 }} />
           </button>
           <button
             type="button"
+            title="Клонировать"
             disabled={!canUpdate}
             onClick={(e) => {
               e.stopPropagation();
               onClone();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary disabled:opacity-30 disabled:cursor-not-allowed`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            КЛОН
+            <ContentCopyRounded sx={{ fontSize: 15 }} />
           </button>
           {canDelete && (
             <button
               type="button"
+              title="Удалить"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete();
               }}
-              className={`${actionBtnStyle} text-status-fault hover:!border-status-fault`}
-              style={{ borderColor: "#2a2a2a", flex: "0 0 auto", padding: "3px 8px" }}
+              className={`${iconBtnStyle} text-status-fault hover:!border-status-fault`}
+              style={{ borderColor: "#2a2a2a" }}
             >
-              УДАЛИТЬ
+              <DeleteRounded sx={{ fontSize: 16 }} />
             </button>
           )}
+          <span className="flex-1" />
         </div>
       </div>
     </div>
@@ -471,6 +500,7 @@ const Index = () => {
   const [selectedScreenId, setSelectedScreenId] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [stationFilter, setStationFilter] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -518,14 +548,23 @@ const Index = () => {
   });
 
   const { data: tagsResp } = useGetQuery({
-    key: KEYS.tags,
+    // /tags is paginated — without pageSize the server defaults to its
+    // first page, which would silently break both the tag tree and the
+    // station filter below for any tag outside it.
+    key: [KEYS.tags, "screens-page"],
     url: URLS.tags,
     apiClient: requestPython,
+    params: { page: 1, pageSize: 1000 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
     },
     enabled: !!session?.accessToken,
   });
+
+  // Экраны не хранят станцию явно — определяем её через привязанные теги:
+  // тег → устройство (тот же resolveTagDeviceId, что и в дереве тегов ниже)
+  // → станция, которой это устройство принадлежит по /overview/stations.
+  const { stations: overviewStations, deviceById: overviewDeviceById } = useOverviewStations();
 
   // Устройства и подключения нужны для дерева выбора тегов в модалках
   const { data: devicesResp } = useGetQuery({
@@ -571,6 +610,37 @@ const Index = () => {
   const tagMap = useMemo(
     () => new Map(tagsList.map((tag) => [tag.id, tag.name ? formatTagLabel(tag.name) : tag.id])),
     [tagsList],
+  );
+
+  const tagDeviceId = useMemo(
+    () => new Map(tagsList.map((tag) => [tag.id, tag.deviceId || get(tag, "device.id", "") || null])),
+    [tagsList],
+  );
+
+  // Один экран может привязывать теги с нескольких станций (редко, но
+  // возможно) — считаем множество, а не одну станцию.
+  const stationIdsByScreen = useMemo(() => {
+    const map = new Map();
+    listRaw.forEach((item) => {
+      const tagIds = Array.isArray(item?.tagIds) ? item.tagIds : [];
+      const stationIds = new Set();
+      tagIds.forEach((tagId) => {
+        const deviceId = tagDeviceId.get(tagId);
+        const station = deviceId ? overviewDeviceById.get(deviceId)?.stationDriverId : null;
+        if (station) stationIds.add(station);
+      });
+      map.set(item?.id, [...stationIds]);
+    });
+    return map;
+  }, [listRaw, tagDeviceId, overviewDeviceById]);
+
+  const stationFilterOptions = useMemo(
+    () => [
+      { label: "Все станции", value: "all" },
+      ...overviewStations.map((s) => ({ label: humanizeDriverId(s.driverId), value: s.driverId })),
+      { label: "Без станции", value: "__none__" },
+    ],
+    [overviewStations],
   );
 
   const devicesRaw = get(devicesResp, "data.data", get(devicesResp, "data", []));
@@ -645,12 +715,13 @@ const Index = () => {
           isActive: typeof item?.isActive === "boolean" ? item.isActive : true,
           tagIds,
           tagNames: tagIds.map((id) => tagMap.get(id) || id),
+          stationIds: stationIdsByScreen.get(item?.id) || [],
           params: item?.params || {},
           createdAt: item?.createdAt || null,
           updatedAt: item?.updatedAt || item?.createdAt || null,
         };
       }),
-    [listRaw, tagMap],
+    [listRaw, tagMap, stationIdsByScreen],
   );
 
   // Экран для просмотра «вживую» по умолчанию — первый активный, иначе
@@ -859,13 +930,19 @@ const Index = () => {
         statusFilter === "all" ||
         (statusFilter === "active" ? item.isActive : !item.isActive);
 
-      return matchesSearch && matchesStatus;
+      const matchesStation =
+        stationFilter === "all" ||
+        (stationFilter === "__none__"
+          ? item.stationIds.length === 0
+          : item.stationIds.includes(stationFilter));
+
+      return matchesSearch && matchesStatus && matchesStation;
     });
-  }, [list, searchValue, statusFilter]);
+  }, [list, searchValue, statusFilter, stationFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchValue, statusFilter]);
+  }, [searchValue, statusFilter, stationFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
   const paginatedList = filteredList.slice(
@@ -880,7 +957,7 @@ const Index = () => {
       cell: ({ row }) => (
         <div>
           <p className="font-medium text-text-primary">{row.original.name}</p>
-          <p className="font-ibmPlexMono text-[10px] text-text-muted">
+          <p className="font-ibmPlexMono text-[12.5px] text-text-muted">
             {row.original.id.slice(0, 8)}
           </p>
         </div>
@@ -896,11 +973,30 @@ const Index = () => {
       ),
     },
     {
+      id: "station",
+      header: "Станция",
+      cell: ({ row }) =>
+        row.original.stationIds.length === 0 ? (
+          <span className="text-text-faint text-xs">—</span>
+        ) : (
+          <div className="flex flex-wrap gap-1 max-w-[160px]">
+            {row.original.stationIds.map((id) => (
+              <span
+                key={id}
+                className="inline-flex items-center rounded-[2px] px-1.5 py-0.5 text-[12.5px] border border-blue-400/30 bg-blue-500/10 text-blue-300"
+              >
+                {humanizeDriverId(id)}
+              </span>
+            ))}
+          </div>
+        ),
+    },
+    {
       accessorKey: "isActive",
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[12px] font-semibold uppercase tracking-wide ${
             row.original.isActive
               ? "border-status-ok text-status-ok"
               : "border-status-warn text-status-warn"
@@ -921,7 +1017,7 @@ const Index = () => {
       id: "actions",
       header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[12.5px] font-medium">
           {canReadScreen && (
             <button
               type="button"
@@ -985,7 +1081,7 @@ const Index = () => {
             <button
               type="button"
               onClick={() => setScreenTab("runtime")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+              className={`h-8 px-3 text-[13px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "runtime"
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
@@ -996,7 +1092,7 @@ const Index = () => {
             <button
               type="button"
               onClick={() => setScreenTab("gallery")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+              className={`h-8 px-3 text-[13px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "gallery"
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
@@ -1012,7 +1108,7 @@ const Index = () => {
             <button
               type="button"
               onClick={() => openDiagram(activeScreen)}
-              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[10.5px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[13px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               ОТКРЫТЬ РЕДАКТОР
             </button>
@@ -1024,7 +1120,7 @@ const Index = () => {
                 resetCreateForm();
                 setShowCreateModal(true);
               }}
-              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[13px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               + ЭКРАН
             </button>
@@ -1038,11 +1134,11 @@ const Index = () => {
             ) : (
               <>
                 <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border">
-                  <span className="font-ibmPlexSans text-[12px] font-semibold text-text-primary">
+                  <span className="font-ibmPlexSans text-[14px] font-semibold text-text-primary">
                     {activeScreen.name}
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-[2px] border text-[9px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
+                    className={`px-1.5 py-0.5 rounded-[2px] border text-[11.5px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
                       activeScreen.isActive
                         ? "border-status-ok text-status-ok"
                         : "border-status-warn text-status-warn"
@@ -1051,7 +1147,7 @@ const Index = () => {
                     {activeScreen.isActive ? "Активен" : "Неактивен"}
                   </span>
                   <div className="flex-1" />
-                  <span className="font-ibmPlexMono text-[10px] text-text-muted">
+                  <span className="font-ibmPlexMono text-[12.5px] text-text-muted">
                     {activeScreen.tagNames.length} тегов привязано
                   </span>
                 </div>
@@ -1071,7 +1167,7 @@ const Index = () => {
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="поиск экранов…"
-                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[13.5px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
+                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[15px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
               />
               <div className="w-[160px]">
                 <CustomSelect
@@ -1079,6 +1175,15 @@ const Index = () => {
                   onChange={(value) => setStatusFilter(value)}
                   options={STATUS_OPTIONS}
                   placeholder="Статус"
+                  sortOptions={false}
+                />
+              </div>
+              <div className="w-[190px]">
+                <CustomSelect
+                  value={stationFilter}
+                  onChange={(value) => setStationFilter(value)}
+                  options={stationFilterOptions}
+                  placeholder="Станция"
                   sortOptions={false}
                 />
               </div>
@@ -1096,7 +1201,7 @@ const Index = () => {
               >
                 <span
                   className="font-ibmPlexSans uppercase"
-                  style={{ fontWeight: 600, fontSize: 11, letterSpacing: ".06em", color: "#bfc7d4" }}
+                  style={{ fontWeight: 600, fontSize: 13, letterSpacing: ".06em", color: "#bfc7d4" }}
                 >
                   Экраны · {filteredList.length}
                 </span>
@@ -1164,7 +1269,7 @@ const Index = () => {
 
             {filteredList.length > 0 && (
               <div className="mt-2.5 flex flex-col items-center justify-between gap-3 border-t border-surface-border pt-3 sm:flex-row">
-                <div className="flex items-center gap-2 text-[11px] text-text-muted">
+                <div className="flex items-center gap-2 text-[13px] text-text-muted">
                   <span>Строк на странице:</span>
                   {[10, 20, 50].map((size) => (
                     <button
@@ -1174,7 +1279,7 @@ const Index = () => {
                         setPageSize(size);
                         setCurrentPage(1);
                       }}
-                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                      className={`h-7 w-9 rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                         pageSize === size
                           ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                           : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1232,7 +1337,7 @@ const Index = () => {
                           key={item}
                           type="button"
                           onClick={() => setCurrentPage(item)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                             currentPage === item
                               ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                               : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1265,7 +1370,7 @@ const Index = () => {
                   </button>
                 </div>
 
-                <span className="text-[11px] text-text-muted">
+                <span className="text-[13px] text-text-muted">
                   Страница{" "}
                   <span className="font-semibold text-text-primary">{currentPage}</span>{" "}
                   из <span className="font-semibold text-text-primary">{totalPages}</span>

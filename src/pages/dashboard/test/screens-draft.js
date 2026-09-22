@@ -12,6 +12,10 @@ import {
   Sell,
   Cable,
   Memory,
+  VisibilityRounded,
+  EditRounded,
+  ContentCopyRounded,
+  DeleteRounded,
 } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
@@ -335,8 +339,11 @@ const ScreenCard = ({
   canDelete,
 }) => {
   const stateColor = screen.isActive ? "#22c55e" : "#f59e0b";
-  const actionBtnStyle =
-    "flex-1 text-center py-[3px] border font-ibmPlexMono text-[9.5px] font-medium transition-colors enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
+  // Round icon buttons — see the same fix on the prod screens page
+  // (dashboard/screens/index.jsx) for why the earlier text labels no
+  // longer fit this card at the current base font size.
+  const iconBtnStyle =
+    "w-7 h-7 flex items-center justify-center rounded-[2px] border transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 disabled:opacity-30 disabled:cursor-not-allowed";
 
   return (
     <div
@@ -354,7 +361,7 @@ const ScreenCard = ({
               onEditDetails();
             }}
             title={canUpdate ? "Изменить название, описание, теги" : undefined}
-            className={`font-ibmPlexSans text-[11.5px] font-semibold text-[#e5e2e1] truncate ${canUpdate ? "hover:underline" : ""}`}
+            className={`font-ibmPlexSans text-[13.5px] font-semibold text-[#e5e2e1] truncate ${canUpdate ? "hover:underline" : ""}`}
           >
             {screen.name}
           </span>
@@ -371,60 +378,65 @@ const ScreenCard = ({
             onOpenDetails();
           }}
           className="font-ibmPlexMono truncate hover:text-[#bfc7d4]"
-          style={{ fontSize: 10, color: "#7c8290" }}
+          style={{ fontSize: 12.5, color: "#7c8290" }}
           title="Показать детали экрана"
         >
           {screen.id.slice(0, 8)} · {screen.tagNames.length} тегов · {formatDate(screen.updatedAt)}
         </span>
-        <div className="flex gap-1 mt-0.5">
+        <div className="flex items-center gap-1.5 mt-1">
           <button
             type="button"
+            title="Просмотр"
             onClick={(e) => {
               e.stopPropagation();
               onOpenRuntime();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            ПРОСМОТР
+            <VisibilityRounded sx={{ fontSize: 16 }} />
           </button>
           <button
             type="button"
+            title="Изменить"
             disabled={!canUpdate}
             onClick={(e) => {
               e.stopPropagation();
               onOpen();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary disabled:opacity-30 disabled:cursor-not-allowed`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            ИЗМЕНИТЬ
+            <EditRounded sx={{ fontSize: 16 }} />
           </button>
           <button
             type="button"
+            title="Клонировать"
             disabled={!canUpdate}
             onClick={(e) => {
               e.stopPropagation();
               onClone();
             }}
-            className={`${actionBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary disabled:opacity-30 disabled:cursor-not-allowed`}
+            className={`${iconBtnStyle} text-[#bfc7d4] hover:!border-primary hover:!text-primary`}
             style={{ borderColor: "#2a2a2a" }}
           >
-            КЛОН
+            <ContentCopyRounded sx={{ fontSize: 15 }} />
           </button>
           {canDelete && (
             <button
               type="button"
+              title="Удалить"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete();
               }}
-              className={`${actionBtnStyle} text-status-fault hover:!border-status-fault`}
-              style={{ borderColor: "#2a2a2a", flex: "0 0 auto", padding: "3px 8px" }}
+              className={`${iconBtnStyle} text-status-fault hover:!border-status-fault`}
+              style={{ borderColor: "#2a2a2a" }}
             >
-              УДАЛИТЬ
+              <DeleteRounded sx={{ fontSize: 16 }} />
             </button>
           )}
+          <span className="flex-1" />
         </div>
       </div>
     </div>
@@ -797,7 +809,7 @@ const ScreensDraftPage = () => {
       cell: ({ row }) => (
         <div>
           <p className="font-medium text-text-primary">{row.original.name}</p>
-          <p className="font-ibmPlexMono text-[10px] text-text-muted">{row.original.id.slice(0, 8)}</p>
+          <p className="font-ibmPlexMono text-[12.5px] text-text-muted">{row.original.id.slice(0, 8)}</p>
         </div>
       ),
     },
@@ -815,7 +827,7 @@ const ScreensDraftPage = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[9.5px] font-semibold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[12px] font-semibold uppercase tracking-wide ${
             row.original.isActive ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
           }`}
         >
@@ -832,7 +844,7 @@ const ScreensDraftPage = () => {
       id: "actions",
       header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[10px] font-medium">
+        <div className="flex items-center justify-end gap-1.5 font-ibmPlexMono text-[12.5px] font-medium">
           {canReadScreen && (
             <button
               type="button"
@@ -891,7 +903,7 @@ const ScreensDraftPage = () => {
   return (
     <DashboardLayout headerTitle="Экраны (черновик)">
       <div className="font-ibmPlexSans space-y-2.5">
-        <div className="rounded-[2px] border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300 font-ibmPlexMono">
+        <div className="rounded-[2px] border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-300 font-ibmPlexMono">
           Черновой бэкенд (порт 8103) — дубликат сервиса экранов. Изменения здесь не влияют на прод.
         </div>
 
@@ -900,7 +912,7 @@ const ScreensDraftPage = () => {
             <button
               type="button"
               onClick={() => setScreenTab("runtime")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+              className={`h-8 px-3 text-[13px] font-ibmPlexSans font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "runtime"
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
@@ -911,7 +923,7 @@ const ScreensDraftPage = () => {
             <button
               type="button"
               onClick={() => setScreenTab("gallery")}
-              className={`h-8 px-3 text-[11px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+              className={`h-8 px-3 text-[13px] font-ibmPlexSans font-medium border-l border-surface-border transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
                 screenTab === "gallery"
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "text-text-secondary hover:bg-background-dark"
@@ -927,7 +939,7 @@ const ScreensDraftPage = () => {
             <button
               type="button"
               onClick={() => openDiagram(activeScreen)}
-              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[10.5px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[13px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               ОТКРЫТЬ РЕДАКТОР
             </button>
@@ -939,7 +951,7 @@ const ScreensDraftPage = () => {
                 resetCreateForm();
                 setShowCreateModal(true);
               }}
-              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[10.5px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[13px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               + ЭКРАН
             </button>
@@ -953,18 +965,18 @@ const ScreensDraftPage = () => {
             ) : (
               <>
                 <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border">
-                  <span className="font-ibmPlexSans text-[12px] font-semibold text-text-primary">
+                  <span className="font-ibmPlexSans text-[14px] font-semibold text-text-primary">
                     {activeScreen.name}
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-[2px] border text-[9px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
+                    className={`px-1.5 py-0.5 rounded-[2px] border text-[11.5px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
                       activeScreen.isActive ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
                     }`}
                   >
                     {activeScreen.isActive ? "Активен" : "Неактивен"}
                   </span>
                   <div className="flex-1" />
-                  <span className="font-ibmPlexMono text-[10px] text-text-muted">
+                  <span className="font-ibmPlexMono text-[12.5px] text-text-muted">
                     {activeScreen.tagNames.length} тегов привязано
                   </span>
                 </div>
@@ -984,7 +996,7 @@ const ScreensDraftPage = () => {
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="поиск экранов…"
-                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[13.5px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
+                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[15px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
               />
               <div className="w-[160px]">
                 <CustomSelect
@@ -1009,7 +1021,7 @@ const ScreensDraftPage = () => {
               >
                 <span
                   className="font-ibmPlexSans uppercase"
-                  style={{ fontWeight: 600, fontSize: 11, letterSpacing: ".06em", color: "#bfc7d4" }}
+                  style={{ fontWeight: 600, fontSize: 13, letterSpacing: ".06em", color: "#bfc7d4" }}
                 >
                   Экраны (черновик) · {filteredList.length}
                 </span>
@@ -1074,7 +1086,7 @@ const ScreensDraftPage = () => {
 
             {filteredList.length > 0 && (
               <div className="mt-2.5 flex flex-col items-center justify-between gap-3 border-t border-surface-border pt-3 sm:flex-row">
-                <div className="flex items-center gap-2 text-[11px] text-text-muted">
+                <div className="flex items-center gap-2 text-[13px] text-text-muted">
                   <span>Строк на странице:</span>
                   {[10, 20, 50].map((size) => (
                     <button
@@ -1084,7 +1096,7 @@ const ScreensDraftPage = () => {
                         setPageSize(size);
                         setCurrentPage(1);
                       }}
-                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                      className={`h-7 w-9 rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                         pageSize === size
                           ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                           : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1134,7 +1146,7 @@ const ScreensDraftPage = () => {
                           key={item}
                           type="button"
                           onClick={() => setCurrentPage(item)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                             currentPage === item
                               ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                               : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1165,7 +1177,7 @@ const ScreensDraftPage = () => {
                   </button>
                 </div>
 
-                <span className="text-[11px] text-text-muted">
+                <span className="text-[13px] text-text-muted">
                   Страница <span className="font-semibold text-text-primary">{currentPage}</span> из{" "}
                   <span className="font-semibold text-text-primary">{totalPages}</span>
                   {" · "}

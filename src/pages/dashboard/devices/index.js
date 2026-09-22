@@ -28,6 +28,8 @@ import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import { requestPython } from "@/services/api";
 import { TableRows, ViewModule } from "@mui/icons-material";
 import { Button } from "@mui/material";
+import DeviceDetailsModal from "@/features/devices/DeviceDetailsModal";
+import { deviceAddressLabel } from "@/features/devices/deviceDisplay";
 
 const STATUS_OPTIONS = [
   { label: "Все", value: "all" },
@@ -81,7 +83,7 @@ const formatDate = (value) => {
 
 const DeviceCard = ({ device, onView, onEdit, onDelete }) => {
   const protocol = get(device, "params.type", "—");
-  const slaveAddress = get(device, "params.slave_address", "—");
+  const address = deviceAddressLabel(device.params);
 
   return (
     <motion.div
@@ -109,8 +111,8 @@ const DeviceCard = ({ device, onView, onEdit, onDelete }) => {
           <span className="font-medium text-blue-300">{protocol}</span>
         </div>
         <div className="flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2">
-          <span className="text-text-muted">Slave address</span>
-          <span className="font-medium text-text-primary">{slaveAddress}</span>
+          <span className="text-text-muted">Адрес</span>
+          <span className="font-medium text-text-primary">{address}</span>
         </div>
         <div className="flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2">
           <span className="text-text-muted">Connection ID</span>
@@ -165,6 +167,18 @@ const Index = () => {
   const [formErrors, setFormErrors] = useState({});
   const [editErrors, setEditErrors] = useState({});
 
+  // Отфильтрованный список (поиск/протокол/статус) листается на клиенте по
+  // всей выборке — сервер такие фильтры не принимает. Без фильтров сервер
+  // отдаёт ровно одну страницу и её же счётчики (см. `pagination` в ответе),
+  // так что не приходится тянуть всех 67+ устройств только чтобы пролистать
+  // список из 10.
+  const hasActiveFilters =
+    Boolean(searchValue.trim()) || statusFilter !== "all" || protocolFilter !== "all";
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchValue, statusFilter, protocolFilter]);
+
   const {
     data: devices,
     isLoading: isLoadingDevices,
@@ -172,6 +186,23 @@ const Index = () => {
   } = useGetQuery({
     key: KEYS.devices,
     url: URLS.devices,
+    params: hasActiveFilters
+      ? { page: 1, pageSize: 500 }
+      : { page: currentPage, pageSize },
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
+  });
+
+  // Протоколы для фильтра и форм собираются с отдельной, заведомо широкой
+  // выборки — иначе список протоколов зависел бы от того, какая страница
+  // сейчас открыта, и прыгал бы при листании.
+  const { data: devicesForOptions } = useGetQuery({
+    key: [KEYS.devices, "options"],
+    url: URLS.devices,
+    params: { page: 1, pageSize: 500 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -189,10 +220,14 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
-  // Только для колонки «Теги» в таблице ниже.
+  // Только для колонки «Теги» в таблице ниже. /tags тоже постраничный (то же
+  // "pagination" в ответе, что и у /devices) — без pageSize сервер вернул бы
+  // только первую страницу тегов, и счётчик занижал бы количество для любого
+  // устройства, чьи теги не попали в неё.
   const { data: tagsForCount } = useGetQuery({
     key: [KEYS.tags, "devices-count"],
     url: URLS.tags,
+    params: { page: 1, pageSize: 1000 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -213,6 +248,8 @@ const Index = () => {
   });
 
   const list = get(devices, "data.data", []);
+  const serverPagination = get(devices, "data.pagination", null);
+  const optionsList = get(devicesForOptions, "data.data", []);
   const connections = get(connects, "data.data", []);
   const connectionNameById = new Map(connections.map((c) => [c.id, c.name || c.id]));
 
@@ -225,17 +262,17 @@ const Index = () => {
 
   const protocolOptions = useMemo(() => {
     const unique = Array.from(
-      new Set(list.map((item) => get(item, "params.type", "")).filter(Boolean)),
+      new Set(optionsList.map((item) => get(item, "params.type", "")).filter(Boolean)),
     );
 
     return [{ label: "Все протоколы", value: "all" }].concat(
       unique.map((value) => ({ label: value, value })),
     );
-  }, [list]);
+  }, [optionsList]);
 
   const protocolTypeOptions = useMemo(() => {
     const dynamicOptions = Array.from(
-      new Set(list.map((item) => get(item, "params.type", "")).filter(Boolean)),
+      new Set(optionsList.map((item) => get(item, "params.type", "")).filter(Boolean)),
     ).map((value) => ({ label: value, value }));
 
     const merged = [...PROTOCOL_BASE_OPTIONS, ...dynamicOptions];
@@ -244,7 +281,7 @@ const Index = () => {
     );
 
     return deduplicated;
-  }, [list]);
+  }, [optionsList]);
 
   const connectionOptions = useMemo(
     () =>
@@ -445,7 +482,12 @@ const Index = () => {
     setEditErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  // Без активных фильтров `list` — это уже ровно одна страница с сервера
+  // (см. hasActiveFilters выше), фильтровать её повторно незачем и нечем:
+  // остальные 47 устройств, если они есть, просто не загружены сейчас.
   const filteredDevices = useMemo(() => {
+    if (!hasActiveFilters) return list;
+
     const query = searchValue.trim().toLowerCase();
 
     return list.filter((item) => {
@@ -454,7 +496,8 @@ const Index = () => {
         item.name?.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
         item.id?.toLowerCase().includes(query) ||
-        item.connectionId?.toLowerCase().includes(query);
+        item.connectionId?.toLowerCase().includes(query) ||
+        deviceAddressLabel(item.params).toLowerCase().includes(query);
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -466,20 +509,27 @@ const Index = () => {
 
       return matchesSearch && matchesStatus && matchesProtocol;
     });
-  }, [list, searchValue, statusFilter, protocolFilter]);
+  }, [list, hasActiveFilters, searchValue, statusFilter, protocolFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredDevices.length / pageSize));
-  const paginatedDevices = filteredDevices.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  // With filters active, `list` holds up to 500 devices fetched in one go
+  // (see hasActiveFilters above) and pagination happens on the client, same
+  // as before. Without filters, the server already returned exactly one
+  // page — its own `pagination` block drives the count/page UI instead of
+  // being recomputed from a client-side array that may not hold everything.
+  const totalRecords = hasActiveFilters ? filteredDevices.length : serverPagination?.total ?? list.length;
+  const totalPages = hasActiveFilters
+    ? Math.max(1, Math.ceil(filteredDevices.length / pageSize))
+    : Math.max(1, serverPagination?.totalPages ?? 1);
+  const paginatedDevices = hasActiveFilters
+    ? filteredDevices.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : list;
 
   const columns = [
     {
       accessorKey: "name",
       header: "Устройство",
       cell: ({ row }) => (
-        <span style={{ font: "500 11.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+        <span style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
           {row.original.name}
         </span>
       ),
@@ -490,7 +540,7 @@ const Index = () => {
       cell: ({ row }) => (
         <span
           className="block max-w-[160px] truncate"
-          style={{ font: "400 11px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+          style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
           title={row.original.connectionId}
         >
           {connectionNameById.get(row.original.connectionId) || row.original.connectionId || "—"}
@@ -498,19 +548,24 @@ const Index = () => {
       ),
     },
     {
-      id: "model",
-      header: "Модель",
-      cell: () => <span style={{ font: "400 11px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>—</span>,
+      id: "protocol",
+      header: "Протокол",
+      cell: ({ row }) => (
+        <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+          {get(row.original, "params.type", "—")}
+        </span>
+      ),
     },
     {
-      id: "slaveAddress",
+      id: "address",
       header: "Адрес",
+      meta: { align: "right" },
       cell: ({ row }) => (
         <span
           className="block text-right"
-          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+          style={{ font: "400 13.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
         >
-          {get(row.original, "params.slave_address", "—")}
+          {deviceAddressLabel(row.original.params)}
         </span>
       ),
     },
@@ -528,7 +583,7 @@ const Index = () => {
               padding: "1px 6px",
               border: `1px solid ${color}`,
               borderRadius: 2,
-              font: "600 9.5px/1.6 'IBM Plex Mono'",
+              font: "600 12px/1.6 'IBM Plex Mono'",
               color,
             }}
           >
@@ -541,29 +596,22 @@ const Index = () => {
     {
       id: "tags",
       header: "Теги",
+      meta: { align: "right" },
       cell: ({ row }) => (
         <span
           className="block text-right"
-          style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+          style={{ font: "400 13.5px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
         >
           {tagCountByDevice.get(row.original.id) || 0}
         </span>
       ),
     },
     {
-      id: "poll",
-      header: "Опрос",
-      cell: () => (
-        <span className="block text-right" style={{ font: "400 11.5px/1.3 'IBM Plex Mono'", color: "#7c8290" }}>
-          —
-        </span>
-      ),
-    },
-    {
       id: "actions",
       header: "Действия",
+      meta: { align: "right" },
       cell: ({ row }) => (
-        <div className="text-right" style={{ font: "500 10px/1.4 'IBM Plex Mono'" }}>
+        <div className="text-right" style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}>
           <button type="button" onClick={() => openViewModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
             ПРОСМОТР
           </button>
@@ -581,7 +629,12 @@ const Index = () => {
     },
   ];
 
-  if (isLoadingDevices || isFetchingDevices) {
+  // Only the very first load blocks the page — a page-turn now triggers a
+  // real network refetch (server-side pagination), and `useGetQuery` already
+  // holds the previous page on screen while it's in flight (placeholderData
+  // below), so blanking the whole page out on every click would be a
+  // regression from when pagination was pure client-side slicing.
+  if (isLoadingDevices) {
     return (
       <DashboardLayout headerTitle={"Устройства"}>
         <ContentLoader />
@@ -606,11 +659,14 @@ const Index = () => {
               border: "1px solid rgba(255,255,255,0.15)",
               borderRadius: 8,
               color: "#e5e2e1",
-              font: "400 12px/1.3 'IBM Plex Mono'",
+              font: "400 14px/1.3 'IBM Plex Mono'",
             }}
           />
           <ChipSelect value={statusFilter} onChange={setStatusFilter} label="СТАТУС" options={STATUS_OPTIONS} />
           <ChipSelect value={protocolFilter} onChange={setProtocolFilter} label="ПРОТОКОЛ" options={protocolOptions} />
+          {isFetchingDevices && (
+            <span className="text-[13px] font-ibmPlexMono text-text-faint animate-pulse">обновление…</span>
+          )}
 
           <div className="flex-1" />
 
@@ -626,7 +682,7 @@ const Index = () => {
                   style={{
                     padding: "6px 12px",
                     cursor: "pointer",
-                    font: "500 10px/1.5 'IBM Plex Mono'",
+                    font: "500 12.5px/1.5 'IBM Plex Mono'",
                     borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
                     background: isActive ? "#3b82f6" : "transparent",
                     color: isActive ? "#fff" : "#9aa0ac",
@@ -650,7 +706,7 @@ const Index = () => {
               padding: "8px 14px",
               border: "1px solid #3b82f6",
               borderRadius: 8,
-              font: "600 10.5px/1.2 'IBM Plex Mono'",
+              font: "600 13px/1.2 'IBM Plex Mono'",
               color: "#3b82f6",
               cursor: "pointer",
             }}
@@ -660,7 +716,7 @@ const Index = () => {
         </div>
 
         <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
-          {filteredDevices.length === 0 ? (
+          {paginatedDevices.length === 0 ? (
             <NoData
               title="Устройства не найдены"
               description="Попробуйте изменить параметры фильтрации или добавьте новое устройство."
@@ -681,7 +737,7 @@ const Index = () => {
             </div>
           )}
 
-          {filteredDevices.length > 0 && (
+          {paginatedDevices.length > 0 && (
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-surface-border/60 pt-4 sm:flex-row">
               <div className="flex items-center gap-2 text-sm text-text-muted">
                 <span>Строк на странице:</span>
@@ -795,7 +851,7 @@ const Index = () => {
                 </span>
                 {" · "}
                 <span className="font-semibold text-text-primary">
-                  {filteredDevices.length}
+                  {totalRecords}
                 </span>{" "}
                 записей
               </span>
@@ -1018,61 +1074,14 @@ const Index = () => {
         </div>
       </MethodModal>
 
-      <MethodModal
-        open={showViewModal}
-        onClose={() => setShowViewModal(false)}
-        closeClick={() => setShowViewModal(false)}
-        showCloseIcon={true}
-        title={"Детали устройства"}
-        width={640}
-      >
-        <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-            <p className="text-text-muted">Название</p>
-            <p className="text-text-primary font-semibold">
-              {selectedDevice?.name || "—"}
-            </p>
-          </div>
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-            <p className="text-text-muted">Описание</p>
-            <p className="text-text-primary">
-              {selectedDevice?.description || "—"}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-              <p className="text-text-muted">Connection ID</p>
-              <p className="text-cyan-200 break-all">
-                {selectedDevice?.connectionId || "—"}
-              </p>
-            </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-              <p className="text-text-muted">Статус</p>
-              <p className="text-text-primary">
-                {selectedDevice?.enabled ? "Включено" : "Отключено"}
-              </p>
-            </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-              <p className="text-text-muted">Тип протокола</p>
-              <p className="text-blue-200">
-                {get(selectedDevice, "params.type", "—")}
-              </p>
-            </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-              <p className="text-text-muted">Slave address</p>
-              <p className="text-text-primary">
-                {get(selectedDevice, "params.slave_address", "—")}
-              </p>
-            </div>
-          </div>
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
-            <p className="text-text-muted">ID</p>
-            <p className="text-text-primary break-all">
-              {selectedDevice?.id || "—"}
-            </p>
-          </div>
-        </div>
-      </MethodModal>
+      {showViewModal && (
+        <DeviceDetailsModal
+          device={selectedDevice}
+          connectionName={connectionNameById.get(selectedDevice?.connectionId)}
+          tagCount={tagCountByDevice.get(selectedDevice?.id) || 0}
+          onClose={() => setShowViewModal(false)}
+        />
+      )}
 
       <DeleteModal
         open={showDeleteModal}

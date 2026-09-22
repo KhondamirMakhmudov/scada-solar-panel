@@ -245,20 +245,20 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
         ))}
       </select>
       {!screenHasTags && (
-        <p className="text-[10px] text-amber-400/80">
+        <p className="text-[12.5px] text-amber-400/80">
           У экрана нет выбранных тегов — показаны все. Добавьте теги к экрану
           в разделе «Экраны», чтобы список стал короче.
         </p>
       )}
       {element.dataBinding?.tagId && (
-        <p className="text-[10px] text-text-faint">
+        <p className="text-[12.5px] text-text-faint">
           Основной тег управляет состоянием элемента в реальном времени.
         </p>
       )}
 
       {(element.dataBinding?.tagId || extraBindings.length > 0) && (
         <div className="pt-1">
-          <p className="text-[10.5px] text-text-dim mb-1">Показ данных на экране</p>
+          <p className="text-[13px] text-text-dim mb-1">Показ данных на экране</p>
           <div className="flex rounded-[2px] border border-surface-border overflow-hidden">
             {PANEL_DISPLAY_OPTIONS.map((option, idx) => (
               <button
@@ -266,7 +266,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
                 type="button"
                 title={option.hint}
                 onClick={() => handlePanelDisplayChange(option.value)}
-                className={`flex-1 h-7 text-[10.5px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset ${
+                className={`flex-1 h-7 text-[13px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset ${
                   idx > 0 ? "border-l border-surface-border" : ""
                 } ${
                   panelDisplay === option.value
@@ -284,17 +284,17 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
       {/* Дополнительные теги: каждый — своя строка живого значения под фигурой */}
       {element.dataBinding?.tagId && (
         <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide text-text-dim pt-1">
+          <p className="text-[13px] uppercase tracking-wide text-text-dim pt-1">
             Доп. теги ({extraBindings.length})
           </p>
           {primaryDeviceLabel && (
-            <p className="text-[10px] text-text-faint">
+            <p className="text-[12.5px] text-text-faint">
               Показаны только теги устройства «{primaryDeviceLabel}»
             </p>
           )}
           {mismatchedExtraIds.length > 0 && (
             <div className="rounded-[2px] border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
-              <p className="text-[10px] text-amber-400">
+              <p className="text-[12.5px] text-amber-400">
                 ⚠ {mismatchedExtraIds.length} доп.{" "}
                 {mismatchedExtraIds.length === 1 ? "тег принадлежит" : "тега принадлежат"}{" "}
                 другому устройству
@@ -302,7 +302,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               <button
                 type="button"
                 onClick={handleRemoveCrossDeviceExtras}
-                className="text-[10px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 active:scale-95 active:bg-amber-500/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
+                className="text-[12.5px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 active:scale-95 active:bg-amber-500/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
               >
                 Убрать теги других устройств
               </button>
@@ -316,7 +316,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               if (!selectable.length) return null;
               return (
                 <div key={group.key}>
-                  <p className="px-2 pt-1.5 pb-0.5 text-[9px] uppercase tracking-wide text-text-faint truncate">
+                  <p className="px-2 pt-1.5 pb-0.5 text-[11.5px] uppercase tracking-wide text-text-faint truncate">
                     {group.label}
                   </p>
                   {selectable.map((tag) => (
@@ -339,7 +339,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               );
             })}
           </div>
-          <p className="text-[10px] text-text-faint">
+          <p className="text-[12.5px] text-text-faint">
             Каждый выбранный тег показывается отдельной строкой под элементом.
           </p>
         </div>

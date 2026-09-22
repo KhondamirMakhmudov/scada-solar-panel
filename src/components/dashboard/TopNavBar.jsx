@@ -103,7 +103,7 @@ export default function TopNavBar() {
 
       <div className="w-px h-4 bg-surface-border flex-shrink-0" />
 
-      <span className="text-[11px] font-ibmPlexMono text-text-secondary tabular-nums flex-shrink-0">
+      <span className="text-[13px] font-ibmPlexMono text-text-secondary tabular-nums flex-shrink-0">
         {clock}
       </span>
 
@@ -118,7 +118,7 @@ export default function TopNavBar() {
             sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 600 }}
           />
           <span className="hidden md:flex flex-col items-start leading-none">
-            <span className="text-[11px] font-medium text-text-secondary">
+            <span className="text-[13px] font-medium text-text-secondary">
               {userFullName || username || "Пользователь"}
             </span>
           </span>
@@ -135,7 +135,7 @@ export default function TopNavBar() {
               <Link
                 href="/dashboard/settings"
                 onClick={() => setIsProfileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] border-b border-surface-border transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
+                className="flex items-center gap-2.5 px-3 py-2 text-[14px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] border-b border-surface-border transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
               >
                 <SettingsRoundedIcon sx={{ fontSize: 15, color: "#bfc7d4" }} />
                 Настройки
@@ -146,7 +146,7 @@ export default function TopNavBar() {
                   setIsProfileMenuOpen(false);
                   setOpenExitModal(true);
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] text-text-primary hover:bg-[#242424] active:bg-[#2e2e2e] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
               >
                 <ExitToAppIcon sx={{ fontSize: 15, color: "#bfc7d4" }} />
                 Выйти

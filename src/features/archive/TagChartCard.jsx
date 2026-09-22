@@ -73,11 +73,11 @@ const TagChartCard = ({
           style={{ backgroundColor: color }}
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold text-[#e5e2e1]" title={displayName}>
+          <p className="truncate text-[14.5px] font-semibold text-[#e5e2e1]" title={displayName}>
             {displayName}
           </p>
           {tag.deviceName && (
-            <p className="truncate text-[10px] text-[#6b7280]" title={tag.deviceName}>
+            <p className="truncate text-[12.5px] text-[#6b7280]" title={tag.deviceName}>
               {tag.deviceName}
             </p>
           )}
@@ -209,7 +209,7 @@ const TagChartCard = ({
         </div>
 
         {showRangeBand && hasPoints && (
-          <p className="mt-2 flex items-center gap-1.5 text-[10px] text-[#6b7280]">
+          <p className="mt-2 flex items-center gap-1.5 text-[12.5px] text-[#6b7280]">
             <span
               className="inline-block h-2 w-4 rounded-sm"
               style={{ backgroundColor: color, opacity: 0.14 }}

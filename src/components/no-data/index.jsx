@@ -22,11 +22,11 @@ const NoData = ({
         <line x1="34.6" y1="34.6" x2="39" y2="39" stroke="#5c6270" strokeWidth="1.4" strokeLinecap="round" />
       </svg>
 
-      <h3 className="text-[13.5px] font-semibold font-ibmPlexSans text-text-primary mb-1.5">
+      <h3 className="text-[15px] font-semibold font-ibmPlexSans text-text-primary mb-1.5">
         {title}
       </h3>
 
-      <p className="text-[11px] font-ibmPlexMono text-text-muted max-w-md">{description}</p>
+      <p className="text-[13px] font-ibmPlexMono text-text-muted max-w-md">{description}</p>
     </div>
   );
 };

@@ -8,6 +8,7 @@ export const KEYS = {
   archive: "archive",
   statusMonitoring: "statusMonitoring",
   systemOverview: "systemOverview",
+  overviewStations: "overviewStations",
   screens: "screens",
   health: "health",
   ready: "ready",

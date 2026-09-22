@@ -107,7 +107,7 @@ const GlobalSearch = () => {
           placeholder="Поиск раздела"
           className="w-52 xl:w-64 h-8 pl-8 pr-10 rounded-lg bg-[#0e0e0e] border border-[#2a2a2a] focus:border-[#3b82f6]/60 focus:outline-none text-xs text-[#e5e2e1] placeholder:text-[#6b7280] transition-colors"
         />
-        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#6b7280] border border-[#2a2a2a] rounded px-1 py-0.5 pointer-events-none">
+        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[11.5px] text-[#6b7280] border border-[#2a2a2a] rounded px-1 py-0.5 pointer-events-none">
           Ctrl K
         </kbd>
       </div>
@@ -115,7 +115,7 @@ const GlobalSearch = () => {
       {isOpen && (
         <div className="absolute right-0 z-50 mt-1 w-72 max-h-80 overflow-y-auto rounded-lg border border-[#2a2a2a] bg-[#1c1b1b] shadow-xl shadow-black/60">
           {results.length === 0 ? (
-            <p className="px-3 py-3 text-[11px] text-[#6b7280]">Разделов не найдено</p>
+            <p className="px-3 py-3 text-[13px] text-[#6b7280]">Разделов не найдено</p>
           ) : (
             results.map((item, index) => {
               const { Icon } = item;
@@ -132,7 +132,7 @@ const GlobalSearch = () => {
                   <Icon sx={{ fontSize: 17, color: "#bfc7d4" }} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs text-[#e5e2e1] truncate">{item.text}</span>
-                    <span className="block text-[10px] text-[#6b7280] truncate">
+                    <span className="block text-[12.5px] text-[#6b7280] truncate">
                       {item.groupLabel}
                       {item.hint ? ` · ${item.hint}` : ""}
                     </span>

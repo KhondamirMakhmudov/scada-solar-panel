@@ -39,7 +39,7 @@ const Counter = ({ kind, label, count, onClick }: CounterProps) => {
       onClick={onClick}
       disabled={!isActive}
       title={label}
-      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
         isActive ? styles.active : styles.idle
       } ${isActive ? "hover:brightness-125 active:scale-95 cursor-pointer" : "cursor-default"}`}
     >
@@ -91,7 +91,7 @@ const AlarmSummary = () => {
         onClick={() => setIsOpen((open) => !open)}
       />
       <span
-        className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border text-[11px] text-text-dim"
+        className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border text-[13px] text-text-dim"
         title={`В работе ${okCount} из ${boundCount} привязанных элементов`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" />
@@ -120,7 +120,7 @@ const AlarmSummary = () => {
                 <span className="block text-xs text-text-primary truncate">
                   {alarm.elementLabel}
                 </span>
-                <span className="block text-[10px] text-text-dim truncate">
+                <span className="block text-[12.5px] text-text-dim truncate">
                   {alarm.message}
                   {alarm.tagName ? ` · ${alarm.tagName}` : ""}
                 </span>

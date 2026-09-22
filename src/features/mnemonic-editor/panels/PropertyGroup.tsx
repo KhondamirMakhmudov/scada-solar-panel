@@ -26,17 +26,17 @@ const PropertyGroup = ({ title, badge, defaultOpen = true, children }: PropertyG
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[11px] uppercase tracking-wide text-text-muted hover:text-text-primary hover:bg-background-dark/40 active:bg-background-dark/70 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
+        className="w-full flex items-center gap-1.5 px-2.5 py-2 text-[13px] uppercase tracking-wide text-text-muted hover:text-text-primary hover:bg-background-dark/40 active:bg-background-dark/70 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 focus-visible:ring-inset"
       >
         <span
-          className="text-[9px] text-text-faint transition-transform duration-150"
+          className="text-[11.5px] text-text-faint transition-transform duration-150"
           style={{ transform: isOpen ? "rotate(90deg)" : "none" }}
         >
           ▶
         </span>
         <span className="flex-1 text-left">{title}</span>
         {badge && (
-          <span className="max-w-[7rem] truncate normal-case tracking-normal text-[10px] text-text-faint">
+          <span className="max-w-[7rem] truncate normal-case tracking-normal text-[12.5px] text-text-faint">
             {badge}
           </span>
         )}

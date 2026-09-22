@@ -216,7 +216,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
               type="button"
               onClick={handleCopyDiagram}
               title="Скопировать нарисованные элементы схемы в буфер обмена"
-              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[13px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[14.5px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
             >
               Копировать
             </button>
@@ -224,7 +224,7 @@ const EditorPage = ({ screenId, accessToken }: EditorPageProps) => {
               type="button"
               onClick={handlePasteDiagram}
               title="Вставить элементы схемы, скопированные с другого экрана"
-              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[13px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+              className="h-8 flex items-center gap-1.5 border border-surface-border hover:border-surface-border-hover text-text-secondary hover:text-text-primary text-[14.5px] px-3 rounded-[2px] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
             >
               Вставить
             </button>

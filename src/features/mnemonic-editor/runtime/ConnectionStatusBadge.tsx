@@ -15,7 +15,7 @@ const ConnectionStatusBadge = () => {
         }`}
       />
       <span
-        className={`text-[10px] font-ibmPlexMono font-medium uppercase tracking-wide ${
+        className={`text-[12.5px] font-ibmPlexMono font-medium uppercase tracking-wide ${
           status === "online"
             ? "text-status-ok"
             : status === "connecting"

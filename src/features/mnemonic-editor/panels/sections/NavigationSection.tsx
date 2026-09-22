@@ -67,7 +67,7 @@ const NavigationSection = ({ element, currentScreenId }: NavigationSectionProps)
         ))}
       </select>
       {element.navigateToScreenId && (
-        <p className="text-[10px] text-text-faint">
+        <p className="text-[12.5px] text-text-faint">
           Работает в режиме просмотра: сохраните схему, откройте
           «Предпросмотр» и кликните по элементу. В редакторе у элемента
           появился значок ↗ — клик по нему сразу открывает целевой экран.

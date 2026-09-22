@@ -44,7 +44,7 @@ const ChipSelect = ({ value, onChange, label, options }) => {
       >
         <span
           className="whitespace-nowrap"
-          style={{ font: "500 11px/1.2 'IBM Plex Mono'", color: "#c3c7d1" }}
+          style={{ font: "500 13px/1.2 'IBM Plex Mono'", color: "#c3c7d1" }}
         >
           {label}: <span style={{ color: "#e5e2e1" }}>{display}</span>
         </span>
@@ -60,7 +60,7 @@ const ChipSelect = ({ value, onChange, label, options }) => {
             <li
               key={option.value}
               onClick={() => handleSelect(option.value)}
-              className={`px-3 py-2 text-[12.5px] whitespace-nowrap cursor-pointer transition-colors hover:bg-primary/10 active:bg-primary/20 ${
+              className={`px-3 py-2 text-[14.5px] whitespace-nowrap cursor-pointer transition-colors hover:bg-primary/10 active:bg-primary/20 ${
                 option.value === value ? "bg-primary/10 text-primary font-medium" : ""
               }`}
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}

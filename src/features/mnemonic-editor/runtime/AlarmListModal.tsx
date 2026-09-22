@@ -52,14 +52,14 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] text-text-muted tracking-widest font-bold uppercase">
+              <p className="text-[12.5px] text-text-muted tracking-widest font-bold uppercase">
                 Активные · {alarms.length}
               </p>
               {hasUnacked && (
                 <button
                   type="button"
                   onClick={onAckAll}
-                  className="inline-flex items-center gap-1.5 text-[10.5px] font-ibmPlexMono text-primary hover:underline active:opacity-70"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-ibmPlexMono text-primary hover:underline active:opacity-70"
                 >
                   <CheckCircleOutlineRounded style={{ fontSize: 13 }} />
                   Подтвердить все
@@ -84,27 +84,27 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-ibmPlexMono text-text-faint">{formatClock(alarm.since)}</span>
-                        <span className="text-[12px] font-semibold text-text-primary truncate">{alarm.elementLabel}</span>
-                        <span className="text-[10.5px] font-ibmPlexMono text-text-dim truncate">{alarm.tagName}</span>
+                        <span className="text-[12.5px] font-ibmPlexMono text-text-faint">{formatClock(alarm.since)}</span>
+                        <span className="text-[14px] font-semibold text-text-primary truncate">{alarm.elementLabel}</span>
+                        <span className="text-[13px] font-ibmPlexMono text-text-dim truncate">{alarm.tagName}</span>
                       </div>
-                      <p className="text-[11px] text-status-fault mt-0.5">{alarm.message || "Ошибка тега"}</p>
+                      <p className="text-[13px] text-status-fault mt-0.5">{alarm.message || "Ошибка тега"}</p>
                       {alarm.value !== null && (
-                        <p className="text-[10.5px] font-ibmPlexMono text-text-muted mt-0.5">
+                        <p className="text-[13px] font-ibmPlexMono text-text-muted mt-0.5">
                           Значение: {String(alarm.value)}
                           {alarm.unit ? ` ${alarm.unit}` : ""}
                         </p>
                       )}
                     </div>
                     {alarm.acked ? (
-                      <span className="flex-shrink-0 text-[9.5px] font-semibold uppercase tracking-wide text-text-dim border border-surface-border rounded-[2px] px-1.5 py-0.5">
+                      <span className="flex-shrink-0 text-[12px] font-semibold uppercase tracking-wide text-text-dim border border-surface-border rounded-[2px] px-1.5 py-0.5">
                         Подтверждено
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => ackAlarm(alarm.tagId)}
-                        className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wide text-primary border border-primary/50 rounded-[2px] px-2 py-1 hover:bg-primary/10 active:scale-95 transition-colors"
+                        className="flex-shrink-0 text-[12.5px] font-semibold uppercase tracking-wide text-primary border border-primary/50 rounded-[2px] px-2 py-1 hover:bg-primary/10 active:scale-95 transition-colors"
                       >
                         Подтвердить
                       </button>
@@ -116,7 +116,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
           </div>
 
           <div>
-            <p className="text-[10px] text-text-muted tracking-widest font-bold uppercase mb-2 flex items-center gap-1.5">
+            <p className="text-[12.5px] text-text-muted tracking-widest font-bold uppercase mb-2 flex items-center gap-1.5">
               <HistoryRounded style={{ fontSize: 13 }} />
               Недавно снятые
             </p>
@@ -129,7 +129,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
                 {alarmLog.map((entry, idx) => (
                   <div
                     key={`${entry.tagId}-${entry.clearedAt}-${idx}`}
-                    className="rounded-[2px] border border-surface-border/70 bg-surface-dark/40 px-2.5 py-1.5 flex items-center gap-3 text-[10.5px]"
+                    className="rounded-[2px] border border-surface-border/70 bg-surface-dark/40 px-2.5 py-1.5 flex items-center gap-3 text-[13px]"
                   >
                     <span className="font-ibmPlexMono text-text-faint flex-shrink-0">
                       {formatClock(entry.since)} → {formatClock(entry.clearedAt)}

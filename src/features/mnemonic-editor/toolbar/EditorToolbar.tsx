@@ -94,12 +94,12 @@ const EditorToolbar = ({
             {title}
           </span>
           {isDirty ? (
-            <span className="flex-shrink-0 flex items-center gap-1 h-5 px-1.5 rounded-[2px] border border-amber-500/40 bg-amber-500/10 text-[9.5px] font-ibmPlexMono tracking-wide uppercase text-amber-300">
+            <span className="flex-shrink-0 flex items-center gap-1 h-5 px-1.5 rounded-[2px] border border-amber-500/40 bg-amber-500/10 text-[12px] font-ibmPlexMono tracking-wide uppercase text-amber-300">
               <span className="w-1 h-1 rounded-full bg-amber-400" />
               не сохранено
             </span>
           ) : (
-            <span className="flex-shrink-0 h-5 px-1.5 rounded-[2px] border border-surface-border text-[9.5px] font-ibmPlexMono tracking-wide uppercase text-text-faint leading-5">
+            <span className="flex-shrink-0 h-5 px-1.5 rounded-[2px] border border-surface-border text-[12px] font-ibmPlexMono tracking-wide uppercase text-text-faint leading-5">
               сохранено
             </span>
           )}
@@ -193,7 +193,7 @@ const EditorToolbar = ({
             type="button"
             onClick={() => setViewport({ zoom: 1, panX: 0, panY: 0 })}
             title="Сбросить масштаб и положение (100 %)"
-            className="w-12 h-6 rounded text-[11px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="w-12 h-6 rounded text-[13px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             {Math.round(zoom * 100)}%
           </button>
@@ -217,7 +217,7 @@ const EditorToolbar = ({
                 type="button"
                 onClick={() => setGridStyle(option.value)}
                 title={option.title}
-                className={`w-6 h-6 text-[11px] leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+                className={`w-6 h-6 text-[13px] leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                   gridStyle === option.value
                     ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
                     : "text-text-dim hover:bg-background-dark hover:text-text-secondary"
@@ -231,7 +231,7 @@ const EditorToolbar = ({
             type="button"
             onClick={toggleSnapToGrid}
             title="Привязка к сетке при перемещении и изменении размера"
-            className={`h-6 px-2 rounded-[2px] border text-[10.5px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+            className={`h-6 px-2 rounded-[2px] border text-[13px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
               snapToGrid
                 ? "border-blue-500/50 bg-blue-500/15 text-blue-300 hover:bg-blue-500/25"
                 : "border-surface-border text-text-dim hover:text-text-secondary hover:border-surface-border"

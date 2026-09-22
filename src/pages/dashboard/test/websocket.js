@@ -449,7 +449,7 @@ export default function WebSocketTestPage() {
               S
             </div>
             <div>
-              <div className="text-[10px] tracking-widest font-semibold text-text-dim">SCADA · CONSOLE</div>
+              <div className="text-[12.5px] tracking-widest font-semibold text-text-dim">SCADA · CONSOLE</div>
               <div className="text-sm font-semibold text-white">WebSocket Тестер</div>
             </div>
           </div>
@@ -497,7 +497,7 @@ export default function WebSocketTestPage() {
 
           <div className="ml-auto flex items-center gap-4 px-4 py-2">
             <div className="flex flex-col items-end gap-0.5">
-              <span className="text-[9px] text-text-dim tracking-wider font-semibold">RX/С</span>
+              <span className="text-[11.5px] text-text-dim tracking-wider font-semibold">RX/С</span>
               <RateBars buckets={rxRateBuckets} color="#3ee08f" />
             </div>
             <ToolBtn onClick={() => router.push("/dashboard/main")} accent="slate" title="Вернуться на главную">
@@ -549,10 +549,10 @@ export default function WebSocketTestPage() {
                       }`}
                     >
                       <Ico style={{ fontSize: 14 }} />
-                      <span className="text-[10px] uppercase font-semibold leading-tight break-words">
+                      <span className="text-[12.5px] uppercase font-semibold leading-tight break-words">
                         {preset.label}
                       </span>
-                      <span className={`text-[9px] font-mono ${active ? "text-white/80" : "text-text-dim"}`}>
+                      <span className={`text-[11.5px] font-mono ${active ? "text-white/80" : "text-text-dim"}`}>
                         {String(count).padStart(2, "0")}
                       </span>
                     </button>
@@ -576,10 +576,10 @@ export default function WebSocketTestPage() {
               </div>
 
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] text-text-dim font-mono">
+                <span className="text-[12.5px] text-text-dim font-mono">
                   подписка: {selectedIds.size} из {currentList.length}
                 </span>
-                <div className="flex items-center gap-2 text-[10px] font-mono">
+                <div className="flex items-center gap-2 text-[12.5px] font-mono">
                   <button
                     type="button"
                     onClick={selectAll}
@@ -637,7 +637,7 @@ export default function WebSocketTestPage() {
                             {formatTagLabelShort(entity.name || "Без названия")}
                           </span>
                           {deviceName && (
-                            <span className="block truncate text-[10px] text-text-dim font-mono">{deviceName}</span>
+                            <span className="block truncate text-[12.5px] text-text-dim font-mono">{deviceName}</span>
                           )}
                         </span>
                       </label>
@@ -677,13 +677,13 @@ export default function WebSocketTestPage() {
                 <div className="flex items-center gap-2">
                   <SectionLabel>ТЕКУЩИЕ ЗНАЧЕНИЯ</SectionLabel>
                   {isConnected && (
-                    <span className="inline-flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono border border-emerald-900/50 bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                    <span className="inline-flex items-center gap-1.5 text-[12.5px] text-emerald-400 font-mono border border-emerald-900/50 bg-emerald-950/40 px-1.5 py-0.5 rounded">
                       <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                       LIVE
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-text-dim font-mono">
+                <span className="text-[13px] text-text-dim font-mono">
                   {activeTags.length > 0
                     ? `${sourceCount} источник${sourceCount === 1 ? "" : "ов"} · ${activeTags.length} тег${activeTags.length === 1 ? "" : "ов"}`
                     : "ожидание данных…"}
@@ -712,7 +712,7 @@ export default function WebSocketTestPage() {
               <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <SectionLabel>ПОТОК СООБЩЕНИЙ</SectionLabel>
-                  <span className="text-[11px] text-text-dim font-mono">
+                  <span className="text-[13px] text-text-dim font-mono">
                     {filteredMessages.length} / {messages.length} кадров
                   </span>
                 </div>
@@ -720,7 +720,7 @@ export default function WebSocketTestPage() {
                   <button
                     type="button"
                     onClick={() => setAutoScroll((v) => !v)}
-                    className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                    className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
                       autoScroll
                         ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
                         : "border-white/10 text-text-dim hover:text-text-secondary"
@@ -747,7 +747,7 @@ export default function WebSocketTestPage() {
                           type="button"
                           title={o.title}
                           onClick={() => setFilter(o.k)}
-                          className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                          className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
                             active
                               ? `bg-[#1a2030] border-[#2b3a55] ${o.c}`
                               : "border-white/10 text-text-dim hover:text-text-secondary"
@@ -771,9 +771,9 @@ export default function WebSocketTestPage() {
                       </div>
                     </div>
                   ) : (
-                    <table className="w-full font-mono text-[12px]">
+                    <table className="w-full font-mono text-[14px]">
                       <thead className="sticky top-0 bg-[#0a0d12] z-10">
-                        <tr className="text-text-dim text-[10px] tracking-wider font-semibold">
+                        <tr className="text-text-dim text-[12.5px] tracking-wider font-semibold">
                           <Th>ВРЕМЯ</Th>
                           <Th>НАПР</Th>
                           <Th>ИСТОЧНИК</Th>
@@ -809,7 +809,7 @@ export default function WebSocketTestPage() {
               <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-[10px] text-text-dim font-mono">
+                    <div className="text-[12.5px] text-text-dim font-mono">
                       КАДР #{selectedFrame.seq} ·{" "}
                       {selectedFrame.direction === "in"
                         ? "RX"
@@ -821,14 +821,14 @@ export default function WebSocketTestPage() {
                   <button
                     type="button"
                     onClick={handleCopyFrame}
-                    className="inline-flex items-center gap-1 text-[10px] font-mono text-text-dim hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/60 rounded px-1.5 py-0.5"
+                    className="inline-flex items-center gap-1 text-[12.5px] font-mono text-text-dim hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/60 rounded px-1.5 py-0.5"
                   >
                     <ContentCopyOutlinedIcon style={{ fontSize: 12 }} />
                     КОПИЯ
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[13px]">
                   <MetaField label="НАПРАВЛЕНИЕ" value={selectedFrame.direction === "in" ? "RX (сервер → клиент)" : selectedFrame.direction === "out" ? "PING (клиент → сервер)" : "событие сокета"} />
                   <MetaField label="ИСТОЧНИК" value={`${channel}/${selectedFrame.entityName || "—"}`} />
                   <MetaField label="ВРЕМЯ" value={formatTimeMs(selectedFrame.time)} mono />
@@ -842,7 +842,7 @@ export default function WebSocketTestPage() {
                       type="button"
                       onClick={() => setFrameTab(tab)}
                       disabled={tab === "json" && !selectedFrame.parsed}
-                      className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[10px] border transition-all active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
+                      className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
                         frameTab === tab
                           ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
                           : "border-white/10 text-text-dim hover:text-text-secondary"
@@ -851,18 +851,18 @@ export default function WebSocketTestPage() {
                       {tab.toUpperCase()}
                     </button>
                   ))}
-                  <span className="ml-auto text-[10px] text-text-dim font-mono self-center">
+                  <span className="ml-auto text-[12.5px] text-text-dim font-mono self-center">
                     {byteLength(selectedFrame.raw)} Б
                   </span>
                 </div>
 
                 <div className="bg-[#070a0f] border border-white/10 rounded-lg p-3 overflow-auto" style={{ maxHeight: "34vh" }}>
                   {frameTab === "json" && selectedFrame.parsed ? (
-                    <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
+                    <pre className="text-[13px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
                       <JsonNode value={selectedFrame.parsed} depth={0} />
                     </pre>
                   ) : frameTab === "hex" ? (
-                    <div className="text-[10.5px] font-mono leading-relaxed text-text-secondary">
+                    <div className="text-[13px] font-mono leading-relaxed text-text-secondary">
                       {toHexDump(selectedFrame.raw).map((row) => (
                         <div key={row.offset} className="flex gap-3 whitespace-nowrap">
                           <span className="text-text-faint">{row.offset.toString(16).padStart(6, "0")}</span>
@@ -872,7 +872,7 @@ export default function WebSocketTestPage() {
                       ))}
                     </div>
                   ) : (
-                    <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
+                    <pre className="text-[13px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
                       {selectedFrame.raw}
                     </pre>
                   )}
@@ -880,7 +880,7 @@ export default function WebSocketTestPage() {
 
                 <div className="pt-2 border-t border-white/10">
                   <SectionLabel>ОТПРАВИТЬ ТЕКСТ</SectionLabel>
-                  <p className="text-[10px] text-text-dim mt-1 mb-2 leading-relaxed">
+                  <p className="text-[12.5px] text-text-dim mt-1 mb-2 leading-relaxed">
                     У сервера нет протокола команд (WEBSOCKET_API.md) — любой текст воспринимается только как
                     keepalive и не обрабатывается. Отправляется во все открытые сокеты.
                   </p>
@@ -894,7 +894,7 @@ export default function WebSocketTestPage() {
                     <button
                       type="button"
                       onClick={() => setSendText("ping")}
-                      className="px-3 py-1.5 rounded-lg border border-white/10 text-text-dim text-[10.5px] font-mono hover:text-text-secondary hover:border-white/25 transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                      className="px-3 py-1.5 rounded-lg border border-white/10 text-text-dim text-[13px] font-mono hover:text-text-secondary hover:border-white/25 transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
                     >
                       ping
                     </button>
@@ -902,7 +902,7 @@ export default function WebSocketTestPage() {
                       type="button"
                       onClick={handleSend}
                       disabled={openCount === 0}
-                      className="flex-1 py-1.5 rounded-lg bg-orange-500 text-[#0a0d12] text-[11px] font-bold tracking-wide hover:brightness-110 active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118]"
+                      className="flex-1 py-1.5 rounded-lg bg-orange-500 text-[#0a0d12] text-[13px] font-bold tracking-wide hover:brightness-110 active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118]"
                     >
                       ОТПРАВИТЬ
                     </button>
@@ -919,15 +919,15 @@ export default function WebSocketTestPage() {
 
 /* ---------- Sub-components ----------------------------------------------- */
 function SectionLabel({ children }) {
-  return <div className="text-[10px] text-text-muted tracking-widest font-bold uppercase">{children}</div>;
+  return <div className="text-[12.5px] text-text-muted tracking-widest font-bold uppercase">{children}</div>;
 }
 
 function StatusChunk({ label, value, mono, color, muted, title }) {
   return (
     <div title={title} className="px-4 py-2 border-r border-white/10 flex flex-col justify-center gap-0.5 min-w-[100px]">
-      <div className="text-[9px] text-text-dim tracking-wider font-semibold">{label}</div>
+      <div className="text-[11.5px] text-text-dim tracking-wider font-semibold">{label}</div>
       <div
-        className={`text-[13px] font-semibold ${color || (muted ? "text-text-dim" : "text-text-primary")} ${mono ? "font-mono" : ""}`}
+        className={`text-[14.5px] font-semibold ${color || (muted ? "text-text-dim" : "text-text-primary")} ${mono ? "font-mono" : ""}`}
       >
         {value}
       </div>
@@ -938,8 +938,8 @@ function StatusChunk({ label, value, mono, color, muted, title }) {
 function SessionRow({ label, value, valueColor }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-[10.5px] text-text-dim">{label}</span>
-      <span className={`text-[10.5px] font-mono ${valueColor || "text-text-secondary"}`}>{value}</span>
+      <span className="text-[13px] text-text-dim">{label}</span>
+      <span className={`text-[13px] font-mono ${valueColor || "text-text-secondary"}`}>{value}</span>
     </div>
   );
 }
@@ -947,7 +947,7 @@ function SessionRow({ label, value, valueColor }) {
 function MetaField({ label, value, mono }) {
   return (
     <div>
-      <div className="text-[9px] text-text-dim tracking-wider font-semibold">{label}</div>
+      <div className="text-[11.5px] text-text-dim tracking-wider font-semibold">{label}</div>
       <div className={`text-text-secondary truncate ${mono ? "font-mono" : ""}`}>{value}</div>
     </div>
   );
@@ -966,7 +966,7 @@ function ToolBtn({ children, accent = "slate", disabled, onClick, title }) {
       title={title}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider border bg-transparent transition-all enabled:active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0d12] ${ACCENT[accent]}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-bold tracking-wider border bg-transparent transition-all enabled:active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0d12] ${ACCENT[accent]}`}
     >
       {children}
     </button>
@@ -987,26 +987,26 @@ function TagTile({ t }) {
       title={t.sourceName}
     >
       <div className="flex items-center justify-between">
-        <div className="text-[10px] text-text-muted font-semibold uppercase tracking-wide truncate">
+        <div className="text-[12.5px] text-text-muted font-semibold uppercase tracking-wide truncate">
           {formatTagLabelShort(last.tag_name || "—")}
         </div>
         {errored ? (
-          <span className="text-[9px] text-rose-400 border border-rose-900/60 rounded px-1 py-px font-mono inline-flex items-center gap-1 flex-shrink-0">
+          <span className="text-[11.5px] text-rose-400 border border-rose-900/60 rounded px-1 py-px font-mono inline-flex items-center gap-1 flex-shrink-0">
             <ErrorOutlineOutlinedIcon style={{ fontSize: 9 }} />
             ERR
           </span>
         ) : (
-          <span className="text-[9px] text-emerald-400 font-mono flex-shrink-0">OK</span>
+          <span className="text-[11.5px] text-emerald-400 font-mono flex-shrink-0">OK</span>
         )}
       </div>
       <div className="flex items-baseline gap-1">
         <span className="text-2xl font-bold font-mono tabular-nums" style={{ color: errored ? "#ff5c8a" : "#fff" }}>
           {typeof last.value === "number" ? last.value : Number.isFinite(Number(last.value)) ? Number(last.value) : "—"}
         </span>
-        {last.unit && <span className="text-[11px] text-text-dim font-mono">{last.unit}</span>}
+        {last.unit && <span className="text-[13px] text-text-dim font-mono">{last.unit}</span>}
       </div>
       <Sparkline data={t.history} color={c} width={220} height={24} />
-      <div className="flex justify-between text-[9px] text-text-dim font-mono">
+      <div className="flex justify-between text-[11.5px] text-text-dim font-mono">
         <span>min {min != null ? min.toFixed(2) : "—"}</span>
         <span className="text-text-faint truncate max-w-[100px]">{t.sourceName}</span>
         <span>max {max != null ? max.toFixed(2) : "—"}</span>
@@ -1067,7 +1067,7 @@ function LogRow({ m, alt, selected, onSelect }) {
         )}
       </Td>
       <Td align="right">
-        <span className="text-text-dim text-[11px]">{byteLength(m.raw)} Б</span>
+        <span className="text-text-dim text-[13px]">{byteLength(m.raw)} Б</span>
       </Td>
     </tr>
   );

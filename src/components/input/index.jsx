@@ -25,7 +25,7 @@ const Input = ({
       {label && (
         <label
           htmlFor={name}
-          className={`block mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#d1d5db] ${labelClass}`}
+          className={`block mb-2 text-[14.5px] font-semibold uppercase tracking-wide text-[#d1d5db] ${labelClass}`}
         >
           {label}
           {required && <span className="text-status-fault ml-1">*</span>}
@@ -41,7 +41,7 @@ const Input = ({
         value={value}
         onChange={onChange}
         className={`
-          w-full h-11 border bg-[#2c2c32] text-text-primary text-[13.5px]
+          w-full h-11 border bg-[#2c2c32] text-text-primary text-[15px]
           placeholder:text-text-faint
           ${error ? "border-status-fault" : "border-white/15"}
           rounded-lg px-3.5 pr-10 focus:outline-none
@@ -67,7 +67,7 @@ const Input = ({
       )}
 
       {error && (
-        <p className="text-status-fault text-[11px] mt-1 flex items-center gap-1">
+        <p className="text-status-fault text-[13px] mt-1 flex items-center gap-1">
           <span className="text-status-fault">•</span>
           {error}
         </p>

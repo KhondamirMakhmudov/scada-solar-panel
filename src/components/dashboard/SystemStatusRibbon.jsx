@@ -24,8 +24,8 @@ const Metric = ({ label, active, total }) => {
           animation: status === "alarm" ? "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite" : undefined,
         }}
       />
-      <span className="text-[10.5px] font-ibmPlexMono text-text-faint">{label}</span>
-      <span className="text-[10.5px] font-ibmPlexMono tabular-nums" style={{ color }}>
+      <span className="text-[13px] font-ibmPlexMono text-text-faint">{label}</span>
+      <span className="text-[13px] font-ibmPlexMono tabular-nums" style={{ color }}>
         <CountUp end={active} duration={0.6} preserveValue />/<CountUp end={total} duration={0.6} preserveValue />
       </span>
     </div>

@@ -48,7 +48,7 @@ const CustomSelect = ({
   return (
     <div className={`relative w-full font-ibmPlexSans ${className}`} ref={selectRef}>
       {label && (
-        <label className="block mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#d1d5db]">
+        <label className="block mb-2 text-[14.5px] font-semibold uppercase tracking-wide text-[#d1d5db]">
           {label}
           {required && <span className="text-status-fault"> *</span>}
         </label>
@@ -58,7 +58,7 @@ const CustomSelect = ({
         type="button"
         onClick={toggleDropdown}
         className={clsx(
-          "w-full h-11 border text-[13.5px] rounded-lg px-3.5 text-left bg-[#2c2c32] text-text-primary flex items-center justify-between focus:outline-none transition-colors active:scale-[0.99]",
+          "w-full h-11 border text-[15px] rounded-lg px-3.5 text-left bg-[#2c2c32] text-text-primary flex items-center justify-between focus:outline-none transition-colors active:scale-[0.99]",
           error
             ? "border-status-fault"
             : isOpen
@@ -83,7 +83,7 @@ const CustomSelect = ({
             <li
               key={idx}
               className={clsx(
-                "px-3 py-2 text-[13px] hover:bg-primary/10 active:bg-primary/20 cursor-pointer transition-colors",
+                "px-3 py-2 text-[14.5px] hover:bg-primary/10 active:bg-primary/20 cursor-pointer transition-colors",
                 (returnObject ? value?.value : value) === opt.value &&
                   "bg-primary/10 text-primary font-medium border-l-2 border-primary"
               )}
@@ -95,7 +95,7 @@ const CustomSelect = ({
         </ul>
       )}
 
-      {error && <p className="text-status-fault text-[11px] mt-1">{error}</p>}
+      {error && <p className="text-status-fault text-[13px] mt-1">{error}</p>}
     </div>
   );
 };

@@ -23,7 +23,7 @@ const Chip = ({ children, selected = false, onClick, meta, dotColor, title }: Ch
     onClick={onClick}
     title={title}
     aria-pressed={selected}
-    className={`inline-flex items-center gap-1.5 rounded-[2px] border px-2.5 py-1.5 text-[12px] transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
+    className={`inline-flex items-center gap-1.5 rounded-[2px] border px-2.5 py-1.5 text-[14px] transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
       selected
         ? "border-primary/60 bg-primary/15 text-[#bfdbfe] hover:bg-primary/25"
         : "border-surface-border bg-surface-1 text-[#bfc7d4] hover:border-[#475569] hover:text-[#e5e2e1]"
@@ -36,7 +36,7 @@ const Chip = ({ children, selected = false, onClick, meta, dotColor, title }: Ch
       />
     )}
     <span className="truncate max-w-[16rem]">{children}</span>
-    {meta && <span className="text-[10px] text-[#6b7280] flex-shrink-0">{meta}</span>}
+    {meta && <span className="text-[12.5px] text-[#6b7280] flex-shrink-0">{meta}</span>}
   </button>
 );
 

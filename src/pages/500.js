@@ -53,7 +53,7 @@ const Index = () => {
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 rounded-sm bg-[#93000a]/30 px-3 py-1.5">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#ffb4ab]">
+                  <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#ffb4ab]">
                     Код ошибки:
                   </span>
                   <span className="text-xs font-mono text-[#ffdad6]">
@@ -61,7 +61,7 @@ const Index = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 rounded-sm bg-[#2a2a2a] px-3 py-1.5">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
+                  <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
                     ID трассировки:
                   </span>
                   <span className="text-xs font-mono text-[#9ecaff]">
@@ -94,7 +94,7 @@ const Index = () => {
           <div className="flex flex-col gap-4 lg:col-span-5">
             <div className="overflow-hidden rounded-lg bg-[#2a2a2a] p-1 shadow-2xl">
               <div className="flex items-center justify-between bg-[#353534] px-4 py-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
+                <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
                   Журнал_ядра_trace
                 </span>
                 <div className="flex gap-1.5">
@@ -104,7 +104,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="h-[280px] overflow-y-auto bg-[#0e0e0e] p-4 font-mono text-[11px] leading-relaxed text-[#bfc7d4]/80">
+              <div className="h-[280px] overflow-y-auto bg-[#0e0e0e] p-4 font-mono text-[13px] leading-relaxed text-[#bfc7d4]/80">
                 <div className="mb-2 text-[#ffb4ab]">
                   [!] ФАТАЛЬНО: ОБНАРУЖЕНА_СИСТЕМНАЯ_ОШИБКА
                 </div>
@@ -144,7 +144,7 @@ const Index = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2 rounded-lg bg-[#1c1b1b] p-4">
-                <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
+                <span className="text-[11.5px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
                   НАГРУЗКА CPU
                 </span>
                 <div className="flex items-end gap-1">
@@ -155,7 +155,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex flex-col justify-center rounded-lg bg-[#1c1b1b] p-4">
-                <span className="mb-1 text-[9px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
+                <span className="mb-1 text-[11.5px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
                   NODE_ID
                 </span>
                 <span className="font-mono text-sm text-[#e5e2e1]">
@@ -171,15 +171,15 @@ const Index = () => {
         <div className="flex gap-8">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-[#ffb4ab]" />
-            <span className="text-[10px] font-mono tracking-widest text-[#bfc7d4]">
+            <span className="text-[12.5px] font-mono tracking-widest text-[#bfc7d4]">
               СБОЙ_АКТИВЕН
             </span>
           </div>
-          <span className="hidden text-[10px] font-mono tracking-widest text-[#bfc7d4]/40 md:block">
+          <span className="hidden text-[12.5px] font-mono tracking-widest text-[#bfc7d4]/40 md:block">
             ВЕРСИЯ_ЯДРА: 1.0.4-LUMINESCENCE
           </span>
         </div>
-        <span className="text-[10px] font-mono tracking-widest text-[#bfc7d4]/40">
+        <span className="text-[12.5px] font-mono tracking-widest text-[#bfc7d4]/40">
           © 2144 FORGE_INDUSTRIES
         </span>
       </footer>

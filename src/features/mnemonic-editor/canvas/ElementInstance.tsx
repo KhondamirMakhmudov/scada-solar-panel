@@ -9,6 +9,7 @@ import { getWorkspaceVisibility } from "../lib/workspace";
 import { useElementLiveValue } from "../runtime/useElementLiveValue";
 import { applyLiveValueToElement, deriveLiveStatus } from "../runtime/resolveVisual";
 import { useScreensBackend } from "../context/ScreensBackendContext";
+import { useOverviewStatusForTag } from "../hooks/useOverviewStatusForTag";
 import ConnectionAnchors from "./ConnectionAnchors";
 import type { ConnectionHandle } from "../types";
 
@@ -47,6 +48,10 @@ const ElementInstance = memo(
       () => (element ? deriveLiveStatus(element, live, connectionStatus) : null),
       [element, live, connectionStatus],
     );
+    // Enrichment on top of liveStatus, not a replacement — null for any tag
+    // the overview endpoint doesn't track (most bindings), leaving the dot
+    // exactly as it always was.
+    const overviewTooltip = useOverviewStatusForTag(element?.dataBinding?.tagId);
 
     if (!element || !displayElement) return null;
 
@@ -65,7 +70,9 @@ const ElementInstance = memo(
           onPointerDown={onElementPointerDown(elementId)}
           onContextMenu={onElementContextMenu(elementId)}
         />
-        {liveStatus && <StatusDot cx={element.x + 8} cy={element.y - 2} status={liveStatus} />}
+        {liveStatus && (
+          <StatusDot cx={element.x + 8} cy={element.y - 2} status={liveStatus} title={overviewTooltip ?? undefined} />
+        )}
         <ConnectionAnchors element={element} onAnchorPointerDown={onAnchorPointerDown} />
         {/* Значок «переход по клику»: показывает, что у элемента настроена
             ссылка на другой экран; клик по значку открывает целевой экран

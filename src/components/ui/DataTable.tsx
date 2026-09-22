@@ -43,7 +43,7 @@ function DataTable<Row>({
 
   return (
     <div className="overflow-auto" style={{ maxHeight }}>
-      <table className="w-full border-collapse text-[12px]">
+      <table className="w-full border-collapse text-[14px]">
         <thead className="sticky top-0 z-10">
           <tr>
             {columns.map((column) => (
@@ -51,7 +51,7 @@ function DataTable<Row>({
                 key={column.key}
                 scope="col"
                 style={column.width ? { width: column.width } : undefined}
-                className={`bg-surface-1 border-b border-surface-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-[#6b7280] whitespace-nowrap ${
+                className={`bg-surface-1 border-b border-surface-border px-3 py-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#6b7280] whitespace-nowrap ${
                   column.numeric ? "text-right" : "text-left"
                 }`}
               >

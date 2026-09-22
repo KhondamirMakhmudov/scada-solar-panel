@@ -52,7 +52,7 @@ const Index = () => {
               404
             </h1>
             <div className="absolute -right-4 top-1/2 origin-center -translate-y-1/2 rotate-90 whitespace-nowrap">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#404752]">
+              <span className="font-mono text-[12.5px] uppercase tracking-widest text-[#404752]">
                 Страница не найдена
               </span>
             </div>
@@ -71,7 +71,7 @@ const Index = () => {
                 </p>
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="space-y-1">
-                    <span className="block font-mono text-[10px] uppercase tracking-wider text-[#89919d]">
+                    <span className="block font-mono text-[12.5px] uppercase tracking-wider text-[#89919d]">
                       Код статуса
                     </span>
                     <span className="block font-mono text-sm text-[#e5e2e1]">
@@ -79,7 +79,7 @@ const Index = () => {
                     </span>
                   </div>
                   <div className="space-y-1">
-                    <span className="block font-mono text-[10px] uppercase tracking-wider text-[#89919d]">
+                    <span className="block font-mono text-[12.5px] uppercase tracking-wider text-[#89919d]">
                       Причина
                     </span>
                     <span className="block font-mono text-sm text-[#e5e2e1]">
@@ -116,7 +116,7 @@ const Index = () => {
 
           <div className="mt-12 w-full max-w-2xl overflow-hidden rounded border border-[#404752]/10 bg-[#0e0e0e]/80">
             <div className="flex items-center justify-between bg-[#2a2a2a] px-3 py-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#404752]">
+              <span className="font-mono text-[12.5px] font-bold uppercase tracking-widest text-[#404752]">
                 Журнал диагностики
               </span>
               <div className="flex gap-1.5">
@@ -124,7 +124,7 @@ const Index = () => {
                 <span className="h-1.5 w-1.5 rounded-full bg-[#404752]/40" />
               </div>
             </div>
-            <div className="max-h-32 space-y-1 overflow-hidden p-4 font-mono text-[11px] leading-tight text-[#89919d] opacity-60">
+            <div className="max-h-32 space-y-1 overflow-hidden p-4 font-mono text-[13px] leading-tight text-[#89919d] opacity-60">
               <p>[0.0021] Проверка маршрута страницы...</p>
               <p>
                 [0.0045] <span className="text-[#9ecaff]">ИНФО:</span> Поиск
@@ -166,7 +166,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-50 flex h-10 items-center justify-between bg-[#0e0e0e] px-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#89919d]">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 flex h-10 items-center justify-between bg-[#0e0e0e] px-6 font-mono text-[12.5px] uppercase tracking-[0.2em] text-[#89919d]">
         <div className="flex items-center gap-4">
           <span>SCADA v1.0.0</span>
           <span className="text-[#353534]">|</span>

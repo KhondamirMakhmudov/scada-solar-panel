@@ -188,7 +188,7 @@ const RuntimeCanvas = () => {
           type="button"
           onClick={fitToContent}
           title="По размеру экрана"
-          className="w-14 h-7 rounded text-[11px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-14 h-7 rounded text-[13px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           {Math.round(viewport.zoom * 100)}%
         </button>

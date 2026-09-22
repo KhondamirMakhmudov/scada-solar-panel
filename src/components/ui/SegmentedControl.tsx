@@ -27,7 +27,7 @@ function SegmentedControl<T extends string>({
   className = "",
 }: SegmentedControlProps<T>) {
   const height = size === "sm" ? "h-7" : "h-8";
-  const text = size === "sm" ? "text-[11px]" : "text-xs";
+  const text = size === "sm" ? "text-[13px]" : "text-xs";
 
   return (
     <div

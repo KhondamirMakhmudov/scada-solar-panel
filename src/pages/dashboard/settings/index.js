@@ -40,7 +40,7 @@ const SectionCard = ({ title, children, delay }) => (
       style={{
         padding: "7px 10px",
         borderBottom: "1px solid #2a2a2a",
-        font: "600 11px/1 'IBM Plex Sans'",
+        font: "600 13px/1 'IBM Plex Sans'",
         letterSpacing: ".06em",
         textTransform: "uppercase",
         color: "#bfc7d4",
@@ -64,9 +64,9 @@ const SettingsRow = ({ label, hint, children }) => (
     }}
   >
     <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-      <span style={{ font: "500 11.5px/1.2 'IBM Plex Sans'", color: "#e5e2e1" }}>{label}</span>
+      <span style={{ font: "500 13.5px/1.2 'IBM Plex Sans'", color: "#e5e2e1" }}>{label}</span>
       {hint && (
-        <span style={{ font: "400 10px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>{hint}</span>
+        <span style={{ font: "400 12.5px/1.3 'IBM Plex Sans'", color: "#7c8290" }}>{hint}</span>
       )}
     </div>
     <div style={{ flexShrink: 0 }}>{children}</div>
@@ -80,7 +80,7 @@ const RowValue = ({ children, color }) => (
       padding: "3px 7px",
       background: "#131313",
       border: "1px solid #2a2a2a",
-      font: "500 11px/1.3 'IBM Plex Mono'",
+      font: "500 13px/1.3 'IBM Plex Mono'",
       color: color || "#e5e2e1",
       whiteSpace: "nowrap",
     }}
@@ -201,7 +201,7 @@ export default function SettingsPage() {
 
           <SectionCard title="Сохранённые входы" delay={0.06}>
             {savedAccounts.length === 0 ? (
-              <p style={{ padding: "10px 0", font: "400 11px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic" }}>
+              <p style={{ padding: "10px 0", font: "400 13px/1.4 'IBM Plex Sans'", color: "#5c6270", fontStyle: "italic" }}>
                 Нет сохранённых входов. Они появятся после успешного входа в систему.
               </p>
             ) : (
@@ -212,7 +212,7 @@ export default function SettingsPage() {
                     onClick={() => handleRemoveAccount(account.username)}
                     title="Удалить сохранённый вход"
                     className="rounded-[2px] px-1.5 py-0.5 transition-colors hover:bg-red-500/10 active:scale-[0.96] active:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1"
-                    style={{ font: "500 10px/1.4 'IBM Plex Mono'", color: "#ef4444" }}
+                    style={{ font: "500 12.5px/1.4 'IBM Plex Mono'", color: "#ef4444" }}
                   >
                     УДАЛИТЬ
                   </button>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                   padding: "5px 9px",
                   border: "1px solid #3b82f6",
                   color: "#3b82f6",
-                  font: "500 10.5px/1.2 'IBM Plex Mono'",
+                  font: "500 13px/1.2 'IBM Plex Mono'",
                 }}
               >
                 ОБНОВИТЬ

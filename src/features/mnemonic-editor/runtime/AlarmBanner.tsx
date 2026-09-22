@@ -46,7 +46,7 @@ const AlarmBanner = () => {
         )}
 
         <span
-          className={`text-[11px] font-ibmPlexMono font-semibold uppercase tracking-wide flex-shrink-0 ${
+          className={`text-[13px] font-ibmPlexMono font-semibold uppercase tracking-wide flex-shrink-0 ${
             isAlarmed ? "text-status-fault" : "text-text-dim"
           }`}
         >
@@ -54,14 +54,14 @@ const AlarmBanner = () => {
         </span>
 
         {mostRecent && (
-          <span className="text-[11px] text-text-secondary truncate min-w-0 flex-1">
+          <span className="text-[13px] text-text-secondary truncate min-w-0 flex-1">
             <span className="text-text-faint font-ibmPlexMono">{formatClock(mostRecent.since)}</span>{" "}
             {mostRecent.elementLabel} — {mostRecent.message || "ошибка тега"}
           </span>
         )}
 
         {alarms.length > 0 && (
-          <span className="text-[10px] text-text-faint flex-shrink-0 ml-auto">Открыть список →</span>
+          <span className="text-[12.5px] text-text-faint flex-shrink-0 ml-auto">Открыть список →</span>
         )}
       </button>
 

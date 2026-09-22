@@ -73,7 +73,7 @@ const WorkspaceTabs = () => {
             type="button"
             onClick={() => setWorkspace(id)}
             title={`${HINTS[id]} (Alt+${index + 1})`}
-            className={`flex items-center gap-1.5 h-7 px-3 rounded-[2px] text-[12px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+            className={`flex items-center gap-1.5 h-7 px-3 rounded-[2px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
               isActive
                 ? "bg-blue-500/15 text-blue-300 border border-blue-500/40"
                 : "text-text-muted border border-transparent hover:text-text-primary hover:bg-white/[0.03]"
@@ -82,7 +82,7 @@ const WorkspaceTabs = () => {
             {ICONS[id]}
             {WORKSPACE_LABELS[id]}
             <span
-              className={`text-[10px] font-ibmPlexMono ${isActive ? "text-blue-300/70" : "text-text-faint"}`}
+              className={`text-[12.5px] font-ibmPlexMono ${isActive ? "text-blue-300/70" : "text-text-faint"}`}
             >
               {counts[id]}
             </span>

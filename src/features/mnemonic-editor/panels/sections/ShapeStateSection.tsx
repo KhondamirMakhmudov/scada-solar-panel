@@ -82,7 +82,7 @@ const LAMP_COLORS = [
 const SectionHeading = () => null;
 
 const BoundNote = () => (
-  <p className="text-[10px] text-text-faint">
+  <p className="text-[12.5px] text-text-faint">
     Значение определяется привязанным тегом.
   </p>
 );
@@ -160,7 +160,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
             </option>
           ))}
         </select>
-        <p className="text-[10px] text-text-faint">
+        <p className="text-[12.5px] text-text-faint">
           {element.type === "chart"
             ? "Теги для графика выбираются ниже, в разделе «Привязка к тегу» (основной тег + доп. теги) — каждый показывается отдельной строкой со своим масштабом, без переключения."
             : "Теги выбираются в разделе «Теги таблицы» — с любых подключений и устройств; в таблице они раскладываются по вкладкам-устройствам. Самые новые записи сверху."}

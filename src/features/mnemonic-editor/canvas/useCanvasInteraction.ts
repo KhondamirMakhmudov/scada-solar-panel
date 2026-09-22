@@ -89,6 +89,53 @@ export function useCanvasInteraction() {
     [startDrawing],
   );
 
+  /**
+   * A background pointerdown that lands inside the current selection's own
+   * bounding box (same box + padding SelectionOverlay draws) starts a group
+   * move instead of clearing the selection — otherwise the only way to drag
+   * a multi-selection is to grab exactly one of its shapes, which doesn't
+   * match the bounding box drawn around the whole group. Returns whether it
+   * started a drag, so the caller knows not to fall through to clearSelection.
+   */
+  const startGroupDragFromBackground = useCallback(
+    (event: ReactPointerEvent<SVGSVGElement>) => {
+      const selectedIds = useUiStore.getState().selectedElementIds;
+      if (selectedIds.length === 0) return false;
+
+      const selectedElements = useDocumentStore
+        .getState()
+        .document.elements.filter((el) => selectedIds.includes(el.id));
+      if (selectedElements.length === 0) return false;
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      const point = screenToDocumentPoint(event.clientX, event.clientY, rect, viewport);
+      const pad = 6; // same padding as SelectionOverlay's group frame
+      const minX = Math.min(...selectedElements.map((el) => el.x)) - pad;
+      const minY = Math.min(...selectedElements.map((el) => el.y)) - pad;
+      const maxX = Math.max(...selectedElements.map((el) => el.x + el.width)) + pad;
+      const maxY = Math.max(...selectedElements.map((el) => el.y + el.height)) + pad;
+      if (point.x < minX || point.x > maxX || point.y < minY || point.y > maxY) return false;
+
+      const primary = selectedElements.find((el) => el.id === selectedIds[0]) ?? selectedElements[0];
+      const groupStartPositions = new Map(selectedElements.map((el) => [el.id, { x: el.x, y: el.y }]));
+
+      dragRef.current = {
+        mode: "move",
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startPanX: viewport.panX,
+        startPanY: viewport.panY,
+        elementId: primary.id,
+        startElementX: primary.x,
+        startElementY: primary.y,
+        groupStartPositions,
+        historyBefore: snapshotDocumentArrays(),
+      };
+      return true;
+    },
+    [viewport],
+  );
+
   const handleBackgroundPointerDown = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>) => {
       closeContextMenu();
@@ -103,11 +150,17 @@ export function useCanvasInteraction() {
       } else if (activeTool === "draw" && event.button === 0) {
         clearSelection();
         beginDrawStroke(event.clientX, event.clientY, event.currentTarget);
+      } else if (event.button === 0 && startGroupDragFromBackground(event)) {
+        // Клик внутри рамки текущего выделения (но не по самой фигуре — жест
+        // ушёл бы через handleElementPointerDown раньше) двигает всю группу,
+        // а не сбрасывает её: как только вокруг набора фигур нарисована общая
+        // синяя рамка, естественно тянуть их за пустое место внутри неё же,
+        // а не обязательно попадать курсором ровно в одну из фигур.
       } else {
         clearSelection();
       }
     },
-    [isSpaceDown, viewport.panX, viewport.panY, clearSelection, closeContextMenu, activeTool, beginDrawStroke],
+    [isSpaceDown, viewport.panX, viewport.panY, clearSelection, closeContextMenu, activeTool, beginDrawStroke, startGroupDragFromBackground],
   );
 
   const handleElementPointerDown = useCallback(
@@ -126,9 +179,40 @@ export function useCanvasInteraction() {
       const isAdditive = event.ctrlKey || event.metaKey || event.shiftKey;
 
       if (isAdditive) {
-        // Ctrl/Cmd/Shift-click только меняет состав выделения — перетаскивание
-        // начинается отдельным, обычным нажатием на уже выделенный элемент.
+        const wasSelected = currentSelection.includes(id);
         toggleSelect(id);
+
+        // Снятие элемента с выделения этим же кликом — тащить уже нечего.
+        if (wasSelected) return;
+
+        // Добавление в выделение начинает перетаскивание всей группы (включая
+        // только что добавленный элемент) сразу, тем же нажатием — иначе
+        // пришлось бы отпускать Ctrl и кликать заново отдельным, обычным
+        // нажатием, что для большинства и не очевидно, и лишнее движение.
+        const groupIds = [...currentSelection, id];
+        const elements = useDocumentStore.getState().document.elements;
+        const primary = elements.find((el) => el.id === id);
+        if (!primary) return;
+
+        const groupStartPositions = new Map(
+          groupIds
+            .map((elId) => elements.find((el) => el.id === elId))
+            .filter((el): el is MnemonicElement => Boolean(el))
+            .map((el) => [el.id, { x: el.x, y: el.y }]),
+        );
+
+        dragRef.current = {
+          mode: "move",
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+          startPanX: viewport.panX,
+          startPanY: viewport.panY,
+          elementId: id,
+          startElementX: primary.x,
+          startElementY: primary.y,
+          groupStartPositions,
+          historyBefore: snapshotDocumentArrays(),
+        };
         return;
       }
 

@@ -97,7 +97,7 @@ const SchemaSearch = () => {
       {isOpen && normalized.length > 0 && (
         <div className="absolute z-50 mt-1 w-72 rounded-[2px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50 overflow-hidden">
           {results.length === 0 ? (
-            <p className="px-3 py-3 text-[11px] text-text-dim">Совпадений не найдено</p>
+            <p className="px-3 py-3 text-[13px] text-text-dim">Совпадений не найдено</p>
           ) : (
             results.map((element) => (
               <button
@@ -113,7 +113,7 @@ const SchemaSearch = () => {
                   <span className="block text-xs text-text-primary truncate">
                     {element.label?.trim() || SHAPE_REGISTRY[element.type]?.label || element.type}
                   </span>
-                  <span className="block text-[10px] text-text-faint truncate">
+                  <span className="block text-[12.5px] text-text-faint truncate">
                     {element.dataBinding?.tagName ||
                       SHAPE_REGISTRY[element.type]?.label ||
                       element.type}

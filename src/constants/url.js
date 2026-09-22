@@ -9,6 +9,7 @@ export const URLS = {
   archive: "archive_data/",
   statusMonitoring: "api/v1/status",
   systemOverview: "overview",
+  overviewStations: "overview/stations",
   screens: "screens",
   health: "health",
   ready: "ready",

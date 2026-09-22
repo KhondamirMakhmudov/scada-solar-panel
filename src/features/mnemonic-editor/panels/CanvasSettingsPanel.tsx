@@ -37,7 +37,7 @@ const CanvasSettingsPanel = () => {
   return (
     <div className="flex-1 overflow-y-auto p-4 pt-3 space-y-4">
       <div className="space-y-2">
-        <p className="text-[11px] text-text-dim">Фон</p>
+        <p className="text-[13px] text-text-dim">Фон</p>
         {/* Режим фона: сплошной цвет или изображение. Изображение рисуется
             поверх цвета, поэтому выбор цвета при активном изображении не
             виден — переключение на «Цвет» убирает изображение. */}
@@ -132,7 +132,7 @@ const CanvasSettingsPanel = () => {
       </div>
 
       <div>
-        <p className="text-[11px] uppercase tracking-wide text-text-dim mb-2">
+        <p className="text-[13px] uppercase tracking-wide text-text-dim mb-2">
           Размер холста
         </p>
         <div className="grid grid-cols-2 gap-x-3 gap-y-2">
@@ -154,7 +154,7 @@ const CanvasSettingsPanel = () => {
         </div>
       </div>
 
-      <p className="text-[10px] text-text-faint">
+      <p className="text-[12.5px] text-text-faint">
         Выберите элемент на схеме, чтобы редактировать его свойства.
       </p>
     </div>

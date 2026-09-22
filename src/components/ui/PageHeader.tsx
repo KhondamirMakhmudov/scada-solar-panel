@@ -20,9 +20,9 @@ interface PageHeaderProps {
 const PageHeader = ({ title, description, actions, children }: PageHeaderProps) => (
   <div className="flex flex-wrap items-start gap-3 mb-4">
     <div className="min-w-0 flex-1">
-      <h2 className="text-[17px] font-semibold text-[#e5e2e1] leading-tight">{title}</h2>
+      <h2 className="text-[18px] font-semibold text-[#e5e2e1] leading-tight">{title}</h2>
       {description && (
-        <p className="mt-1 text-[13px] text-[#6b7280] leading-snug max-w-3xl">{description}</p>
+        <p className="mt-1 text-[14.5px] text-[#6b7280] leading-snug max-w-3xl">{description}</p>
       )}
       {children}
     </div>

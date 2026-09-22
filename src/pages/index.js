@@ -185,7 +185,7 @@ export default function Home() {
               <form onSubmit={handleSubmit} className="space-y-6 p-8">
                 {/* <div className="space-y-1.5">
                   <label className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#bfc7d4]">
-                    <span className="material-symbols-outlined text-[14px]">
+                    <span className="material-symbols-outlined text-[15.5px]">
                       corporate_fare
                     </span>
                     ID организации
@@ -203,7 +203,7 @@ export default function Home() {
                 <div className="space-y-4">
                   <div className="relative space-y-1.5">
                     <label className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#bfc7d4]">
-                      <span className="material-symbols-outlined text-[14px]">
+                      <span className="material-symbols-outlined text-[15.5px]">
                         person
                       </span>
                       Логин / Имя пользователя
@@ -233,7 +233,7 @@ export default function Home() {
                             className="group flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 text-sm text-[#e5e2e1] transition-colors hover:bg-[#1c1b1b]"
                           >
                             <span className="flex items-center gap-2">
-                              <span className="material-symbols-outlined text-[16px] text-[#9ecaff]">
+                              <span className="material-symbols-outlined text-[17px] text-[#9ecaff]">
                                 person
                               </span>
                               {account.username}
@@ -246,7 +246,7 @@ export default function Home() {
                               className="text-[#89919d] opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
                               title="Удалить сохранённый вход"
                             >
-                              <span className="material-symbols-outlined text-[16px]">
+                              <span className="material-symbols-outlined text-[17px]">
                                 close
                               </span>
                             </button>
@@ -258,7 +258,7 @@ export default function Home() {
 
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-widest text-[#bfc7d4]">
-                      <span className="material-symbols-outlined text-[14px]">
+                      <span className="material-symbols-outlined text-[15.5px]">
                         lock_open
                       </span>
                       Защищённый пароль
@@ -356,7 +356,7 @@ export default function Home() {
 
       <div className="pointer-events-none fixed left-0 top-0 h-32 w-32 opacity-10">
         <div className="absolute left-4 top-4 h-12 w-12 border-l border-t border-[#9ecaff]" />
-        <div className="absolute left-8 top-8 text-[8px] leading-tight text-[#9ecaff] font-mono">
+        <div className="absolute left-8 top-8 text-[11px] leading-tight text-[#9ecaff] font-mono">
           X: 104.2
           <br />
           Y: 442.9
@@ -367,7 +367,7 @@ export default function Home() {
 
       <div className="pointer-events-none fixed bottom-0 right-0 h-32 w-32 opacity-10">
         <div className="absolute bottom-4 right-4 h-12 w-12 border-b border-r border-[#9ecaff]" />
-        <div className="absolute bottom-8 right-8 text-right text-[8px] leading-tight text-[#9ecaff] font-mono">
+        <div className="absolute bottom-8 right-8 text-right text-[11px] leading-tight text-[#9ecaff] font-mono">
           СТАТУС: АКТИВЕН
           <br />
           БУФ: 1024КБ

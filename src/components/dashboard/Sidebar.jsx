@@ -9,15 +9,17 @@ import { hasRequiredRole } from "@/constants/routeAccess";
 import { NAV_GROUPS } from "@/constants/navigation";
 
 /**
- * Левое боковое меню — вернули из горизонтальной ленты вкладок обратно в
- * список, сгруппированный так же, как в `NAV_GROUPS` (см.
+ * Левое боковое меню — сгруппировано так же, как `NAV_GROUPS` (см.
  * constants/navigation.js): «Мониторинг» / «Конфигурация» / «Диагностика».
  * Маршрутизация и ролевая фильтрация (`hasRequiredRole`) не поменялись —
- * поменялось только представление, поэтому прямые ссылки и
- * `routeAccess.js` продолжают работать как раньше.
+ * только визуальный слой.
  *
- * Иконки (`item.Icon`) в старом TopNavBar не рисовались вообще — плоская
- * лента вкладок обходилась текстом. Здесь они наконец используются.
+ * Active-состояние — плавающая акцентная полоска слева (не прилегает к
+ * краям строки, со скруглением) плюс залитый фон и цвет текста/иконки/
+ * бейджа, а не голая рамка на всю высоту строки: так активный пункт читается
+ * с одного взгляда, а не только по тонкой линии у самого края меню. Группы
+ * разделены тонкой линией сверху (кроме первой), а не только отступом —
+ * иначе на глаз группы сливаются в один длинный список без пауз.
  */
 export default function Sidebar() {
   const router = useRouter();
@@ -59,19 +61,22 @@ export default function Sidebar() {
   }, [session?.user?.roles]);
 
   return (
-    <nav className="flex-shrink-0 w-[196px] h-full overflow-y-auto bg-surface-dark border-r border-surface-border font-ibmPlexSans py-2">
+    <nav
+      className="flex-shrink-0 w-[212px] h-full overflow-y-auto bg-surface-dark border-r border-surface-border font-ibmPlexSans py-3
+        [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent"
+    >
       {visibleGroups.length === 0 && (
-        <span className="flex items-center text-[11px] text-text-faint italic px-3 py-2">
+        <span className="flex items-center text-[13px] text-text-faint italic px-3.5 py-2">
           Нет доступных разделов
         </span>
       )}
 
-      {visibleGroups.map((group) => (
-        <div key={group.label} className="mb-3">
-          <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-faint">
+      {visibleGroups.map((group, groupIndex) => (
+        <div key={group.label} className={groupIndex > 0 ? "mt-4 pt-4 border-t border-surface-border/60" : ""}>
+          <p className="px-3.5 mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-text-faint">
             {group.label}
-          </div>
-          <div className="flex flex-col gap-0.5 px-1.5">
+          </p>
+          <div className="flex flex-col gap-0.5 px-2">
             {group.items.map((item) => {
               const isActive = router.pathname === item.path;
               const badge = badgeCounts[item.path];
@@ -82,16 +87,32 @@ export default function Sidebar() {
                   type="button"
                   onClick={() => router.push(item.path)}
                   title={item.hint}
-                  className={`flex items-center gap-2.5 h-9 px-2.5 rounded-[2px] text-[12.5px] font-medium border-l-2 transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 ${
+                  className={`group relative flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-[4px] text-[13.5px] font-medium transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 ${
                     isActive
-                      ? "border-primary text-primary bg-primary/[0.08]"
-                      : "border-transparent text-text-secondary hover:text-text-primary hover:bg-white/[0.03]"
+                      ? "bg-primary/[0.12] text-primary"
+                      : "text-text-secondary hover:text-text-primary hover:bg-white/[0.035]"
                   }`}
                 >
-                  {Icon && <Icon sx={{ fontSize: 17 }} className="flex-shrink-0" />}
+                  <span
+                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full transition-colors ${
+                      isActive ? "bg-primary" : "bg-transparent"
+                    }`}
+                  />
+                  {Icon && (
+                    <Icon
+                      sx={{ fontSize: 17 }}
+                      className={`flex-shrink-0 transition-colors ${
+                        isActive ? "text-primary" : "text-text-faint group-hover:text-text-secondary"
+                      }`}
+                    />
+                  )}
                   <span className="flex-1 text-left truncate">{item.text}</span>
                   {badge !== undefined && badge !== null && (
-                    <span className="px-1 rounded-[2px] bg-background-dark font-ibmPlexMono text-[9.5px] text-text-muted flex-shrink-0">
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full font-ibmPlexMono text-[10.5px] leading-none flex-shrink-0 transition-colors ${
+                        isActive ? "bg-primary/20 text-primary" : "bg-white/5 text-text-faint group-hover:bg-white/[0.07]"
+                      }`}
+                    >
                       {badge}
                     </span>
                   )}
