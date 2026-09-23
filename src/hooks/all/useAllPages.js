@@ -27,28 +27,53 @@ export default function useAllPages({
   url,
   apiClient = requestPython,
   headers = {},
-  pageSize = 200,
+  pageSize = 100,
   enabled = true,
 }) {
   return useQuery({
     queryKey: [key, "all-pages"],
     queryFn: async () => {
-      const first = await apiClient.get(url, { params: { page: 1, pageSize }, headers });
+      const first = await apiClient.get(url, {
+        params: { page: 1, pageSize },
+        headers,
+      });
       const firstItems = get(first, "data.data", []);
       const totalPages = get(first, "data.pagination.totalPages", 1);
       const total = get(first, "data.pagination.total", firstItems.length);
 
       if (totalPages <= 1) {
-        return { data: { data: firstItems, pagination: { total, page: 1, pageSize, totalPages: 1 } } };
+        return {
+          data: {
+            data: firstItems,
+            pagination: { total, page: 1, pageSize, totalPages: 1 },
+          },
+        };
       }
 
-      const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-      const rest = await Promise.all(
-        remainingPages.map((page) => apiClient.get(url, { params: { page, pageSize }, headers })),
+      const remainingPages = Array.from(
+        { length: totalPages - 1 },
+        (_, i) => i + 2,
       );
-      const allItems = firstItems.concat(...rest.map((resp) => get(resp, "data.data", [])));
+      const rest = await Promise.all(
+        remainingPages.map((page) =>
+          apiClient.get(url, { params: { page, pageSize }, headers }),
+        ),
+      );
+      const allItems = firstItems.concat(
+        ...rest.map((resp) => get(resp, "data.data", [])),
+      );
 
-      return { data: { data: allItems, pagination: { total, page: 1, pageSize: allItems.length, totalPages: 1 } } };
+      return {
+        data: {
+          data: allItems,
+          pagination: {
+            total,
+            page: 1,
+            pageSize: allItems.length,
+            totalPages: 1,
+          },
+        },
+      };
     },
     enabled,
     placeholderData: (previous) => previous,
