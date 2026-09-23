@@ -31,7 +31,11 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
   return (
     <div
       className="bg-surface-dark border border-surface-border rounded-[2px] p-3.5 hover:border-surface-border-hover transition-colors"
-      style={status ? { borderLeftWidth: 2, borderLeftColor: STATUS_COLOR[status] } : undefined}
+      style={
+        status
+          ? { borderLeftWidth: 2, borderLeftColor: STATUS_COLOR[status] }
+          : undefined
+      }
     >
       <div className="flex items-center gap-2 mb-2.5">
         <Icon sx={{ fontSize: 15, color: "#7c8290" }} />
@@ -43,8 +47,14 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
         {value}
       </p>
       {status ? (
-        <p className="flex items-center gap-1.5 text-[13px] font-ibmPlexMono" style={{ color: STATUS_COLOR[status] }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />
+        <p
+          className="flex items-center gap-1.5 text-[13px] font-ibmPlexMono"
+          style={{ color: STATUS_COLOR[status] }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: STATUS_COLOR[status] }}
+          />
           {active === total ? "все активны" : `${total - active} неактивны`}
         </p>
       ) : (
@@ -57,7 +67,10 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
 const Index = () => {
   const { data: session } = useSession();
   const authHeaders = session?.accessToken
-    ? { Authorization: `Bearer ${session.accessToken}`, Accept: "application/json" }
+    ? {
+        Authorization: `Bearer ${session.accessToken}`,
+        Accept: "application/json",
+      }
     : {};
 
   // Намеренно только isLoading: раньше условие включало isFetching, и любое
@@ -78,8 +91,18 @@ const Index = () => {
   });
 
   const tagsRaw = get(tagsResp, "data.data", get(tagsResp, "data", []));
-  const liveTags = (Array.isArray(tagsRaw) ? tagsRaw : []).slice(0, LIVE_VALUES_LIMIT);
-  const liveTagIds = useMemo(() => liveTags.map((tag) => tag.id).sort().join(","), [liveTags]);
+  const liveTags = (Array.isArray(tagsRaw) ? tagsRaw : []).slice(
+    0,
+    LIVE_VALUES_LIMIT,
+  );
+  const liveTagIds = useMemo(
+    () =>
+      liveTags
+        .map((tag) => tag.id)
+        .sort()
+        .join(","),
+    [liveTags],
+  );
 
   const { data: latestValuesResp } = useGetQuery({
     key: [KEYS.tagValuesLatest, "overview", liveTagIds],
@@ -128,7 +151,7 @@ const Index = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="font-ibmPlexSans space-y-5 max-w-[1600px]"
+        className="font-ibmPlexSans space-y-5 max-w-full"
       >
         <StationsOverviewSection />
 
@@ -154,10 +177,17 @@ const Index = () => {
             active={tagsActive}
             total={tagsTotal}
           />
-          <MetricCard icon={Settings} label="Драйверы" value={drivers} hint="работают" />
+          <MetricCard
+            icon={Settings}
+            label="Драйверы"
+            value={drivers}
+            hint="работают"
+          />
         </div>
 
-        <div className={`grid grid-cols-1 ${hasConnectionTypes ? "xl:grid-cols-2" : ""} gap-4 items-start`}>
+        <div
+          className={`grid grid-cols-1 ${hasConnectionTypes ? "xl:grid-cols-2" : ""} gap-4 items-start`}
+        >
           {hasConnectionTypes && <ConnectionsBarChart data={connectionTypes} />}
 
           <section className="bg-surface-dark border border-surface-border rounded-[2px] overflow-hidden">
@@ -169,8 +199,16 @@ const Index = () => {
               active={connections.enabled || 0}
               total={connections.total || 0}
             />
-            <StatusMeter label="Устройства" active={devices.enabled || 0} total={devices.total || 0} />
-            <StatusMeter label="Параметры" active={tagsActive} total={tagsTotal} />
+            <StatusMeter
+              label="Устройства"
+              active={devices.enabled || 0}
+              total={devices.total || 0}
+            />
+            <StatusMeter
+              label="Параметры"
+              active={tagsActive}
+              total={tagsTotal}
+            />
           </section>
         </div>
 
@@ -179,10 +217,16 @@ const Index = () => {
             <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
               Мониторинг параметров
             </h3>
-            <span className="text-[12.5px] font-ibmPlexMono text-text-faint">тренд за последний час</span>
+            <span className="text-[12.5px] font-ibmPlexMono text-text-faint">
+              тренд за последний час
+            </span>
           </div>
           <div className="p-3">
-            <LiveMetricsPanel tags={liveTags} latestValuesByTagId={latestValuesByTagId} valueMaps={valueMaps} />
+            <LiveMetricsPanel
+              tags={liveTags}
+              latestValuesByTagId={latestValuesByTagId}
+              valueMaps={valueMaps}
+            />
           </div>
         </section>
       </motion.div>
