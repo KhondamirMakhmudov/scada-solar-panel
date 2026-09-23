@@ -54,6 +54,16 @@ export const DEVICE_STATUS_LABELS: Record<OverviewDeviceStatus, string> = {
   disabled: "Отключено",
 };
 
+/** Hover text for the device-status legend — what each status actually means, per the ops status table. */
+export const DEVICE_STATUS_DESCRIPTIONS: Record<OverviewDeviceStatus, string> = {
+  online: "Данные идут, инвертор выдаёт мощность",
+  idle: "Связь есть, но мощность 0: инвертор стоит или ночь. Сам по себе это не авария",
+  error: "Данные идут, но тег вернул ошибку чтения",
+  offline: "Связи нет: данные не приходили дольше порога (120 с), и канал связи мёртв",
+  unknown: "От устройства ни разу не пришло ни одного значения",
+  disabled: "Выключено в конфиге",
+};
+
 export const GROUP_STATUS_LABELS: Record<OverviewGroupStatus, string> = {
   online: "В сети",
   degraded: "Частично",

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { STATUS_COLOR } from "@/constants/statusPalette";
 import {
+  DEVICE_STATUS_DESCRIPTIONS,
   DEVICE_STATUS_LABELS,
   DEVICE_STATUS_ORDER,
   deviceStatusToSystemStatus,
@@ -21,14 +22,21 @@ interface DeviceStatusBarProps {
  * touching segments instead of a stroke, per the usual stacked-bar spec.
  */
 const DeviceStatusBar = ({ counts, compact = false }: DeviceStatusBarProps) => {
-  const total = DEVICE_STATUS_ORDER.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
-  const segments = DEVICE_STATUS_ORDER.map((status) => ({ status, count: counts[status] ?? 0 })).filter(
-    (s) => s.count > 0,
+  const total = DEVICE_STATUS_ORDER.reduce(
+    (sum, status) => sum + (counts[status] ?? 0),
+    0,
   );
+  const segments = DEVICE_STATUS_ORDER.map((status) => ({
+    status,
+    count: counts[status] ?? 0,
+  })).filter((s) => s.count > 0);
 
   if (total === 0) {
     return (
-      <div className="h-3 w-full rounded-full bg-white/5" title="Устройств нет" />
+      <div
+        className="h-3 w-full rounded-full bg-white/5"
+        title="Устройств нет"
+      />
     );
   }
 
@@ -45,7 +53,9 @@ const DeviceStatusBar = ({ counts, compact = false }: DeviceStatusBarProps) => {
             initial={{ width: 0 }}
             animate={{ width: `${(count / total) * 100}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{ background: STATUS_COLOR[deviceStatusToSystemStatus(status)] }}
+            style={{
+              background: STATUS_COLOR[deviceStatusToSystemStatus(status)],
+            }}
             title={`${DEVICE_STATUS_LABELS[status]}: ${count}`}
           />
         ))}
@@ -53,12 +63,19 @@ const DeviceStatusBar = ({ counts, compact = false }: DeviceStatusBarProps) => {
       {!compact && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
           {segments.map(({ status, count }) => (
-            <span key={status} className="flex items-center gap-1.5 text-[14px] font-ibmPlexMono text-text-muted">
+            <span
+              key={status}
+              className="flex items-center gap-1.5 text-[14px] font-ibmPlexMono text-text-muted"
+              title={DEVICE_STATUS_DESCRIPTIONS[status]}
+            >
               <span
                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: STATUS_COLOR[deviceStatusToSystemStatus(status)] }}
+                style={{
+                  background: STATUS_COLOR[deviceStatusToSystemStatus(status)],
+                }}
               />
-              {DEVICE_STATUS_LABELS[status]} <span className="text-text-primary">{count}</span>
+              {DEVICE_STATUS_LABELS[status]}
+              <span className="text-text-primary">{count}</span>
             </span>
           ))}
         </div>
