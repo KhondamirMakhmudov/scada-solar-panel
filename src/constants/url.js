@@ -1,6 +1,7 @@
 export const URLS = {
   login: "auth/login",
   connects: "connections",
+  sites: "sites",
   devices: "devices",
   tags: "tags",
   company: "company/",

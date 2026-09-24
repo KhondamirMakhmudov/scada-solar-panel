@@ -155,7 +155,7 @@ const Index = () => {
       >
         <StationsOverviewSection />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4  gap-3">
           <MetricCard
             icon={Cable}
             label="Соединения"

@@ -129,7 +129,7 @@ const StationsOverviewSection = () => {
           description="В конфиге пока не заведено ни одной станции."
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 3xl:grid-cols-4 gap-3">
           {stations.map((station, index) => (
             <StationCard
               key={station.driverId}

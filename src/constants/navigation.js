@@ -1,4 +1,5 @@
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import SolarPowerRoundedIcon from "@mui/icons-material/SolarPowerRounded";
 import LanRoundedIcon from "@mui/icons-material/LanRounded";
 import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
@@ -54,6 +55,13 @@ export const NAV_GROUPS = [
     label: "Конфигурация",
     items: [
       {
+        text: "Станции",
+        Icon: SolarPowerRoundedIcon,
+        path: "/dashboard/sites",
+        hint: "Солнечные электростанции и паспорт",
+        roles: ["admin", "super_admin"],
+      },
+      {
         text: "Подключения",
         Icon: LanRoundedIcon,
         path: "/dashboard/connects",
@@ -80,10 +88,10 @@ export const NAV_GROUPS = [
     label: "Диагностика",
     items: [
       {
-        text: "Тест WebSocket",
+        text: "Поток значений",
         Icon: BoltRoundedIcon,
         path: "/dashboard/test/websocket",
-        hint: "Проверка потока данных",
+        hint: "Живые данные по WebSocket: значения, кадры, сокеты",
         roles: ["admin", "super_admin"],
       },
       {

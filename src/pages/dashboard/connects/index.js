@@ -21,9 +21,14 @@ import ChipSelect from "@/components/chip-select";
 import { Button } from "@mui/material";
 import { Add, GridView, TableRows } from "@mui/icons-material";
 import { toast } from "react-hot-toast";
-import ConnectionDetailsModal, { connectionIcon } from "@/features/connections/ConnectionDetailsModal";
+import ConnectionDetailsModal, {
+  connectionIcon,
+} from "@/features/connections/ConnectionDetailsModal";
 import ConnectionParamFields from "@/features/connections/ConnectionParamFields";
-import { connectionAddressLabel, connectionTimeoutMs } from "@/features/connections/connectionDisplay";
+import {
+  connectionAddressLabel,
+  connectionTimeoutMs,
+} from "@/features/connections/connectionDisplay";
 import {
   CONNECTION_TYPE_OPTIONS,
   DEFAULT_FORM,
@@ -90,7 +95,7 @@ const Index = () => {
   const { data: devicesForCount } = useGetQuery({
     key: [KEYS.devices, "connects-count"],
     url: URLS.devices,
-    params: { page: 1, pageSize: 500 },
+    params: { page: 1, pageSize: 100 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -118,7 +123,10 @@ const Index = () => {
   get(devicesForCount, "data.data", []).forEach((device) => {
     const connId = device.connectionId;
     if (!connId) return;
-    deviceCountByConnection.set(connId, (deviceCountByConnection.get(connId) || 0) + 1);
+    deviceCountByConnection.set(
+      connId,
+      (deviceCountByConnection.get(connId) || 0) + 1,
+    );
   });
 
   const filteredConnections = connections.filter((item) => {
@@ -127,9 +135,11 @@ const Index = () => {
       !query ||
       item.name?.toLowerCase().includes(query) ||
       connectionAddressLabel(item.params).toLowerCase().includes(query);
-    const matchesProtocol = protocolFilter === "all" || item.type === protocolFilter;
+    const matchesProtocol =
+      protocolFilter === "all" || item.type === protocolFilter;
     const matchesStatus =
-      statusFilter === "all" || (statusFilter === "enabled" ? item.enabled : !item.enabled);
+      statusFilter === "all" ||
+      (statusFilter === "enabled" ? item.enabled : !item.enabled);
     return matchesSearch && matchesProtocol && matchesStatus;
   });
 
@@ -486,7 +496,8 @@ const Index = () => {
       handleCloseEditModal();
     } catch (error) {
       toast.error(
-        translateApiError(get(error, "response.data.message")) || "Ошибка обновления",
+        translateApiError(get(error, "response.data.message")) ||
+          "Ошибка обновления",
         DARK_TOAST_OPTIONS,
       );
     } finally {
@@ -532,7 +543,9 @@ const Index = () => {
       accessorKey: "name",
       header: "Название",
       cell: ({ row }) => (
-        <span style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+        <span
+          style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}
+        >
           {row.original.name}
         </span>
       ),
@@ -541,7 +554,9 @@ const Index = () => {
       accessorKey: "type",
       header: "Протокол",
       cell: ({ row }) => (
-        <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+        <span
+          style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+        >
           {row.original.type}
         </span>
       ),
@@ -577,7 +592,14 @@ const Index = () => {
               color,
             }}
           >
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />
+            <span
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: color,
+              }}
+            />
             {row.original.enabled ? "ВКЛЮЧЕНО" : "ОТКЛЮЧЕНО"}
           </span>
         );
@@ -601,7 +623,10 @@ const Index = () => {
       header: "Действия",
       meta: { align: "right" },
       cell: ({ row }) => (
-        <div className="text-right" style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}>
+        <div
+          className="text-right"
+          style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}
+        >
           <button
             type="button"
             onClick={() => setSelectedConnection(row.original)}
@@ -664,7 +689,13 @@ const Index = () => {
           value={protocolFilter}
           onChange={setProtocolFilter}
           label="ПРОТОКОЛ"
-          options={[{ label: "ВСЕ", value: "all" }, ...CONNECTION_TYPE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))]}
+          options={[
+            { label: "ВСЕ", value: "all" },
+            ...CONNECTION_TYPE_OPTIONS.map((o) => ({
+              label: o.label,
+              value: o.value,
+            })),
+          ]}
         />
         <ChipSelect
           value={statusFilter}
@@ -762,14 +793,19 @@ const Index = () => {
                     <div className="space-y-1 text-[13px] font-ibmPlexMono text-text-muted">
                       <p className="truncate">
                         Адрес:{" "}
-                        <span className="text-text-primary" title={connectionAddressLabel(connection.params)}>
+                        <span
+                          className="text-text-primary"
+                          title={connectionAddressLabel(connection.params)}
+                        >
                           {connectionAddressLabel(connection.params)}
                         </span>
                       </p>
                       {connectionTimeoutMs(connection.params) !== null && (
                         <p>
                           Таймаут:{" "}
-                          <span className="text-text-primary">{connectionTimeoutMs(connection.params)} ms</span>
+                          <span className="text-text-primary">
+                            {connectionTimeoutMs(connection.params)} ms
+                          </span>
                         </p>
                       )}
                     </div>
@@ -1104,7 +1140,10 @@ const Index = () => {
         </DeleteModal>
       )}
 
-      <ConnectionDetailsModal connection={selectedConnection} onClose={() => setSelectedConnection(null)} />
+      <ConnectionDetailsModal
+        connection={selectedConnection}
+        onClose={() => setSelectedConnection(null)}
+      />
     </DashboardLayout>
   );
 };

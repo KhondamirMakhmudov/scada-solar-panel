@@ -1,70 +1,68 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/router";
 import { get } from "lodash";
 import toast from "react-hot-toast";
-import { config } from "@/config";
+import { useSession } from "next-auth/react";
+import MemoryRoundedIcon from "@mui/icons-material/MemoryRounded";
+import SellRoundedIcon from "@mui/icons-material/SellRounded";
+import MonitorRoundedIcon from "@mui/icons-material/MonitorRounded";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import StopRoundedIcon from "@mui/icons-material/StopRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import PushPinRoundedIcon from "@mui/icons-material/PushPinRounded";
+import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 
+import { config } from "@/config";
 import { buildScadaWsUrl } from "@/hooks/useWebsoket";
 import { useMultiWebSocket } from "@/hooks/useMultiWebSocket";
+import useAllPages from "@/hooks/all/useAllPages";
 import useGetQuery from "@/hooks/all/useGetQuery";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import { requestScreens } from "@/services/api";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import WifiTetheringOutlinedIcon from "@mui/icons-material/WifiTetheringOutlined";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import StopRoundedIcon from "@mui/icons-material/StopRounded";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
-import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
-import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useSession } from "next-auth/react";
+import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
+import MethodModal from "@/components/modal/method-modal";
+import { Panel, EmptyState, SegmentedControl, seriesColor } from "@/components/ui";
+import { STATUS_COLOR } from "@/constants/statusPalette";
 
-/* ---------- Visual constants ---------------------------------------------- */
-const TAG_PALETTE = [
-  "#ff6b3d",
-  "#3ee08f",
-  "#4dd6ff",
-  "#ffc857",
-  "#b388ff",
-  "#ff5c8a",
-  "#ffd166",
-  "#6affb8",
-];
-
-function colorFor(seed) {
-  if (!seed) return TAG_PALETTE[0];
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
-  return TAG_PALETTE[Math.abs(h) % TAG_PALETTE.length];
-}
-
+/* ---------- Каналы --------------------------------------------------------
+   Три эндпоинта из WEBSOCKET_API.md. Путь показан буквально: на странице
+   диагностики важно видеть, какой именно сокет будет открыт. */
 const CHANNEL_META = {
   devices: {
     label: "Устройства",
-    icon: SettingsOutlinedIcon,
-    description: "Один сокет на устройство — /ws/devices/{id}",
+    icon: MemoryRoundedIcon,
+    path: "/api/v1/ws/devices/{id}",
+    note: "Один сокет на устройство — придут значения всех его тегов.",
   },
   tags: {
     label: "Теги",
-    icon: WifiTetheringOutlinedIcon,
-    description: "Один сокет на тег — /ws/tags/{id}",
+    icon: SellRoundedIcon,
+    path: "/api/v1/ws/tags/{id}",
+    note: "Один сокет на тег — придут значения только этого тега.",
   },
   screens: {
     label: "Экраны",
-    icon: DashboardOutlinedIcon,
-    description: "Один сокет на экран (все теги экрана) — /ws/screens/{id}",
+    icon: MonitorRoundedIcon,
+    path: "/api/v1/ws/screens/{id}",
+    note: "Один сокет на экран — придут значения всех тегов экрана.",
   },
 };
 
-/* ---------- Helpers ------------------------------------------------------- */
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
+const SOCKET_META = {
+  open: { label: "открыт", color: STATUS_COLOR.ok },
+  connecting: { label: "подключение", color: STATUS_COLOR.warn },
+  error: { label: "ошибка", color: STATUS_COLOR.alarm },
+  closed: { label: "закрыт", color: STATUS_COLOR.idle },
+};
+const socketMeta = (status) => SOCKET_META[status] || { label: "не открыт", color: "#3a3a3a" };
+
+/* ---------- Форматирование ------------------------------------------------ */
+const pad2 = (n) => String(n).padStart(2, "0");
 
 function formatTimeMs(t) {
   if (!t) return "--:--:--.---";
@@ -74,13 +72,32 @@ function formatTimeMs(t) {
   ).padStart(3, "0")}`;
 }
 
-function formatUptime(sec) {
-  return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}:${pad2(sec % 60)}`;
-}
+const formatUptime = (sec) =>
+  `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}:${pad2(sec % 60)}`;
 
 function byteLength(text) {
   if (typeof text !== "string") return 0;
   return new TextEncoder().encode(text).length;
+}
+
+/**
+ * Значение тега для показа человеку. Приборы отдают float32, и после
+ * пересчёта в double из 0.3 получается 0.30000001192092896 — такую строку
+ * нельзя ни прочитать, ни уместить в плитку (раньше она растягивала сетку и
+ * добавляла горизонтальную прокрутку странице). Семь значащих цифр — предел
+ * точности float32, поэтому округление до них убирает мусор хвоста и не
+ * портит настоящие значения. Исходное число остаётся в подсказке и на
+ * вкладках «Поля»/«Текст», где важна точная форма кадра.
+ */
+function formatValue(raw) {
+  if (raw === null || raw === undefined || raw === "") return "—";
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return String(raw);
+  if (Number.isInteger(n)) return String(n);
+
+  const abs = Math.abs(n);
+  if (abs >= 1e9 || abs < 1e-4) return n.toExponential(2);
+  return String(Number(n.toPrecision(7)));
 }
 
 function toHexDump(text) {
@@ -88,50 +105,85 @@ function toHexDump(text) {
   const rows = [];
   for (let i = 0; i < bytes.length; i += 16) {
     const chunk = bytes.slice(i, i + 16);
-    const hex = chunk.map((b) => b.toString(16).padStart(2, "0")).join(" ");
-    const ascii = chunk.map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : ".")).join("");
-    rows.push({ offset: i, hex, ascii });
+    rows.push({
+      offset: i,
+      hex: chunk.map((b) => b.toString(16).padStart(2, "0")).join(" "),
+      ascii: chunk.map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : ".")).join(""),
+    });
   }
   return rows;
 }
 
-/* ---------- Sparkline (inline SVG, no deps) ------------------------------- */
-function Sparkline({ data, color = "#3ee08f", width = 200, height = 24, area = true }) {
-  if (!data || data.length < 2) return <div style={{ width, height }} />;
+const plural = (n, [one, few, many]) => {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+};
+
+/* ---------- Спарклайн -----------------------------------------------------
+   Тянется по ширине плитки (viewBox + preserveAspectRatio="none"), толщина
+   линии держится постоянной через vector-effect — иначе при растяжении
+   вертикальные участки стали бы заметно толще горизонтальных. */
+function Sparkline({ data, color, height = 26 }) {
+  if (!data || data.length < 2) {
+    return (
+      <div style={{ height }} className="flex items-center min-w-0">
+        <span className="truncate text-[12px] text-[#5c6270] font-ibmPlexMono">
+          накопление истории…
+        </span>
+      </div>
+    );
+  }
+
+  const W = 100;
   const vals = data.map((d) => d.v);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const range = max - min || 1;
-  const step = width / (data.length - 1);
+  const step = W / (data.length - 1);
   const pts = data.map((d, i) => [i * step, height - ((d.v - min) / range) * (height - 4) - 2]);
-  const line = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
+  const line = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(2)},${p[1].toFixed(2)}`)
+    .join(" ");
   const gradId = `spark-${color.replace(/[^a-z0-9]/gi, "")}`;
+
   return (
-    <svg width={width} height={height} style={{ display: "block", overflow: "visible" }}>
-      {area && (
-        <>
-          <defs>
-            <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="0.4" />
-              <stop offset="100%" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={`${line} L${width},${height} L0,${height} Z`} fill={`url(#${gradId})`} />
-        </>
-      )}
-      <path d={line} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2.2" fill={color} />
+    <svg
+      viewBox={`0 0 ${W} ${height}`}
+      preserveAspectRatio="none"
+      width="100%"
+      height={height}
+      className="block"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line} L${W},${height} L0,${height} Z`} fill={`url(#${gradId})`} />
+      <path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }
 
-/* ---------- Bar sparkline for RX/s -----------------------------------------*/
-function RateBars({ buckets, width = 90, height = 22, color = "#3ee08f" }) {
-  if (!buckets || buckets.length === 0) return <div style={{ width, height }} />;
+/** Столбики «сообщений в секунду» за последние 20 с. */
+function RateBars({ buckets, width = 84, height = 18 }) {
   const max = Math.max(...buckets, 1);
   const barW = width / buckets.length;
   return (
-    <svg width={width} height={height}>
+    <svg width={width} height={height} aria-hidden="true" className="block">
       {buckets.map((v, i) => {
         const h = Math.max(1, (v / max) * height);
         return (
@@ -141,8 +193,8 @@ function RateBars({ buckets, width = 90, height = 22, color = "#3ee08f" }) {
             y={height - h}
             width={Math.max(1, barW - 1)}
             height={h}
-            fill={color}
-            opacity={0.35 + 0.65 * (i / buckets.length)}
+            fill={STATUS_COLOR.ok}
+            opacity={0.3 + 0.7 * (i / buckets.length)}
           />
         );
       })}
@@ -150,18 +202,18 @@ function RateBars({ buckets, width = 90, height = 22, color = "#3ee08f" }) {
   );
 }
 
-/* ---------- JSON pretty view (real, derived from the actual parsed frame) -*/
+/* ---------- Подсветка JSON ------------------------------------------------ */
 function JsonNode({ value, depth }) {
-  if (value === null || value === undefined) return <span style={{ color: "#6b7280" }}>null</span>;
-  if (typeof value === "boolean") return <span style={{ color: "#c084fc" }}>{String(value)}</span>;
-  if (typeof value === "number") return <span style={{ color: "#4dd6ff" }}>{value}</span>;
-  if (typeof value === "string") return <span style={{ color: "#3ee08f" }}>&quot;{value}&quot;</span>;
+  if (value === null || value === undefined) return <span className="text-[#5c6270]">null</span>;
+  if (typeof value === "boolean") return <span className="text-[#a78bfa]">{String(value)}</span>;
+  if (typeof value === "number") return <span className="text-[#38bdf8]">{value}</span>;
+  if (typeof value === "string") return <span className="text-[#4ade80]">&quot;{value}&quot;</span>;
 
   const indent = "  ".repeat(depth + 1);
   const closeIndent = "  ".repeat(depth);
 
   if (Array.isArray(value)) {
-    if (value.length === 0) return <span style={{ color: "#8b9099" }}>[]</span>;
+    if (value.length === 0) return <span className="text-[#7c8290]">[]</span>;
     return (
       <span>
         {"[\n"}
@@ -178,64 +230,71 @@ function JsonNode({ value, depth }) {
     );
   }
 
-  if (typeof value === "object") {
-    const keys = Object.keys(value);
-    if (keys.length === 0) return <span style={{ color: "#8b9099" }}>{"{}"}</span>;
-    return (
-      <span>
-        {"{\n"}
-        {keys.map((k, i) => (
-          <span key={k}>
-            {indent}
-            <span style={{ color: "#ffc857" }}>&quot;{k}&quot;</span>
-            {": "}
-            <JsonNode value={value[k]} depth={depth + 1} />
-            {i < keys.length - 1 ? "," : ""}
-            {"\n"}
-          </span>
-        ))}
-        {closeIndent}
-        {"}"}
-      </span>
-    );
-  }
-
-  return <span>{String(value)}</span>;
+  const keys = Object.keys(value);
+  if (keys.length === 0) return <span className="text-[#7c8290]">{"{}"}</span>;
+  return (
+    <span>
+      {"{\n"}
+      {keys.map((k, i) => (
+        <span key={k}>
+          {indent}
+          <span className="text-[#bfc7d4]">&quot;{k}&quot;</span>
+          {": "}
+          <JsonNode value={value[k]} depth={depth + 1} />
+          {i < keys.length - 1 ? "," : ""}
+          {"\n"}
+        </span>
+      ))}
+      {closeIndent}
+      {"}"}
+    </span>
+  );
 }
 
-/* ---------- Page --------------------------------------------------------- */
+/* ========================================================================== */
 export default function WebSocketTestPage() {
   const { data: session } = useSession();
-  const router = useRouter();
+
   const [channel, setChannel] = useState("devices");
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [isRunning, setIsRunning] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [entitySearch, setEntitySearch] = useState("");
-  const [filter, setFilter] = useState("all"); // all | recv | ping | err
+  const [tab, setTab] = useState("values"); // values | protocol | connection
+  const [filter, setFilter] = useState("all"); // all | data | ping | err
   const [autoScroll, setAutoScroll] = useState(true);
-  const [selectedFrameSeq, setSelectedFrameSeq] = useState(null);
-  const [frameTab, setFrameTab] = useState("json"); // json | raw | hex
+  // null — инспектор следит за последним кадром; число — закреплён конкретный.
+  const [pinnedSeq, setPinnedSeq] = useState(null);
+  const [frameTab, setFrameTab] = useState("json");
   const [sendText, setSendText] = useState("ping");
+
   const baseHttpUrl = config.WEBSOCKET_URL;
   const streamRef = useRef(null);
+  const authHeaders = {
+    Authorization: `Bearer ${session?.accessToken}`,
+    Accept: "application/json",
+  };
 
-  const { data: devicesData, isLoading: isLoadingDevices } = useGetQuery({
+  /* Списки читаются постранично целиком: у /devices серверная страница по
+     умолчанию — 20 записей, и одиночный запрос показывал 20 устройств из 67. */
+  const { data: devicesData, isLoading: isLoadingDevices } = useAllPages({
     key: KEYS.devices,
     url: URLS.devices,
-    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
+    headers: authHeaders,
     enabled: !!session?.accessToken,
   });
-  const { data: tagsData, isLoading: isLoadingTags } = useGetQuery({
+  const { data: tagsData, isLoading: isLoadingTags } = useAllPages({
     key: KEYS.tags,
     url: URLS.tags,
-    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
+    headers: authHeaders,
     enabled: !!session?.accessToken,
   });
+  // Экраны живут на другом сервисе (8102) и постраничности не имеют.
   const { data: screensData, isLoading: isLoadingScreens } = useGetQuery({
     key: KEYS.screens,
     url: URLS.screens,
     apiClient: requestScreens,
-    headers: { Authorization: `Bearer ${session?.accessToken}`, Accept: "application/json" },
+    headers: authHeaders,
     enabled: !!session?.accessToken,
   });
 
@@ -245,7 +304,16 @@ export default function WebSocketTestPage() {
     const raw = get(screensData, "data.data", get(screensData, "data", []));
     return Array.isArray(raw) ? raw : [];
   }, [screensData]);
-  const deviceNameById = useMemo(() => new Map(deviceList.map((d) => [d.id, d.name || d.id])), [deviceList]);
+  const deviceNameById = useMemo(
+    () => new Map(deviceList.map((d) => [d.id, d.name || d.id])),
+    [deviceList],
+  );
+
+  const channelCounts = {
+    devices: deviceList.length,
+    tags: tagList.length,
+    screens: screenList.length,
+  };
 
   const currentList = useMemo(() => {
     if (channel === "devices") return deviceList;
@@ -256,9 +324,8 @@ export default function WebSocketTestPage() {
   const isLoadingList =
     channel === "devices" ? isLoadingDevices : channel === "tags" ? isLoadingTags : isLoadingScreens;
 
-  // Selection is scoped to the current channel — a device id and a tag id
-  // can collide, and a stale cross-channel selection would silently open
-  // sockets against the wrong endpoint.
+  // Выбор сбрасывается при смене канала: id устройства и id тега могут
+  // совпасть, и оставшийся выбор молча открыл бы сокеты не на тот эндпоинт.
   useEffect(() => {
     setSelectedIds(new Set());
     setEntitySearch("");
@@ -269,7 +336,8 @@ export default function WebSocketTestPage() {
     const q = entitySearch.toLowerCase();
     return currentList.filter((e) => {
       const name = (e.name || "").toLowerCase();
-      const deviceName = channel === "tags" ? (deviceNameById.get(e.deviceId) || "").toLowerCase() : "";
+      const deviceName =
+        channel === "tags" ? (deviceNameById.get(e.deviceId) || "").toLowerCase() : "";
       return name.includes(q) || deviceName.includes(q);
     });
   }, [currentList, entitySearch, channel, deviceNameById]);
@@ -281,9 +349,6 @@ export default function WebSocketTestPage() {
       else next.add(id);
       return next;
     });
-
-  const selectAll = () => setSelectedIds(new Set(filteredEntities.map((e) => e.id)));
-  const clearSelection = () => setSelectedIds(new Set());
 
   const selectedEntities = useMemo(
     () =>
@@ -305,18 +370,21 @@ export default function WebSocketTestPage() {
     [baseHttpUrl, channel, session?.accessToken],
   );
 
-  const { connStatus, openCount, messages, reconnectCount, sendToAll, clearMessages } = useMultiWebSocket({
-    entities: selectedEntities,
-    buildUrl,
-    enabled: isRunning,
-    heartbeatInterval: 25000,
-    heartbeatMessage: "ping",
-    maxMessages: 600,
-  });
+  const { connStatus, openCount, messages, reconnectCount, sendToAll, clearMessages } =
+    useMultiWebSocket({
+      entities: selectedEntities,
+      buildUrl,
+      enabled: isRunning,
+      heartbeatInterval: 25000,
+      heartbeatMessage: "ping",
+      maxMessages: 600,
+    });
 
-  const isSecure = /^wss:/i.test(buildUrl(selectedEntities[0]?.id) || (baseHttpUrl?.startsWith("https") ? "wss:" : "ws:"));
+  const isSecure = /^wss:/i.test(
+    buildUrl(selectedEntities[0]?.id) || (baseHttpUrl?.startsWith("https") ? "wss:" : "ws:"),
+  );
 
-  /* Uptime counts from the moment at least one socket has ever opened while running. */
+  /* Время с момента, когда открылся первый сокет текущей сессии. */
   const [uptime, setUptime] = useState(0);
   useEffect(() => {
     if (!isRunning || openCount === 0) return undefined;
@@ -327,9 +395,9 @@ export default function WebSocketTestPage() {
     if (!isRunning) setUptime(0);
   }, [isRunning]);
 
-  /* Aggregate latest value + short history per tag, across every connected
-     entity. WEBSOCKET_API.md: initial snapshot arrives newest-first, so
-     "last received" isn't "current" — sort by the server's own `time`. */
+  /* Последнее значение и короткая история по каждому тегу, по всем сокетам.
+     WEBSOCKET_API.md: первый снимок приходит от новых к старым, поэтому
+     «пришло последним» ≠ «самое свежее» — сортируем по времени сервера. */
   const tagState = useMemo(() => {
     const byTag = {};
     for (const msg of messages) {
@@ -339,7 +407,7 @@ export default function WebSocketTestPage() {
       const ms = Number.isFinite(serverMs) ? serverMs : Date.parse(msg.time);
       (byTag[data.tag_id] ||= []).push({ ms, data, entityName: msg.entityName });
     }
-    const m = {};
+    const out = {};
     for (const [tagId, points] of Object.entries(byTag)) {
       points.sort((a, b) => a.ms - b.ms);
       const history = points
@@ -350,45 +418,59 @@ export default function WebSocketTestPage() {
         .filter(Boolean)
         .slice(-50);
       const lastPoint = points[points.length - 1];
-      m[tagId] = { history, last: lastPoint.data, sourceName: lastPoint.entityName };
+      out[tagId] = { tagId, history, last: lastPoint.data, sourceName: lastPoint.entityName };
     }
-    return m;
+    return out;
   }, [messages]);
 
-  const activeTags = useMemo(() => Object.values(tagState).slice(0, 12), [tagState]);
-  const sourceCount = useMemo(() => new Set(activeTags.map((t) => t.sourceName)).size, [activeTags]);
+  const tagCards = useMemo(() => Object.values(tagState), [tagState]);
+  const errorTagCount = useMemo(() => tagCards.filter((t) => t.last.is_error).length, [tagCards]);
 
-  /* Real per-second RX rate, last 20s, from actual message timestamps. */
+  /* Реальный темп приёма за последние 20 с — по меткам времени сообщений. */
   const rxRateBuckets = useMemo(() => {
     const now = Date.now();
     const buckets = new Array(20).fill(0);
     for (const msg of messages) {
       if (msg.direction !== "in") continue;
-      const ms = Date.parse(msg.time);
-      const bucket = 19 - Math.floor((now - ms) / 1000);
+      const bucket = 19 - Math.floor((now - Date.parse(msg.time)) / 1000);
       if (bucket >= 0 && bucket < 20) buckets[bucket] += 1;
     }
     return buckets;
   }, [messages]);
 
-  const filteredMessages = useMemo(() => {
-    return messages.filter((m) => {
-      if (filter === "recv") return m.direction === "in";
-      if (filter === "ping") return m.direction === "out";
-      if (filter === "err") return m.direction === "in" && m.parsed?.is_error;
-      return true;
-    });
-  }, [messages, filter]);
+  /* Счётчики по каждому сокету — для вкладки «Соединение». */
+  const perEntityStats = useMemo(() => {
+    const map = new Map();
+    for (const msg of messages) {
+      if (!msg.entityId || msg.direction !== "in") continue;
+      const entry = map.get(msg.entityId) || { received: 0, errors: 0, lastAt: null };
+      entry.received += 1;
+      if (msg.parsed?.is_error) entry.errors += 1;
+      entry.lastAt = msg.time;
+      map.set(msg.entityId, entry);
+    }
+    return map;
+  }, [messages]);
+
+  const filteredMessages = useMemo(
+    () =>
+      messages.filter((m) => {
+        if (filter === "data") return m.direction === "in";
+        if (filter === "ping") return m.direction === "out";
+        if (filter === "err") return m.direction === "in" && m.parsed?.is_error;
+        return true;
+      }),
+    [messages, filter],
+  );
 
   useEffect(() => {
     if (autoScroll && streamRef.current) {
       streamRef.current.scrollTop = streamRef.current.scrollHeight;
     }
-  }, [filteredMessages, autoScroll]);
+  }, [filteredMessages, autoScroll, tab]);
 
   const stats = useMemo(
     () => ({
-      total: messages.length,
       received: messages.filter((m) => m.direction === "in").length,
       pinged: messages.filter((m) => m.direction === "out").length,
       errored: messages.filter((m) => m.direction === "in" && m.parsed?.is_error).length,
@@ -396,23 +478,24 @@ export default function WebSocketTestPage() {
     [messages],
   );
 
-  const selectedFrame = useMemo(
-    () => messages.find((m) => m.seq === selectedFrameSeq) || null,
-    [messages, selectedFrameSeq],
-  );
-  const selectedFrameIndex = useMemo(
-    () => (selectedFrame ? messages.indexOf(selectedFrame) : -1),
-    [messages, selectedFrame],
-  );
-  const prevFrame = selectedFrameIndex > 0 ? messages[selectedFrameIndex - 1] : null;
-  const frameDeltaMs =
-    selectedFrame && prevFrame ? Date.parse(selectedFrame.time) - Date.parse(prevFrame.time) : null;
+  /* Инспектор по умолчанию следует за последним кадром — иначе он застывает
+     на первом попавшемся, пока поток идёт дальше. Клик по строке закрепляет
+     кадр, «открепить» возвращает слежение. */
+  const selectedFrame = useMemo(() => {
+    if (pinnedSeq !== null) return messages.find((m) => m.seq === pinnedSeq) || null;
+    return filteredMessages.length ? filteredMessages[filteredMessages.length - 1] : null;
+  }, [pinnedSeq, messages, filteredMessages]);
+
+  const frameDeltaMs = useMemo(() => {
+    if (!selectedFrame) return null;
+    const index = messages.indexOf(selectedFrame);
+    if (index <= 0) return null;
+    return Date.parse(selectedFrame.time) - Date.parse(messages[index - 1].time);
+  }, [messages, selectedFrame]);
 
   useEffect(() => {
-    if (!selectedFrameSeq && filteredMessages.length > 0) {
-      setSelectedFrameSeq(filteredMessages[filteredMessages.length - 1].seq);
-    }
-  }, [filteredMessages, selectedFrameSeq]);
+    if (frameTab === "json" && selectedFrame && !selectedFrame.parsed) setFrameTab("raw");
+  }, [frameTab, selectedFrame]);
 
   const tokenExpiresIn = useMemo(() => {
     if (!session?.accessTokenExpires) return null;
@@ -422,661 +505,872 @@ export default function WebSocketTestPage() {
 
   const isConnected = isRunning && openCount > 0;
   const isConnecting = isRunning && selectedEntities.length > 0 && openCount === 0;
+  const hasSelection = selectedEntities.length > 0;
+
+  const stateColor = isConnected
+    ? STATUS_COLOR.ok
+    : isConnecting
+      ? STATUS_COLOR.warn
+      : STATUS_COLOR.idle;
+  const stateLabel = isConnected ? "Данные идут" : isConnecting ? "Подключение…" : "Не подключено";
 
   const handleCopyFrame = () => {
     if (!selectedFrame) return;
     navigator.clipboard?.writeText(selectedFrame.raw ?? "").then(
-      () => toast.success("Скопировано"),
-      () => toast.error("Не удалось скопировать"),
+      () => toast.success("Кадр скопирован"),
+      () => toast.error("Буфер обмена недоступен"),
     );
   };
 
   const handleSend = () => {
     if (!sendText.trim()) return;
-    const sent = sendToAll(sendText);
-    if (!sent) toast.error("Нет открытых сокетов");
+    if (!sendToAll(sendText)) toast.error("Нет открытых сокетов");
   };
 
+  const openPicker = () => {
+    setEntitySearch("");
+    setPickerOpen(true);
+  };
+
+  /* ======================================================================== */
   return (
-    <div className="w-full min-h-screen bg-[#0e0e0e] text-[#e5e2e1] p-6">
-      <div className="font-ibmPlexSans text-text-primary">
-        {/* ============================================================
-            TOP STATUS BAR
-            ============================================================ */}
-        <div className="flex items-stretch flex-wrap rounded-xl border border-white/10 bg-gradient-to-b from-[#0e131c] to-[#0a0d12] overflow-hidden mb-4">
-          <div className="flex items-center gap-3 px-4 py-2.5 border-r border-white/10">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-black text-surface-dark font-mono">
-              S
-            </div>
-            <div>
-              <div className="text-[12.5px] tracking-widest font-semibold text-text-dim">SCADA · CONSOLE</div>
-              <div className="text-sm font-semibold text-white">WebSocket Тестер</div>
-            </div>
-          </div>
+    <DashboardLayout headerTitle="Поток значений">
+      <div className="font-ibmPlexSans space-y-2.5">
+        {/* ---------- Шапка: источник, состояние, управление ---------- */}
+        <div className="rounded-[2px] border border-surface-border bg-surface-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-2.5">
+            <span
+              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[2px] text-[13.5px] font-semibold flex-shrink-0"
+              style={{ color: stateColor, background: `${stateColor}1a` }}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${isConnected || isConnecting ? "animate-pulse" : ""}`}
+                style={{ background: stateColor }}
+              />
+              {stateLabel}
+            </span>
 
-          <StatusChunk
-            label="СОСТОЯНИЕ"
-            value={
-              <span className="inline-flex items-center gap-1.5">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    isConnected
-                      ? "bg-emerald-400 shadow-[0_0_8px_#3ee08f] animate-pulse"
-                      : isConnecting
-                        ? "bg-amber-400 animate-pulse"
-                        : "bg-text-dim"
-                  }`}
-                />
-                <span
-                  className={`font-semibold ${
-                    isConnected ? "text-emerald-400" : isConnecting ? "text-amber-400" : "text-text-muted"
-                  }`}
-                >
-                  {isConnected ? "АКТИВНО" : isConnecting ? "ПОДКЛЮЧЕНИЕ" : "ОСТАНОВЛЕНО"}
-                </span>
+            <button
+              type="button"
+              onClick={openPicker}
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[13.5px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              <TuneRoundedIcon sx={{ fontSize: 16 }} />
+              {CHANNEL_META[channel].label}
+              <span className="font-ibmPlexMono text-[#6b7280]">
+                {selectedIds.size} / {currentList.length}
               </span>
-            }
-          />
-          <StatusChunk label="UPTIME" value={formatUptime(uptime)} mono />
-          <StatusChunk
-            label="СОКЕТЫ"
-            value={`${openCount}/${selectedEntities.length}`}
-            mono
-            title="Открытых сокетов из выбранных сущностей — по одному сокету на сущность"
-          />
-          <StatusChunk label="RX" value={stats.received} mono color="text-emerald-400" title="Реальные сообщения от сервера" />
-          <StatusChunk
-            label="PING"
-            value={stats.pinged}
-            mono
-            color="text-text-dim"
-            title="Keepalive-кадры браузера — сервер их не интерпретирует, это не часть протокола API"
-          />
-          <StatusChunk label="ОШИБКИ" value={stats.errored} mono color={stats.errored ? "text-rose-400" : undefined} />
-          <StatusChunk label="РЕКОННЕКТ" value={reconnectCount} mono />
+            </button>
 
-          <div className="ml-auto flex items-center gap-4 px-4 py-2">
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-[11.5px] text-text-dim tracking-wider font-semibold">RX/С</span>
-              <RateBars buckets={rxRateBuckets} color="#3ee08f" />
-            </div>
-            <ToolBtn onClick={() => router.push("/dashboard/main")} accent="slate" title="Вернуться на главную">
-              <ArrowBackIcon style={{ fontSize: 14 }} />
-              НАЗАД
-            </ToolBtn>
-            {!isRunning ? (
-              <ToolBtn disabled={selectedEntities.length === 0} onClick={() => setIsRunning(true)} accent="emerald">
-                <PlayArrowRoundedIcon style={{ fontSize: 14 }} />
-                ПОДКЛЮЧИТЬСЯ
-              </ToolBtn>
-            ) : (
-              <ToolBtn onClick={() => setIsRunning(false)} accent="rose">
-                <StopRoundedIcon style={{ fontSize: 14 }} />
-                ОТКЛЮЧИТЬСЯ
-              </ToolBtn>
-            )}
-            <ToolBtn disabled={messages.length === 0} onClick={clearMessages} accent="slate">
-              <DeleteOutlineOutlinedIcon style={{ fontSize: 14 }} />
-              ОЧИСТИТЬ
-            </ToolBtn>
-          </div>
-        </div>
-
-        {/* ============================================================
-            BODY: rail + content + inspector
-            ============================================================ */}
-        <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_320px] gap-4">
-          {/* ----- LEFT RAIL ----- */}
-          <div className="rounded-xl border border-white/10 bg-[#0c1118] overflow-hidden flex flex-col">
-            <div className="p-3 border-b border-white/10">
-              <SectionLabel>ТИП ДАННЫХ</SectionLabel>
-              <div className="grid grid-cols-3 gap-1.5 mt-2">
-                {Object.entries(CHANNEL_META).map(([key, preset]) => {
-                  const Ico = preset.icon;
-                  const active = channel === key;
-                  const count =
-                    key === "devices" ? deviceList.length : key === "tags" ? tagList.length : screenList.length;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      title={preset.description}
-                      onClick={() => setChannel(key)}
-                      className={`min-w-0 p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118] border ${
-                        active
-                          ? "bg-white/[0.07] border-white/70 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
-                          : "bg-transparent border-white/10 text-text-muted hover:border-white/25 hover:bg-white/[0.03]"
-                      }`}
-                    >
-                      <Ico style={{ fontSize: 14 }} />
-                      <span className="text-[12.5px] uppercase font-semibold leading-tight break-words">
-                        {preset.label}
-                      </span>
-                      <span className={`text-[11.5px] font-mono ${active ? "text-white/80" : "text-text-dim"}`}>
-                        {String(count).padStart(2, "0")}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="p-3 flex-1 min-h-0 flex flex-col">
-              <div className="relative mb-2">
-                <SearchOutlinedIcon
-                  style={{ fontSize: 14 }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 text-text-dim"
+            {hasSelection && (
+              <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-[13px]">
+                <Metric label="Сессия" value={formatUptime(uptime)} />
+                <Metric
+                  label="Получено"
+                  value={stats.received}
+                  color={stats.received ? STATUS_COLOR.ok : undefined}
+                  hint="Сообщения со значениями тегов, пришедшие с сервера"
                 />
-                <input
-                  value={entitySearch}
-                  onChange={(e) => setEntitySearch(e.target.value)}
-                  placeholder="фильтр по имени…"
-                  className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint pl-7 pr-2 py-1.5 rounded-lg text-xs outline-none transition-colors hover:border-white/20 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/40"
+                <Metric
+                  label="Ошибки"
+                  value={stats.errored}
+                  color={stats.errored ? STATUS_COLOR.alarm : undefined}
+                  hint="Сообщения с признаком is_error — проблема качества данных, а не связи"
                 />
-              </div>
-
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[12.5px] text-text-dim font-mono">
-                  подписка: {selectedIds.size} из {currentList.length}
-                </span>
-                <div className="flex items-center gap-2 text-[12.5px] font-mono">
-                  <button
-                    type="button"
-                    onClick={selectAll}
-                    disabled={filteredEntities.length === 0}
-                    className="text-sky-400 hover:text-sky-300 disabled:text-text-faint disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60 rounded"
-                  >
-                    ВСЕ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearSelection}
-                    disabled={selectedIds.size === 0}
-                    className="text-rose-400 hover:text-rose-300 disabled:text-text-faint disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/60 rounded"
-                  >
-                    СБРОС
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-0.5 overflow-y-auto pr-1" style={{ maxHeight: "38vh" }}>
-                {isLoadingList ? (
-                  <div className="text-center py-3 text-text-dim text-xs">Загрузка...</div>
-                ) : filteredEntities.length === 0 ? (
-                  <div className="text-center py-3 text-text-dim text-xs">Не найдено</div>
-                ) : (
-                  filteredEntities.map((entity) => {
-                    const checked = selectedIds.has(entity.id);
-                    const status = connStatus.get(entity.id);
-                    const dotColor =
-                      status === "open"
-                        ? "#3ee08f"
-                        : status === "connecting"
-                          ? "#ffc857"
-                          : status === "error"
-                            ? "#ff5c8a"
-                            : "#3a3a3a";
-                    const deviceName = channel === "tags" ? deviceNameById.get(entity.deviceId) : null;
-                    return (
-                      <label
-                        key={entity.id}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-white/[0.03] transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleEntity(entity.id)}
-                          className="accent-orange-500 cursor-pointer flex-shrink-0"
-                        />
-                        <span
-                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: dotColor, boxShadow: status === "open" ? `0 0 5px ${dotColor}` : "none" }}
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-xs text-text-primary">
-                            {formatTagLabelShort(entity.name || "Без названия")}
-                          </span>
-                          {deviceName && (
-                            <span className="block truncate text-[12.5px] text-text-dim font-mono">{deviceName}</span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })
+                <Metric
+                  label="Ping"
+                  value={stats.pinged}
+                  hint="Keepalive браузера раз в 25 с. Сервер их не разбирает, в протокол они не входят"
+                />
+                <Metric
+                  label="Переподключений"
+                  value={reconnectCount}
+                  color={reconnectCount ? STATUS_COLOR.warn : undefined}
+                />
+                {isRunning && (
+                  <div>
+                    <p className="text-[12px] uppercase tracking-wide text-[#6b7280]">Приём, 20 с</p>
+                    <RateBars buckets={rxRateBuckets} />
+                  </div>
                 )}
               </div>
-            </div>
+            )}
 
-            <div className="p-3 border-t border-white/10">
-              <SectionLabel>ПАРАМЕТРЫ СЕССИИ</SectionLabel>
-              <div className="mt-2 space-y-1.5">
-                <SessionRow label="Схема" value={isSecure ? "wss (TLS)" : "ws"} />
-                <SessionRow label="Формат" value="JSON, 1 значение/кадр" />
-                <SessionRow label="Интервал ping" value="25 с" />
-                <SessionRow label="Reconnect" value="авто · экспоненциальный backoff" />
-                <SessionRow
-                  label="Токен"
-                  value={
-                    tokenExpiresIn === null
-                      ? "—"
-                      : tokenExpiresIn > 0
-                        ? `действителен · ${tokenExpiresIn} мин`
-                        : "истёк"
-                  }
-                  valueColor={tokenExpiresIn === 0 ? "text-rose-400" : undefined}
-                />
-              </div>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={clearMessages}
+                disabled={messages.length === 0}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
+                Очистить
+              </button>
+
+              {!isRunning ? (
+                <button
+                  type="button"
+                  onClick={() => setIsRunning(true)}
+                  disabled={!hasSelection}
+                  title={hasSelection ? undefined : "Сначала выберите источники"}
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <PlayArrowRoundedIcon sx={{ fontSize: 17 }} />
+                  Подключиться
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsRunning(false)}
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[2px] border text-[13px] font-semibold transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2"
+                  style={{ borderColor: `${STATUS_COLOR.alarm}66`, color: STATUS_COLOR.alarm }}
+                >
+                  <StopRoundedIcon sx={{ fontSize: 17 }} />
+                  Отключиться
+                </button>
+              )}
             </div>
           </div>
 
-          {/* ----- MAIN ----- */}
-          <div className="flex flex-col gap-4 min-w-0">
-            {/* Live tile grid */}
-            <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <SectionLabel>ТЕКУЩИЕ ЗНАЧЕНИЯ</SectionLabel>
-                  {isConnected && (
-                    <span className="inline-flex items-center gap-1.5 text-[12.5px] text-emerald-400 font-mono border border-emerald-900/50 bg-emerald-950/40 px-1.5 py-0.5 rounded">
-                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                      LIVE
-                    </span>
-                  )}
-                </div>
-                <span className="text-[13px] text-text-dim font-mono">
-                  {activeTags.length > 0
-                    ? `${sourceCount} источник${sourceCount === 1 ? "" : "ов"} · ${activeTags.length} тег${activeTags.length === 1 ? "" : "ов"}`
-                    : "ожидание данных…"}
-                </span>
-              </div>
+          {/* Выбранные источники живыми фишками: видно состояние каждого
+              сокета и можно снять один, не открывая окно выбора. */}
+          {hasSelection && (
+            <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-t border-surface-border">
+              {selectedEntities.map((entity) => {
+                const meta = socketMeta(connStatus.get(entity.id));
+                return (
+                  <span
+                    key={entity.id}
+                    title={isRunning ? `сокет: ${meta.label}` : "сокет ещё не открыт"}
+                    className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[2px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[240px]"
+                  >
+                    {isRunning && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: meta.color }}
+                      />
+                    )}
+                    <span className="truncate">{formatTagLabelShort(entity.name)}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggleEntity(entity.id)}
+                      title="Убрать источник"
+                      className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[2px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    >
+                      <CloseRoundedIcon sx={{ fontSize: 13 }} />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-              {activeTags.length === 0 ? (
-                <div className="text-center py-10 text-text-dim text-xs">
-                  {isRunning
-                    ? selectedEntities.length === 0
-                      ? "Выберите устройства/теги/экраны слева"
-                      : "Сокеты подключены. Ожидание первого сообщения…"
-                    : "Выберите сущности и нажмите «Подключиться»"}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
-                  {activeTags.map((t) => (
-                    <TagTile key={t.last.tag_id} t={t} />
-                  ))}
-                </div>
+        {/* ---------- Рабочая область ---------- */}
+        {!hasSelection ? (
+          <StartCard
+            channelLabel={CHANNEL_META[channel].label.toLowerCase()}
+            onPick={openPicker}
+            loading={isLoadingList}
+          />
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <SegmentedControl
+                value={tab}
+                onChange={setTab}
+                options={[
+                  { value: "values", label: `Значения${tagCards.length ? ` · ${tagCards.length}` : ""}` },
+                  { value: "protocol", label: `Протокол${messages.length ? ` · ${messages.length}` : ""}` },
+                  { value: "connection", label: "Соединение" },
+                ]}
+              />
+              {errorTagCount > 0 && (
+                <span
+                  className="inline-flex items-center gap-1.5 text-[13px] px-2 py-1 rounded-[2px]"
+                  style={{ color: STATUS_COLOR.alarm, background: `${STATUS_COLOR.alarm}14` }}
+                >
+                  <ErrorOutlineRoundedIcon sx={{ fontSize: 14 }} />
+                  {errorTagCount} {plural(errorTagCount, ["тег", "тега", "тегов"])} с ошибкой чтения
+                </span>
               )}
             </div>
 
-            {/* Message stream */}
-            <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4 flex-1 min-h-0 flex flex-col">
-              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <SectionLabel>ПОТОК СООБЩЕНИЙ</SectionLabel>
-                  <span className="text-[13px] text-text-dim font-mono">
-                    {filteredMessages.length} / {messages.length} кадров
-                  </span>
+            {/* ---- Вкладка «Значения» ---- */}
+            {tab === "values" &&
+              (tagCards.length === 0 ? (
+                <Panel>
+                  <EmptyState
+                    title={isRunning ? "Ждём первое сообщение" : "Данных пока нет"}
+                    description={
+                      isRunning
+                        ? "Сокеты открыты. Значение появится, как только сервер его пришлёт."
+                        : "Нажмите «Подключиться» — снимок из последних записей придёт сразу после открытия сокета."
+                    }
+                  />
+                </Panel>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-2">
+                  {tagCards.map((t, i) => (
+                    <TagTile key={t.tagId} t={t} color={seriesColor(i)} />
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAutoScroll((v) => !v)}
-                    className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
-                      autoScroll
-                        ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
-                        : "border-white/10 text-text-dim hover:text-text-secondary"
-                    }`}
-                  >
-                    ● АВТОПРОКРУТКА
-                  </button>
-                  <div className="flex gap-0.5">
-                    {[
-                      { k: "all", l: "ВСЕ", c: "text-text-primary" },
-                      { k: "recv", l: "← RX", c: "text-emerald-400", title: "Данные от сервера" },
-                      {
-                        k: "ping",
-                        l: "→ PING",
-                        c: "text-text-dim",
-                        title: "Keepalive-кадры браузера — не часть протокола",
-                      },
-                      { k: "err", l: "ERR", c: "text-rose-400" },
-                    ].map((o) => {
-                      const active = filter === o.k;
-                      return (
-                        <button
-                          key={o.k}
-                          type="button"
-                          title={o.title}
-                          onClick={() => setFilter(o.k)}
-                          className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
-                            active
-                              ? `bg-[#1a2030] border-[#2b3a55] ${o.c}`
-                              : "border-white/10 text-text-dim hover:text-text-secondary"
-                          }`}
-                        >
-                          {o.l}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              ))}
 
-              <div className="bg-[#070a0f] border border-white/10 rounded-lg overflow-hidden flex-1 min-h-0">
-                <div ref={streamRef} className="overflow-auto h-full" style={{ maxHeight: "42vh" }}>
-                  {filteredMessages.length === 0 ? (
-                    <div className="text-center py-10 text-text-dim">
-                      <MarkEmailUnreadOutlinedIcon style={{ fontSize: 28 }} className="text-text-faint mb-2" />
-                      <div className="text-xs">
-                        {isRunning ? "Ожидание сообщений..." : "Подключитесь для получения сообщений"}
+            {/* ---- Вкладка «Протокол» ---- */}
+            {tab === "protocol" && (
+              <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_380px] gap-2.5 items-start">
+                <Panel
+                  flush
+                  title="Журнал кадров"
+                  description="Всё, что прошло по сокетам. Нажмите строку, чтобы разобрать кадр."
+                  toolbar={
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAutoScroll((v) => !v)}
+                        aria-pressed={autoScroll}
+                        className={`h-8 px-2.5 rounded-[2px] border text-[13px] transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                          autoScroll
+                            ? "border-primary/60 bg-primary/15 text-[#bfdbfe]"
+                            : "border-surface-border text-[#6b7280] hover:text-[#e5e2e1]"
+                        }`}
+                      >
+                        Автопрокрутка
+                      </button>
+                      <SegmentedControl
+                        size="sm"
+                        value={filter}
+                        onChange={setFilter}
+                        options={[
+                          { value: "all", label: "Все" },
+                          { value: "data", label: "Данные", title: "Сообщения от сервера" },
+                          { value: "ping", label: "Ping", title: "Keepalive браузера" },
+                          { value: "err", label: "Ошибки", title: "Сообщения с is_error" },
+                        ]}
+                      />
+                    </div>
+                  }
+                >
+                  <div ref={streamRef} className="overflow-auto" style={{ maxHeight: "58vh" }}>
+                    {filteredMessages.length === 0 ? (
+                      <EmptyState
+                        compact
+                        title={isRunning ? "Пока ничего не пришло" : "Журнал пуст"}
+                        description={
+                          isRunning
+                            ? "Сокеты открыты, ждём сообщение от сервера."
+                            : "Подключитесь, чтобы увидеть кадры протокола."
+                        }
+                      />
+                    ) : (
+                      <table className="w-full border-collapse text-[14px]">
+                        <thead className="sticky top-0 z-10">
+                          <tr>
+                            <Th>Время</Th>
+                            <Th>Тип</Th>
+                            <Th>Тег</Th>
+                            <Th>Источник</Th>
+                            <Th numeric>Значение</Th>
+                            <Th numeric>Размер</Th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredMessages.map((m) => (
+                            <LogRow
+                              key={m.seq}
+                              m={m}
+                              selected={selectedFrame?.seq === m.seq}
+                              onSelect={() => setPinnedSeq(m.seq)}
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </Panel>
+
+                <Panel
+                  title="Разбор кадра"
+                  toolbar={
+                    selectedFrame && (
+                      <button
+                        type="button"
+                        onClick={handleCopyFrame}
+                        title="Скопировать тело кадра"
+                        className="inline-flex items-center gap-1 h-8 px-2 rounded-[2px] text-[13px] text-[#6b7280] hover:text-[#e5e2e1] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      >
+                        <ContentCopyRoundedIcon sx={{ fontSize: 14 }} />
+                        Копировать
+                      </button>
+                    )
+                  }
+                >
+                  {!selectedFrame ? (
+                    <EmptyState
+                      compact
+                      title="Кадр не выбран"
+                      description="Здесь появится разбор сообщения: поля JSON, исходный текст и байты."
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[13px] font-ibmPlexMono text-[#6b7280]">
+                          кадр №{selectedFrame.seq}
+                        </span>
+                        {pinnedSeq !== null ? (
+                          <button
+                            type="button"
+                            onClick={() => setPinnedSeq(null)}
+                            className="inline-flex items-center gap-1 text-[13px] text-primary hover:text-[#60a5fa] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded-[2px]"
+                          >
+                            <PushPinRoundedIcon sx={{ fontSize: 13 }} />
+                            Закреплён — открепить
+                          </button>
+                        ) : (
+                          <span className="text-[13px] text-[#5c6270]">следит за последним</span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                        <MetaField
+                          label="Тип"
+                          value={
+                            selectedFrame.direction === "in"
+                              ? "данные от сервера"
+                              : selectedFrame.direction === "out"
+                                ? "ping от браузера"
+                                : "событие сокета"
+                          }
+                        />
+                        <MetaField label="Источник" value={selectedFrame.entityName || "—"} />
+                        <MetaField label="Время" value={formatTimeMs(selectedFrame.time)} mono />
+                        <MetaField
+                          label="С прошлого кадра"
+                          value={frameDeltaMs === null ? "—" : `${frameDeltaMs} мс`}
+                          mono
+                        />
+                      </div>
+
+                      {selectedFrame.parsed?.is_error && (
+                        <p
+                          className="flex items-start gap-1.5 text-[13px] rounded-[2px] px-2.5 py-2"
+                          style={{
+                            color: STATUS_COLOR.alarm,
+                            background: `${STATUS_COLOR.alarm}14`,
+                          }}
+                        >
+                          <ErrorOutlineRoundedIcon
+                            sx={{ fontSize: 15 }}
+                            className="flex-shrink-0"
+                          />
+                          {selectedFrame.parsed.error_message ||
+                            "Сервер отметил значение как ошибочное"}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between gap-2">
+                        <SegmentedControl
+                          size="sm"
+                          value={frameTab}
+                          onChange={setFrameTab}
+                          options={[
+                            ...(selectedFrame.parsed ? [{ value: "json", label: "Поля" }] : []),
+                            { value: "raw", label: "Текст" },
+                            { value: "hex", label: "Байты" },
+                          ]}
+                        />
+                        <span className="text-[13px] font-ibmPlexMono text-[#6b7280]">
+                          {byteLength(selectedFrame.raw)} Б
+                        </span>
+                      </div>
+
+                      <div
+                        className="rounded-[2px] border border-surface-border bg-surface-1 p-3 overflow-auto"
+                        style={{ maxHeight: "32vh" }}
+                      >
+                        {frameTab === "json" && selectedFrame.parsed ? (
+                          <pre className="m-0 text-[13px] font-ibmPlexMono leading-relaxed whitespace-pre-wrap text-[#bfc7d4]">
+                            <JsonNode value={selectedFrame.parsed} depth={0} />
+                          </pre>
+                        ) : frameTab === "hex" ? (
+                          <div className="text-[13px] font-ibmPlexMono leading-relaxed">
+                            {toHexDump(selectedFrame.raw).map((row) => (
+                              <div key={row.offset} className="flex gap-3 whitespace-nowrap">
+                                <span className="text-[#5c6270]">
+                                  {row.offset.toString(16).padStart(6, "0")}
+                                </span>
+                                <span className="text-[#38bdf8]">{row.hex}</span>
+                                <span className="text-[#6b7280]">{row.ascii}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <pre className="m-0 text-[13px] font-ibmPlexMono leading-relaxed whitespace-pre-wrap text-[#bfc7d4]">
+                            {selectedFrame.raw}
+                          </pre>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <table className="w-full font-mono text-[14px]">
-                      <thead className="sticky top-0 bg-[#0a0d12] z-10">
-                        <tr className="text-text-dim text-[12.5px] tracking-wider font-semibold">
-                          <Th>ВРЕМЯ</Th>
-                          <Th>НАПР</Th>
-                          <Th>ИСТОЧНИК</Th>
-                          <Th>ТЕГ</Th>
-                          <Th align="right">ЗНАЧЕНИЕ</Th>
-                          <Th>СТАТУС</Th>
-                          <Th align="right">РАЗМЕР</Th>
+                  )}
+                </Panel>
+              </div>
+            )}
+
+            {/* ---- Вкладка «Соединение» ---- */}
+            {tab === "connection" && (
+              <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-2.5 items-start">
+                <Panel
+                  flush
+                  title="Сокеты"
+                  description="По одному соединению на каждый выбранный источник."
+                >
+                  <div className="overflow-auto" style={{ maxHeight: "58vh" }}>
+                    <table className="w-full border-collapse text-[14px]">
+                      <thead className="sticky top-0 z-10">
+                        <tr>
+                          <Th>Источник</Th>
+                          <Th>Состояние</Th>
+                          <Th numeric>Получено</Th>
+                          <Th numeric>Ошибок</Th>
+                          <Th numeric>Последнее</Th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredMessages.map((m, i) => (
-                          <LogRow
-                            key={m.seq}
-                            m={m}
-                            alt={i % 2 === 1}
-                            selected={m.seq === selectedFrameSeq}
-                            onSelect={() => setSelectedFrameSeq(m.seq)}
-                          />
-                        ))}
+                        {selectedEntities.map((entity) => {
+                          const meta = socketMeta(connStatus.get(entity.id));
+                          const s = perEntityStats.get(entity.id);
+                          return (
+                            <tr
+                              key={entity.id}
+                              className="border-b border-surface-border/60 last:border-b-0 hover:bg-surface-3/40 transition-colors"
+                            >
+                              <td className="px-3 py-1.5 text-[13.5px] text-[#e5e2e1]">
+                                <span className="block truncate max-w-[280px]">
+                                  {formatTagLabelShort(entity.name)}
+                                </span>
+                              </td>
+                              <td className="px-3 py-1.5">
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[13px]"
+                                  style={{ color: isRunning ? meta.color : "#5c6270" }}
+                                >
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ background: isRunning ? meta.color : "#3a3a3a" }}
+                                  />
+                                  {isRunning ? meta.label : "не открыт"}
+                                </span>
+                              </td>
+                              <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[#bfc7d4]">
+                                {s?.received ?? 0}
+                              </td>
+                              <td
+                                className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums"
+                                style={{ color: s?.errors ? STATUS_COLOR.alarm : "#5c6270" }}
+                              >
+                                {s?.errors ?? 0}
+                              </td>
+                              <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[13px] text-[#6b7280]">
+                                {s?.lastAt ? formatTimeMs(s.lastAt) : "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
-                  )}
+                  </div>
+                </Panel>
+
+                <div className="space-y-2.5">
+                  <Panel title="Параметры сессии">
+                    <div className="space-y-1.5">
+                      <SessionRow label="Эндпоинт" value={CHANNEL_META[channel].path} />
+                      <SessionRow label="Схема" value={isSecure ? "wss (TLS)" : "ws"} />
+                      <SessionRow label="Формат" value="JSON, одно значение в кадре" />
+                      <SessionRow label="Снимок при старте" value="до 10 последних записей" />
+                      <SessionRow label="Ping" value="каждые 25 с" />
+                      <SessionRow label="Переподключение" value="авто, с нарастающей паузой" />
+                      <SessionRow
+                        label="Токен"
+                        value={
+                          tokenExpiresIn === null
+                            ? "—"
+                            : tokenExpiresIn > 0
+                              ? `ещё ${tokenExpiresIn} мин`
+                              : "истёк"
+                        }
+                        color={tokenExpiresIn === 0 ? STATUS_COLOR.alarm : undefined}
+                      />
+                    </div>
+                  </Panel>
+
+                  <Panel title="Отправить в открытые сокеты">
+                    <div className="flex gap-1.5">
+                      <input
+                        value={sendText}
+                        onChange={(e) => setSendText(e.target.value)}
+                        className="min-w-0 flex-1 h-9 px-2.5 rounded-[2px] bg-surface-1 border border-surface-border text-[13px] font-ibmPlexMono text-[#e5e2e1] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSend}
+                        disabled={openCount === 0}
+                        className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      >
+                        Отправить
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-[13px] text-[#6b7280] leading-snug">
+                      Протокола команд у сервера нет: любой текст засчитывается как keepalive и не
+                      обрабатывается.
+                    </p>
+                  </Panel>
                 </div>
               </div>
-            </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ---------- Окно выбора источников ---------- */}
+      <MethodModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        closeClick={() => setPickerOpen(false)}
+        showCloseIcon
+        title="Что слушаем"
+        width={900}
+        padding={3}
+      >
+        <div className="font-ibmPlexSans space-y-3">
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(CHANNEL_META).map(([key, meta]) => {
+              const Icon = meta.icon;
+              const active = channel === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setChannel(key)}
+                  aria-pressed={active}
+                  className={`text-left p-3 rounded-[2px] border transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    active
+                      ? "border-primary/60 bg-primary/15"
+                      : "border-surface-border bg-surface-1 hover:border-[#475569]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon
+                      sx={{ fontSize: 16 }}
+                      style={{ color: active ? "#bfdbfe" : "#7c8290" }}
+                    />
+                    <span
+                      className="text-[14px] font-semibold"
+                      style={{ color: active ? "#bfdbfe" : "#bfc7d4" }}
+                    >
+                      {meta.label}
+                    </span>
+                    <span className="ml-auto text-[13px] font-ibmPlexMono text-[#6b7280] tabular-nums">
+                      {channelCounts[key]}
+                    </span>
+                  </div>
+                  <p className="text-[12.5px] text-[#6b7280] leading-snug">{meta.note}</p>
+                </button>
+              );
+            })}
           </div>
 
-          {/* ----- RIGHT: FRAME INSPECTOR ----- */}
-          <div className="rounded-xl border border-white/10 bg-[#0c1118] p-4 flex flex-col gap-3 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto">
-            {!selectedFrame ? (
-              <div className="text-center py-10 text-text-dim text-xs">Выберите кадр в потоке сообщений</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px]">
+              <SearchRoundedIcon
+                sx={{ fontSize: 16 }}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5c6270] pointer-events-none"
+              />
+              <input
+                value={entitySearch}
+                onChange={(e) => setEntitySearch(e.target.value)}
+                placeholder="поиск по названию"
+                className="w-full h-9 pl-8 pr-2.5 rounded-[2px] bg-surface-1 border border-surface-border text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedIds((prev) => {
+                  const next = new Set(prev);
+                  filteredEntities.forEach((e) => next.add(e.id));
+                  return next;
+                })
+              }
+              disabled={filteredEntities.length === 0}
+              className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              Отметить найденные
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              disabled={selectedIds.size === 0}
+              className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              Снять всё
+            </button>
+          </div>
+
+          <div
+            className="rounded-[2px] border border-surface-border bg-surface-1 p-2 overflow-y-auto"
+            style={{ maxHeight: "46vh" }}
+          >
+            {isLoadingList ? (
+              <p className="py-6 text-center text-[13px] text-[#6b7280]">Загрузка списка…</p>
+            ) : filteredEntities.length === 0 ? (
+              <p className="py-6 text-center text-[13px] text-[#6b7280]">
+                {currentList.length === 0 ? "Список пуст" : "Ничего не найдено"}
+              </p>
             ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[12.5px] text-text-dim font-mono">
-                      КАДР #{selectedFrame.seq} ·{" "}
-                      {selectedFrame.direction === "in"
-                        ? "RX"
-                        : selectedFrame.direction === "out"
-                          ? "PING"
-                          : "СИСТЕМА"}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCopyFrame}
-                    className="inline-flex items-center gap-1 text-[12.5px] font-mono text-text-dim hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/60 rounded px-1.5 py-0.5"
-                  >
-                    <ContentCopyOutlinedIcon style={{ fontSize: 12 }} />
-                    КОПИЯ
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[13px]">
-                  <MetaField label="НАПРАВЛЕНИЕ" value={selectedFrame.direction === "in" ? "RX (сервер → клиент)" : selectedFrame.direction === "out" ? "PING (клиент → сервер)" : "событие сокета"} />
-                  <MetaField label="ИСТОЧНИК" value={`${channel}/${selectedFrame.entityName || "—"}`} />
-                  <MetaField label="ВРЕМЯ" value={formatTimeMs(selectedFrame.time)} mono />
-                  <MetaField label="Δt ОТ ПРЕД." value={frameDeltaMs === null ? "—" : `${frameDeltaMs} мс`} mono />
-                </div>
-
-                <div className="flex gap-0.5">
-                  {["json", "raw", "hex"].map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setFrameTab(tab)}
-                      disabled={tab === "json" && !selectedFrame.parsed}
-                      className={`px-2.5 py-1 rounded-lg font-mono font-semibold tracking-wide text-[12.5px] border transition-all active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 ${
-                        frameTab === tab
-                          ? "bg-[#1a2030] border-[#2b3a55] text-orange-400"
-                          : "border-white/10 text-text-dim hover:text-text-secondary"
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-2">
+                {filteredEntities.map((entity) => {
+                  const checked = selectedIds.has(entity.id);
+                  const deviceName =
+                    channel === "tags" ? deviceNameById.get(entity.deviceId) : null;
+                  return (
+                    <label
+                      key={entity.id}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-[2px] cursor-pointer transition-colors ${
+                        checked ? "bg-primary/10" : "hover:bg-surface-3/60"
                       }`}
                     >
-                      {tab.toUpperCase()}
-                    </button>
-                  ))}
-                  <span className="ml-auto text-[12.5px] text-text-dim font-mono self-center">
-                    {byteLength(selectedFrame.raw)} Б
-                  </span>
-                </div>
-
-                <div className="bg-[#070a0f] border border-white/10 rounded-lg p-3 overflow-auto" style={{ maxHeight: "34vh" }}>
-                  {frameTab === "json" && selectedFrame.parsed ? (
-                    <pre className="text-[13px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
-                      <JsonNode value={selectedFrame.parsed} depth={0} />
-                    </pre>
-                  ) : frameTab === "hex" ? (
-                    <div className="text-[13px] font-mono leading-relaxed text-text-secondary">
-                      {toHexDump(selectedFrame.raw).map((row) => (
-                        <div key={row.offset} className="flex gap-3 whitespace-nowrap">
-                          <span className="text-text-faint">{row.offset.toString(16).padStart(6, "0")}</span>
-                          <span className="text-sky-300">{row.hex}</span>
-                          <span className="text-text-dim">{row.ascii}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <pre className="text-[13px] font-mono leading-relaxed whitespace-pre-wrap text-text-secondary m-0">
-                      {selectedFrame.raw}
-                    </pre>
-                  )}
-                </div>
-
-                <div className="pt-2 border-t border-white/10">
-                  <SectionLabel>ОТПРАВИТЬ ТЕКСТ</SectionLabel>
-                  <p className="text-[12.5px] text-text-dim mt-1 mb-2 leading-relaxed">
-                    У сервера нет протокола команд (WEBSOCKET_API.md) — любой текст воспринимается только как
-                    keepalive и не обрабатывается. Отправляется во все открытые сокеты.
-                  </p>
-                  <textarea
-                    value={sendText}
-                    onChange={(e) => setSendText(e.target.value)}
-                    rows={2}
-                    className="w-full bg-[#070a0f] border border-white/10 text-text-primary placeholder:text-text-faint px-2.5 py-2 rounded-lg text-xs font-mono outline-none transition-colors hover:border-white/20 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/40 resize-none"
-                  />
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setSendText("ping")}
-                      className="px-3 py-1.5 rounded-lg border border-white/10 text-text-dim text-[13px] font-mono hover:text-text-secondary hover:border-white/25 transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
-                    >
-                      ping
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSend}
-                      disabled={openCount === 0}
-                      className="flex-1 py-1.5 rounded-lg bg-orange-500 text-[#0a0d12] text-[13px] font-bold tracking-wide hover:brightness-110 active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0c1118]"
-                    >
-                      ОТПРАВИТЬ
-                    </button>
-                  </div>
-                </div>
-              </>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleEntity(entity.id)}
+                        className="accent-[#3b82f6] cursor-pointer flex-shrink-0"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14px] text-[#e5e2e1]">
+                          {formatTagLabelShort(entity.name || "Без названия")}
+                        </span>
+                        {deviceName && (
+                          <span className="block truncate text-[12.5px] text-[#6b7280] font-ibmPlexMono">
+                            {deviceName}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
             )}
           </div>
+
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <p className="text-[13px] text-[#6b7280]">
+              Выбрано{" "}
+              <span className="font-ibmPlexMono text-[#e5e2e1]">{selectedIds.size}</span> —
+              откроется столько же соединений.
+              {isRunning && " Изменения применяются сразу."}
+            </p>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(false)}
+              className="h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              Готово
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </MethodModal>
+    </DashboardLayout>
   );
 }
 
-/* ---------- Sub-components ----------------------------------------------- */
-function SectionLabel({ children }) {
-  return <div className="text-[12.5px] text-text-muted tracking-widest font-bold uppercase">{children}</div>;
-}
-
-function StatusChunk({ label, value, mono, color, muted, title }) {
+/* ---------- Мелкие части -------------------------------------------------- */
+function Metric({ label, value, color, hint }) {
   return (
-    <div title={title} className="px-4 py-2 border-r border-white/10 flex flex-col justify-center gap-0.5 min-w-[100px]">
-      <div className="text-[11.5px] text-text-dim tracking-wider font-semibold">{label}</div>
-      <div
-        className={`text-[14.5px] font-semibold ${color || (muted ? "text-text-dim" : "text-text-primary")} ${mono ? "font-mono" : ""}`}
+    <div title={hint} className={hint ? "cursor-help" : undefined}>
+      <p className="text-[12px] uppercase tracking-wide text-[#6b7280] whitespace-nowrap">
+        {label}
+      </p>
+      <p
+        className="text-[14.5px] font-ibmPlexMono tabular-nums leading-tight"
+        style={{ color: color || "#e5e2e1" }}
       >
         {value}
-      </div>
+      </p>
     </div>
   );
 }
 
-function SessionRow({ label, value, valueColor }) {
+function SessionRow({ label, value, color }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-[13px] text-text-dim">{label}</span>
-      <span className={`text-[13px] font-mono ${valueColor || "text-text-secondary"}`}>{value}</span>
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-[13px] text-[#6b7280] flex-shrink-0">{label}</span>
+      <span
+        className="text-[13px] text-right break-all font-ibmPlexMono"
+        style={{ color: color || "#bfc7d4" }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
 function MetaField({ label, value, mono }) {
   return (
-    <div>
-      <div className="text-[11.5px] text-text-dim tracking-wider font-semibold">{label}</div>
-      <div className={`text-text-secondary truncate ${mono ? "font-mono" : ""}`}>{value}</div>
+    <div className="min-w-0">
+      <p className="text-[12.5px] uppercase tracking-wide text-[#6b7280]">{label}</p>
+      <p className={`text-[13.5px] text-[#bfc7d4] truncate ${mono ? "font-ibmPlexMono" : ""}`}>
+        {value}
+      </p>
     </div>
   );
 }
 
-const ACCENT = {
-  emerald: "text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 focus-visible:ring-emerald-500/60",
-  rose: "text-rose-400 border-rose-500/40 hover:bg-rose-500/10 focus-visible:ring-rose-500/60",
-  slate: "text-text-secondary border-white/20 hover:bg-white/5 focus-visible:ring-white/40",
-};
-
-function ToolBtn({ children, accent = "slate", disabled, onClick, title }) {
+/** Первый экран: что это за страница и единственное действие, с которого начинают. */
+function StartCard({ channelLabel, onPick, loading }) {
   return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      disabled={disabled}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-bold tracking-wider border bg-transparent transition-all enabled:active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0d12] ${ACCENT[accent]}`}
-    >
-      {children}
-    </button>
+    <div className="rounded-[2px] border border-surface-border bg-surface-2 px-4 py-12">
+      <div className="max-w-lg mx-auto text-center">
+        <h2 className="text-[17px] font-semibold text-[#e5e2e1] mb-2">
+          Проверка потока значений
+        </h2>
+        <p className="text-[14.5px] text-[#6b7280] leading-relaxed mb-5">
+          Страница открывает настоящие WebSocket-соединения к сервису тегов и показывает, что
+          именно по ним приходит: текущие значения, кадры протокола и состояние каждого сокета.
+        </p>
+        <button
+          type="button"
+          onClick={onPick}
+          disabled={loading}
+          className="inline-flex items-center gap-2 h-10 px-5 rounded-[2px] bg-primary text-white text-[14px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        >
+          <TuneRoundedIcon sx={{ fontSize: 18 }} />
+          {loading ? "Загрузка списка…" : `Выбрать ${channelLabel}`}
+        </button>
+        <p className="mt-3 text-[13px] text-[#5c6270]">
+          Дальше — «Подключиться». Соединения можно менять, не разрывая сессию.
+        </p>
+      </div>
+    </div>
   );
 }
 
-function TagTile({ t }) {
+function TagTile({ t, color }) {
   const last = t.last;
-  const c = colorFor(last.tag_id || last.tag_name);
   const errored = !!last.is_error;
   const vals = t.history.map((d) => d.v);
   const min = vals.length ? Math.min(...vals) : null;
   const max = vals.length ? Math.max(...vals) : null;
+
   return (
     <div
-      className="rounded-lg p-3 flex flex-col gap-1.5 bg-[#0c1118] border border-white/10 hover:bg-[#0e1421] transition-colors"
-      style={{ borderTop: `2px solid ${errored ? "#ff5c8a" : c}` }}
-      title={t.sourceName}
+      className="min-w-0 rounded-[2px] border border-surface-border bg-surface-2 p-3 flex flex-col gap-1.5"
+      title={`${last.tag_name || ""} · источник: ${t.sourceName || "—"}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="text-[12.5px] text-text-muted font-semibold uppercase tracking-wide truncate">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span
+          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: errored ? STATUS_COLOR.alarm : color }}
+        />
+        <p className="text-[12.5px] uppercase tracking-wide text-[#6b7280] truncate flex-1">
           {formatTagLabelShort(last.tag_name || "—")}
-        </div>
-        {errored ? (
-          <span className="text-[11.5px] text-rose-400 border border-rose-900/60 rounded px-1 py-px font-mono inline-flex items-center gap-1 flex-shrink-0">
-            <ErrorOutlineOutlinedIcon style={{ fontSize: 9 }} />
-            ERR
-          </span>
-        ) : (
-          <span className="text-[11.5px] text-emerald-400 font-mono flex-shrink-0">OK</span>
+        </p>
+        {errored && (
+          <ErrorOutlineRoundedIcon
+            sx={{ fontSize: 13 }}
+            style={{ color: STATUS_COLOR.alarm }}
+            titleAccess="ошибка чтения"
+          />
         )}
       </div>
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold font-mono tabular-nums" style={{ color: errored ? "#ff5c8a" : "#fff" }}>
-          {typeof last.value === "number" ? last.value : Number.isFinite(Number(last.value)) ? Number(last.value) : "—"}
+
+      <p className="flex items-baseline gap-1 min-w-0" title={`точное значение: ${last.value}`}>
+        <span
+          className="text-xl font-ibmPlexMono tabular-nums leading-none truncate"
+          style={{ color: errored ? STATUS_COLOR.alarm : "#e5e2e1" }}
+        >
+          {formatValue(last.value)}
         </span>
-        {last.unit && <span className="text-[13px] text-text-dim font-mono">{last.unit}</span>}
-      </div>
-      <Sparkline data={t.history} color={c} width={220} height={24} />
-      <div className="flex justify-between text-[11.5px] text-text-dim font-mono">
-        <span>min {min != null ? min.toFixed(2) : "—"}</span>
-        <span className="text-text-faint truncate max-w-[100px]">{t.sourceName}</span>
-        <span>max {max != null ? max.toFixed(2) : "—"}</span>
+        {last.unit && (
+          <span className="flex-shrink-0 text-[13px] text-[#6b7280]">{last.unit}</span>
+        )}
+      </p>
+
+      <Sparkline data={t.history} color={errored ? STATUS_COLOR.alarm : color} />
+
+      <div className="flex justify-between gap-2 min-w-0 text-[12px] font-ibmPlexMono text-[#5c6270]">
+        <span className="truncate">мин {min != null ? formatValue(min) : "—"}</span>
+        <span className="truncate">макс {max != null ? formatValue(max) : "—"}</span>
       </div>
     </div>
   );
 }
 
-function Th({ children, align = "left" }) {
+function Th({ children, numeric }) {
   return (
-    <th className="px-2.5 py-2 border-b border-white/10 whitespace-nowrap" style={{ textAlign: align }}>
+    <th
+      scope="col"
+      className={`bg-surface-1 border-b border-surface-border px-3 py-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#6b7280] whitespace-nowrap ${
+        numeric ? "text-right" : "text-left"
+      }`}
+    >
       {children}
     </th>
   );
 }
 
-function LogRow({ m, alt, selected, onSelect }) {
-  const dirMeta =
+function LogRow({ m, selected, onSelect }) {
+  const kind =
     m.direction === "in"
-      ? { label: "← RX", color: "text-emerald-400" }
+      ? { label: "данные", color: STATUS_COLOR.ok }
       : m.direction === "out"
-        ? { label: "→ PING", color: "text-text-dim" }
-        : { label: "• СИСТЕМА", color: "text-amber-400" };
+        ? { label: "ping", color: "#6b7280" }
+        : { label: "событие", color: STATUS_COLOR.warn };
   const d = m.parsed;
   const isErr = d?.is_error;
+
   return (
     <tr
       onClick={onSelect}
-      className={`border-b border-white/5 text-text-muted cursor-pointer transition-colors ${
-        selected ? "bg-orange-500/10" : alt ? "bg-white/[0.015] hover:bg-white/[0.03]" : "hover:bg-white/[0.03]"
+      className={`border-b border-surface-border/60 last:border-b-0 cursor-pointer transition-colors ${
+        selected ? "bg-primary/15" : "hover:bg-surface-3/50"
       }`}
     >
-      <Td>{formatTimeMs(m.time)}</Td>
-      <Td>
-        <span className={`font-bold ${dirMeta.color}`}>{dirMeta.label}</span>
-      </Td>
-      <Td>
-        <span className="text-text-dim truncate inline-block max-w-[110px] align-bottom">{m.entityName || "—"}</span>
-      </Td>
-      <Td>
-        <span className="text-text-primary">{d?.tag_name || <span className="text-text-faint">—</span>}</span>
-      </Td>
-      <Td align="right">
-        <span className={`font-semibold ${isErr ? "text-rose-400" : "text-white"}`}>
-          {d ? (typeof d.value === "number" ? d.value : (d.value ?? "—")) : m.raw?.slice(0, 20) || ""}
+      <td className="px-3 py-1.5 font-ibmPlexMono tabular-nums text-[13px] text-[#6b7280] whitespace-nowrap">
+        {formatTimeMs(m.time)}
+      </td>
+      <td className="px-3 py-1.5 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1.5 text-[13px]" style={{ color: kind.color }}>
+          <span
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{ background: kind.color }}
+          />
+          {kind.label}
         </span>
-      </Td>
-      <Td>
-        {isErr ? (
-          <span className="text-rose-400 inline-flex items-center gap-1">
-            <ErrorOutlineOutlinedIcon style={{ fontSize: 11 }} />
-            ERR
-          </span>
-        ) : d ? (
-          <span className="text-emerald-400">● OK</span>
-        ) : (
-          <span className="text-text-faint">—</span>
-        )}
-      </Td>
-      <Td align="right">
-        <span className="text-text-dim text-[13px]">{byteLength(m.raw)} Б</span>
-      </Td>
+      </td>
+      <td className="px-3 py-1.5 min-w-0">
+        <span className="block truncate max-w-[260px] text-[13.5px] text-[#e5e2e1]">
+          {d?.tag_name ? formatTagLabelShort(d.tag_name) : m.raw?.slice(0, 40) || "—"}
+        </span>
+      </td>
+      <td className="px-3 py-1.5 min-w-0">
+        <span className="block truncate max-w-[180px] text-[13px] text-[#6b7280] font-ibmPlexMono">
+          {m.entityName || "—"}
+        </span>
+      </td>
+      <td
+        className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums whitespace-nowrap"
+        title={d ? `точное значение: ${d.value}` : undefined}
+      >
+        <span style={{ color: isErr ? STATUS_COLOR.alarm : "#e5e2e1" }}>
+          {d ? formatValue(d.value) : "—"}
+        </span>
+        {d?.unit && <span className="ml-1 text-[12.5px] text-[#6b7280]">{d.unit}</span>}
+      </td>
+      <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[13px] text-[#5c6270] whitespace-nowrap">
+        {byteLength(m.raw)} Б
+      </td>
     </tr>
-  );
-}
-
-function Td({ children, align = "left" }) {
-  return (
-    <td className="px-2.5 py-1.5 whitespace-nowrap tabular-nums" style={{ textAlign: align }}>
-      {children}
-    </td>
   );
 }

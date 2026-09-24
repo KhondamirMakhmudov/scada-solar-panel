@@ -5,7 +5,7 @@ import { get } from "lodash";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
 import CustomSelect from "@/components/select";
-import { PageHeader, Panel, StatTile, Chip, EmptyState, seriesColor } from "@/components/ui";
+import { Panel, EmptyState, seriesColor } from "@/components/ui";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useAllPages from "@/hooks/all/useAllPages";
@@ -136,6 +136,21 @@ const Index = () => {
     );
   }, [tagsById, deviceFilter, tagQuery]);
 
+  // Список выбора тоже группируется по устройству: при «всех устройствах»
+  // это сотни тегов подряд, и без заголовков непонятно, чей это тег —
+  // одинаковые имена (power, temperature) встречаются у каждого прибора.
+  const groupedVisibleTags = useMemo(() => {
+    const map = new Map();
+    visibleTags.forEach((tag) => {
+      const key = tag.deviceId || "unknown";
+      if (!map.has(key)) {
+        map.set(key, { id: key, label: tag.deviceName || "Без устройства", tags: [] });
+      }
+      map.get(key).tags.push(tag);
+    });
+    return Array.from(map.values());
+  }, [visibleTags]);
+
   const selectedTags = useMemo(
     () => selectedTagIds.map((id) => tagsById.get(id)).filter(Boolean),
     [selectedTagIds, tagsById],
@@ -202,65 +217,19 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle="Архивы">
-      <div className="font-ibmPlexSans max-w-[1800px]">
-        <PageHeader
-          title="История значений тегов"
-          description="Выберите устройство и теги, задайте период — график и сводка строятся по даунсемплированной истории (тот же источник, что и тренды на мнемосхемах)."
-        />
-
+      <div className="font-ibmPlexSans max-w-[1800px] space-y-2.5">
         {isLoadingRefs ? (
           <ContentLoader />
         ) : (
-          <div className="space-y-4">
-            {/* Сводка по текущей выборке: до неё период и объём данных
-                приходилось выяснять по осям самих графиков */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-              <StatTile dense label="Тегов выбрано" value={selectedTags.length} />
-              <StatTile dense label="Устройств" value={groupedSelectedTags.length} />
-              <StatTile dense label="Точек" value={totalPoints || "—"} />
-              <StatTile
-                dense
-                label="Шаг усреднения"
-                value={INTERVAL_LABELS[interval] || interval}
-              />
-              <StatTile
-                dense
-                label="Период"
-                value={timeFrom ? formatFullTime(new Date(timeFrom).getTime()) : "—"}
-                hint={timeTo ? `по ${formatFullTime(new Date(timeTo).getTime())}` : undefined}
-              />
-            </div>
-
-            <Panel
-              title="Выборка"
-              toolbar={
-                <>
-                  <ExportExcelButton
-                    groups={groupedSelectedTags}
-                    seriesByTagId={seriesByTagId}
-                    valueMaps={valueMaps}
-                    fileName={`Архив_${toDatetimeLocal(new Date()).replace(/[:T]/g, "-")}.xlsx`}
-                    periodLabel={
-                      timeFrom && timeTo
-                        ? `Период: ${formatFullTime(new Date(timeFrom).getTime())} — ${formatFullTime(new Date(timeTo).getTime())}`
-                        : undefined
-                    }
-                    disabled={selectedTags.length === 0}
-                    isFetching={isFetching}
-                  />
-                  <ViewModeToggle value={viewMode} onChange={setViewMode} />
-                </>
-              }
-            >
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                <CustomSelect
-                  label="Устройство"
-                  options={deviceOptions}
-                  value={deviceFilter}
-                  onChange={setDeviceFilter}
-                  sortOptions={false}
-                />
+          <>
+            {/* Полоса управления. Период вынесен наверх и разложен кнопками:
+                на странице архива его переключают чаще всего остального, а
+                раньше он лежал внутри панели выборки за выпадающим списком —
+                два действия вместо одного на каждое движение по времени. */}
+            <div className="rounded-[2px] border border-surface-border bg-surface-2">
+              <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
                 <RangePicker
+                  variant="buttons"
                   range={range}
                   onRangeChange={setRange}
                   customFrom={customFrom}
@@ -268,68 +237,104 @@ const Index = () => {
                   onCustomFromChange={setCustomFrom}
                   onCustomToChange={setCustomTo}
                 />
+
+                <div className="flex-1" />
+
+                <ViewModeToggle value={viewMode} onChange={setViewMode} />
+                <ExportExcelButton
+                  groups={groupedSelectedTags}
+                  seriesByTagId={seriesByTagId}
+                  valueMaps={valueMaps}
+                  fileName={`Архив_${toDatetimeLocal(new Date()).replace(/[:T]/g, "-")}.xlsx`}
+                  periodLabel={
+                    timeFrom && timeTo
+                      ? `Период: ${formatFullTime(new Date(timeFrom).getTime())} — ${formatFullTime(new Date(timeTo).getTime())}`
+                      : undefined
+                  }
+                  disabled={selectedTags.length === 0}
+                  isFetching={isFetching}
+                />
               </div>
 
-              <div className="mt-4">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <p
-                    style={{
-                      font: "600 12px/1 'IBM Plex Sans'",
-                      letterSpacing: ".09em",
-                      textTransform: "uppercase",
-                      color: "#7c8290",
-                    }}
-                  >
-                    Теги
-                  </p>
-                  <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#5c6270" }}>
-                    {selectedTagIds.length} из {visibleTags.length}
+              {/* Что именно построено — строкой, а не пятью плитками: сами
+                  числа здесь справочные, а вертикаль нужна графикам */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2 border-t border-surface-border text-[13px]">
+                <Meta label="Период">
+                  {timeFrom && timeTo
+                    ? `${formatFullTime(new Date(timeFrom).getTime())} — ${formatFullTime(new Date(timeTo).getTime())}`
+                    : "не задан"}
+                </Meta>
+                <Meta label="Шаг усреднения">{INTERVAL_LABELS[interval] || interval}</Meta>
+                <Meta label="Точек">
+                  {totalPoints ? totalPoints.toLocaleString("ru-RU") : "—"}
+                </Meta>
+                <Meta label="Выбрано">
+                  {selectedTags.length}{" "}
+                  {plural(selectedTags.length, ["тег", "тега", "тегов"])}
+                  {groupedSelectedTags.length > 1
+                    ? ` · ${groupedSelectedTags.length} ${plural(groupedSelectedTags.length, ["устройство", "устройства", "устройств"])}`
+                    : ""}
+                </Meta>
+                {isFetching && (
+                  <span className="text-[13px] font-ibmPlexMono text-[#5c6270] animate-pulse">
+                    загрузка истории…
                   </span>
+                )}
+              </div>
+            </div>
+
+            {/* Тело: постоянная колонка выбора тегов + графики.
+                Прежний «облако чипов высотой 176 px» не масштабировался —
+                при «всех устройствах» это сотни чипов подряд без группировки,
+                и найти нужный тег можно было только поиском по имени. */}
+            <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-2.5 items-start">
+              <Panel
+                flush
+                title="Теги"
+                description="Отметьте, что построить. Список сгруппирован по устройствам."
+                className="xl:sticky xl:top-0"
+              >
+                <div className="px-4 py-3 space-y-2 border-b border-surface-border">
+                  <CustomSelect
+                    options={deviceOptions}
+                    value={deviceFilter}
+                    onChange={setDeviceFilter}
+                    sortOptions={false}
+                    placeholder="Все устройства"
+                  />
                   <input
                     type="search"
                     value={tagQuery}
                     onChange={(event) => setTagQuery(event.target.value)}
-                    placeholder="Фильтр по имени"
-                    style={{
-                      height: 28,
-                      width: 176,
-                      padding: "4px 7px",
-                      background: "#131313",
-                      border: "1px solid #2a2a2a",
-                      color: "#e5e2e1",
-                      font: "400 13px/1.3 'IBM Plex Mono'",
-                      outline: "none",
-                    }}
+                    placeholder="поиск по имени тега"
+                    className="w-full h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
                   />
-                  <div className="ml-auto flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={visibleTags.length === 0}
-                      onClick={() =>
-                        setSelectedTagIds((prev) =>
-                          Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
-                        )
-                      }
-                      className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-primary/10 enabled:active:scale-[0.96] enabled:active:bg-primary/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
-                      style={{
-                        font: "500 13px/1.2 'IBM Plex Mono'",
-                        color: visibleTags.length === 0 ? "#3a3a3a" : "#3b82f6",
-                      }}
-                    >
-                      ВЫБРАТЬ ВСЕ
-                    </button>
-                    <button
-                      type="button"
-                      disabled={selectedTagIds.length === 0}
-                      onClick={() => setSelectedTagIds([])}
-                      className="rounded-[2px] px-1.5 py-0.5 transition-colors enabled:hover:bg-red-500/10 enabled:active:scale-[0.96] enabled:active:bg-red-500/20 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1"
-                      style={{
-                        font: "500 13px/1.2 'IBM Plex Mono'",
-                        color: selectedTagIds.length === 0 ? "#3a3a3a" : "#ef4444",
-                      }}
-                    >
-                      ОЧИСТИТЬ
-                    </button>
+                  <div className="flex items-center justify-between gap-2 text-[13px]">
+                    <span className="font-ibmPlexMono text-[#6b7280]">
+                      {selectedTagIds.length} / {visibleTags.length}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={visibleTags.length === 0}
+                        onClick={() =>
+                          setSelectedTagIds((prev) =>
+                            Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
+                          )
+                        }
+                        className="text-primary hover:text-[#60a5fa] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      >
+                        Выбрать все
+                      </button>
+                      <button
+                        type="button"
+                        disabled={selectedTagIds.length === 0}
+                        onClick={() => setSelectedTagIds([])}
+                        className="text-[#7c8290] hover:text-[#e5e2e1] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      >
+                        Очистить
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -337,54 +342,141 @@ const Index = () => {
                   <EmptyState
                     compact
                     title="Теги не найдены"
-                    description="Измените устройство или фильтр по имени."
+                    description="Измените устройство или очистите поиск."
                   />
                 ) : (
-                  <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto">
-                    {visibleTags.map((tag) => {
-                      const isSelected = selectedTagIds.includes(tag.id);
-                      return (
-                        <Chip
-                          key={tag.id}
-                          selected={isSelected}
-                          onClick={() => toggleTag(tag.id)}
-                          dotColor={isSelected ? colorByTagId.get(tag.id) : undefined}
-                          title={`${tag.name}${tag.unit ? `, ${tag.unit}` : ""} · ${tag.deviceName}`}
-                          meta={deviceFilter === "all" ? tag.deviceName : undefined}
-                        >
-                          {formatTagLabelShort(tag.name)}
-                        </Chip>
-                      );
-                    })}
+                  <div className="max-h-[62vh] overflow-y-auto">
+                    {groupedVisibleTags.map((group) => (
+                      <div key={group.id}>
+                        <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-1.5 bg-surface-1 border-b border-surface-border">
+                          <span className="min-w-0 flex-1 truncate text-[12.5px] uppercase tracking-wide text-[#6b7280]">
+                            {group.label}
+                          </span>
+                          <span className="flex-shrink-0 text-[12.5px] font-ibmPlexMono text-[#5c6270]">
+                            {group.tags.filter((t) => selectedTagIds.includes(t.id)).length}/
+                            {group.tags.length}
+                          </span>
+                        </div>
+                        {group.tags.map((tag) => {
+                          const isSelected = selectedTagIds.includes(tag.id);
+                          return (
+                            <label
+                              key={tag.id}
+                              title={`${tag.name}${tag.unit ? `, ${tag.unit}` : ""} · ${tag.deviceName}`}
+                              className={`flex items-center gap-2 px-4 py-1.5 cursor-pointer transition-colors ${
+                                isSelected ? "bg-primary/10" : "hover:bg-surface-3/60"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleTag(tag.id)}
+                                className="accent-[#3b82f6] cursor-pointer flex-shrink-0"
+                              />
+                              {/* Цвет совпадает с линией на графике — точка
+                                  здесь заменяет отдельную легенду */}
+                              <span
+                                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                style={{
+                                  background: isSelected
+                                    ? colorByTagId.get(tag.id)
+                                    : "#3a3a3a",
+                                }}
+                              />
+                              <span className="min-w-0 flex-1 truncate text-[13.5px] text-[#e5e2e1]">
+                                {formatTagLabelShort(tag.name)}
+                              </span>
+                              {tag.unit && (
+                                <span className="flex-shrink-0 text-[12.5px] font-ibmPlexMono text-[#5c6270]">
+                                  {tag.unit}
+                                </span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 )}
-              </div>
-            </Panel>
-
-            {selectedTags.length === 0 ? (
-              <Panel>
-                <EmptyState
-                  title="Теги не выбраны"
-                  description="Выберите один или несколько тегов выше, чтобы построить график истории."
-                />
               </Panel>
-            ) : (
-              <GroupedTagCharts
-                groups={groupedSelectedTags}
-                seriesByTagId={seriesByTagId}
-                statsByTagId={statsByTagId}
-                valueMaps={valueMaps}
-                isFetching={isFetching}
-                spanMs={spanMs}
-                viewMode={viewMode}
-                onRemoveTag={toggleTag}
-              />
-            )}
-          </div>
+
+              <div className="min-w-0 space-y-2.5">
+                {/* Выбранное всегда на виду. Раньше выбор жил чипами внутри
+                    того же облака: стоило переключить фильтр устройства, и
+                    понять, что именно построено, было можно только по самим
+                    графикам ниже. */}
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 rounded-[2px] border border-surface-border bg-surface-2 px-3 py-2">
+                    {selectedTags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        title={`${tag.name}${tag.unit ? `, ${tag.unit}` : ""} · ${tag.deviceName}`}
+                        className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[2px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[260px]"
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: colorByTagId.get(tag.id) }}
+                        />
+                        <span className="truncate">{formatTagLabelShort(tag.name)}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleTag(tag.id)}
+                          title="Убрать из выборки"
+                          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[2px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {selectedTags.length === 0 ? (
+                  <Panel>
+                    <EmptyState
+                      title="Теги не выбраны"
+                      description="Отметьте один или несколько тегов слева — история строится по даунсемплированным данным, тому же источнику, что и тренды на мнемосхемах."
+                    />
+                  </Panel>
+                ) : (
+                  <GroupedTagCharts
+                    groups={groupedSelectedTags}
+                    seriesByTagId={seriesByTagId}
+                    statsByTagId={statsByTagId}
+                    valueMaps={valueMaps}
+                    isFetching={isFetching}
+                    spanMs={spanMs}
+                    viewMode={viewMode}
+                    onRemoveTag={toggleTag}
+                  />
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </DashboardLayout>
   );
 };
+
+/** Подпись и значение в одной строке справочной полосы над графиками. */
+function Meta({ label, children }) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 min-w-0">
+      <span className="text-[12.5px] uppercase tracking-wide text-[#6b7280] flex-shrink-0">
+        {label}
+      </span>
+      <span className="font-ibmPlexMono text-[#bfc7d4] truncate">{children}</span>
+    </span>
+  );
+}
+
+function plural(n, [one, few, many]) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
 
 export default Index;

@@ -12,6 +12,10 @@
 export const ROUTE_ACCESS_RULES = [
   // --- Конфигурация системы: только администраторы ---
   {
+    prefix: "/dashboard/sites",
+    roles: ["admin", "super_admin"],
+  },
+  {
     prefix: "/dashboard/connects",
     roles: ["admin", "super_admin"],
   },
@@ -61,6 +65,7 @@ export const ROUTE_ACCESS_RULES = [
 export const NAVIGATION_PRIORITY = [
   { path: "/dashboard/main", roles: ["admin", "super_admin", "user"] },
   { path: "/dashboard/screens", roles: ["admin", "super_admin", "user", "scada-user"] },
+  { path: "/dashboard/sites", roles: ["admin", "super_admin"] },
   { path: "/dashboard/connects", roles: ["admin", "super_admin"] },
   { path: "/dashboard/devices", roles: ["admin", "super_admin"] },
   { path: "/dashboard/tags", roles: ["admin", "super_admin"] },

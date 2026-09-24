@@ -9,15 +9,14 @@ import {
   KeyboardArrowDown,
   Cable,
   Memory,
-  TableRows,
-  AccountTree,
   VisibilityRounded,
   EditRounded,
   DeleteRounded,
 } from "@mui/icons-material";
+import { Panel, StatTile, SegmentedControl, EmptyState } from "@/components/ui";
+import { STATUS_COLOR } from "@/constants/statusPalette";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
-import NoData from "@/components/no-data";
 import CustomTable from "@/components/table";
 import CustomSelect from "@/components/select";
 import ChipSelect from "@/components/chip-select";
@@ -177,7 +176,6 @@ const Index = () => {
   });
 
   const listRaw = get(tags, "data.data", []);
-  const total = get(tags, "data.pagination.total", listRaw.length);
   const devicesList = get(devices, "data.data", []);
 
   const deviceMap = useMemo(
@@ -284,6 +282,33 @@ const Index = () => {
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
   const paginatedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Сводка по всей выборке, а не по текущей странице: «сколько всего тегов и
+  // сколько из них реально опрашивается» — первое, что спрашивают об этом
+  // разделе, а по постраничной таблице это было не увидеть.
+  const summary = useMemo(() => {
+    const enabled = list.filter((t) => t.enabled).length;
+    return {
+      total: list.length,
+      enabled,
+      disabled: list.length - enabled,
+      devices: new Set(list.map((t) => t.deviceId).filter(Boolean)).size,
+      protocols: new Set(list.map((t) => t.protocolType).filter((p) => p && p !== "—")).size,
+    };
+  }, [list]);
+
+  const hasActiveFilters =
+    Boolean(searchValue.trim()) ||
+    protocolFilter !== "all" ||
+    statusFilter !== "all" ||
+    deviceFilter !== "all";
+
+  const resetFilters = () => {
+    setSearchValue("");
+    setProtocolFilter("all");
+    setStatusFilter("all");
+    setDeviceFilter("all");
+  };
 
   const tagColumns = [
     {
@@ -824,7 +849,10 @@ const Index = () => {
     setShowDeleteModal(true);
   };
 
-  if (isLoadingTags || isFetchingTags) {
+  // Только первая загрузка перекрывает страницу: раньше в условие входил и
+  // isFetching, из-за чего любое фоновое обновление списка (возврат фокуса на
+  // вкладку, инвалидация после правки тега) подменяло весь раздел загрузчиком.
+  if (isLoadingTags) {
     return (
       <DashboardLayout headerTitle={"Теги"}>
         <ContentLoader />
@@ -834,54 +862,42 @@ const Index = () => {
 
   return (
     <DashboardLayout headerTitle={"Теги"}>
-      <div style={{ fontFamily: "'IBM Plex Sans'" }} className="space-y-2.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="поиск тегов…"
-            className="w-[230px] h-9 px-3 rounded-lg border border-white/15 bg-[#2c2c32] text-[13px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
+      <div className="font-ibmPlexSans space-y-2.5">
+        {/* Сводка по всей выборке — постраничная таблица ниже её не показывает */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
+          <StatTile label="Всего тегов" value={summary.total} dense />
+          <StatTile label="Опрашивается" value={summary.enabled} status="ok" dense />
+          <StatTile
+            label="Отключено"
+            value={summary.disabled}
+            status={summary.disabled ? "warn" : undefined}
+            dense
           />
-          <ChipSelect value={protocolFilter} onChange={setProtocolFilter} label="ПРОТОКОЛ" options={protocolFilterOptions} />
-          <ChipSelect
-            value={statusFilter}
-            onChange={setStatusFilter}
-            label="СТАТУС"
+          <StatTile label="Устройств" value={summary.devices} dense />
+          <StatTile label="Протоколов" value={summary.protocols} dense />
+        </div>
+
+        {/* Режим работы с разделом: описание тегов или их живые значения */}
+        <div className="flex flex-wrap items-center gap-2">
+          <SegmentedControl
+            value={viewMode}
+            onChange={setViewMode}
             options={[
-              { label: "ВСЕ", value: "all" },
-              { label: "ВКЛЮЧЕНО", value: "enabled" },
-              { label: "ОТКЛЮЧЕНО", value: "disabled" },
+              { value: "table", label: "Список", title: "Описание тегов: адреса, масштаб, период опроса" },
+              {
+                value: "browser",
+                label: "Живые значения",
+                title: "Дерево «Подключение → Устройство → Тег», текущие значения и статистика",
+              },
             ]}
           />
-          <div className="w-[200px]">
-            <CustomSelect value={deviceFilter} onChange={setDeviceFilter} options={deviceFilterOptions} placeholder="Устройство" />
-          </div>
+          {isFetchingTags && (
+            <span className="text-[13px] font-ibmPlexMono text-[#5c6270] animate-pulse">
+              обновление…
+            </span>
+          )}
 
           <div className="flex-1" />
-
-          <div className="flex rounded-lg border border-white/15 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setViewMode("table")}
-              className={`flex items-center gap-1.5 h-9 px-3 text-[11px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
-                viewMode === "table" ? "bg-primary text-white hover:bg-primary/90" : "text-text-muted hover:bg-white/[0.04]"
-              }`}
-            >
-              <TableRows sx={{ fontSize: 15 }} />
-              Таблица
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("browser")}
-              className={`flex items-center gap-1.5 h-9 px-3 text-[11px] font-ibmPlexMono uppercase tracking-wide border-l border-white/15 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
-                viewMode === "browser" ? "bg-primary text-white hover:bg-primary/90" : "text-text-muted hover:bg-white/[0.04]"
-              }`}
-              title="Дерево «Подключение → Устройство → Тег» + текущие значения, спарклайны и статистика"
-            >
-              <AccountTree sx={{ fontSize: 15 }} />
-              Живые значения
-            </button>
-          </div>
 
           <button
             type="button"
@@ -889,351 +905,506 @@ const Index = () => {
               resetCreateForm();
               setShowCreateModal(true);
             }}
-            className="h-9 px-4 rounded-lg border border-primary text-primary text-[11px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+            className="h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
-            + ТЕГ
+            + Тег
           </button>
         </div>
 
         {viewMode === "table" ? (
-          <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
-            {filteredList.length === 0 ? (
-              <NoData title="Теги не найдены" description="Измените фильтры или создайте новый тег." />
-            ) : (
-              <CustomTable columns={tagColumns} data={paginatedList} />
-            )}
-
-            {filteredList.length > 0 && (
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-white/[0.08] px-3 py-3 sm:flex-row">
-                <div className="flex items-center gap-2 text-[11px] text-text-muted">
-                  <span>Строк на странице:</span>
-                  {[10, 20, 50].map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => {
-                        setPageSize(size);
-                        setCurrentPage(1);
-                      }}
-                      className={`h-7 w-9 rounded-[2px] border text-[10.5px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
-                        pageSize === size
-                          ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
-                          : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                  >
-                    ‹
-                  </button>
-                  <span className="text-[11px] text-text-muted px-1">
-                    <span className="font-semibold text-text-primary">{currentPage}</span> из{" "}
-                    <span className="font-semibold text-text-primary">{totalPages}</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                  >
-                    ›
-                  </button>
-                </div>
-                <span className="text-[11px] text-text-muted">
-                  <span className="font-semibold text-text-primary">{filteredList.length}</span> из{" "}
-                  <span className="font-semibold text-text-primary">{list.length}</span> тегов
-                </span>
+          <Panel
+            flush
+            title="Список тегов"
+            description="Описание тега: к какому устройству привязан, какой регистр читает и как часто."
+            toolbar={
+              <span className="text-[13px] font-ibmPlexMono text-[#6b7280]">
+                {filteredList.length === list.length
+                  ? `${list.length}`
+                  : `${filteredList.length} из ${list.length}`}
+              </span>
+            }
+          >
+            {/* Фильтры отдельной полосой внутри панели — их четыре, в шапку они
+                не помещаются, а над панелью висели бы в воздухе */}
+            <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-surface-border">
+              <input
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="поиск по имени, устройству, описанию"
+                className="w-[280px] h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+              />
+              <ChipSelect
+                value={protocolFilter}
+                onChange={setProtocolFilter}
+                label="ПРОТОКОЛ"
+                options={protocolFilterOptions}
+              />
+              <ChipSelect
+                value={statusFilter}
+                onChange={setStatusFilter}
+                label="СТАТУС"
+                options={[
+                  { label: "ВСЕ", value: "all" },
+                  { label: "ВКЛЮЧЕНО", value: "enabled" },
+                  { label: "ОТКЛЮЧЕНО", value: "disabled" },
+                ]}
+              />
+              <div className="w-[220px]">
+                <CustomSelect
+                  value={deviceFilter}
+                  onChange={setDeviceFilter}
+                  options={deviceFilterOptions}
+                  placeholder="Устройство"
+                />
               </div>
-            )}
-          </div>
-        ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_260px] gap-3 items-start">
-          {/* Дерево тегов */}
-          <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
-            <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary">
-              Дерево тегов
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                >
+                  Сбросить фильтры
+                </button>
+              )}
             </div>
-            {connTree.length === 0 ? (
-              <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Теги не найдены</p>
-            ) : (
-              <div className="max-h-[480px] overflow-y-auto">
-                {connTree.map((connGroup) => {
-                  const isOpen = expandedConnIds.has(connGroup.connId);
-                  return (
-                    <div key={connGroup.connId}>
-                      <button
-                        type="button"
-                        onClick={() => toggleConn(connGroup.connId)}
-                        className="w-full flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.05] hover:bg-white/[0.03] transition-colors text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset"
-                      >
-                        <KeyboardArrowDown
-                          sx={{ fontSize: 15, color: "#5c6270", flexShrink: 0 }}
-                          className="transition-transform"
-                          style={{ transform: isOpen ? "none" : "rotate(-90deg)" }}
-                        />
-                        <Cable sx={{ fontSize: 13 }} className="text-primary flex-shrink-0" />
-                        <span className="flex-1 min-w-0 font-ibmPlexMono text-[12.5px] text-text-secondary truncate">
-                          {connGroup.connName}
-                        </span>
-                        <span className="font-ibmPlexMono text-[10.5px] px-1.5 py-0.5 rounded-full bg-white/5 text-text-faint">
-                          {connGroup.tagCount}
-                        </span>
-                      </button>
 
-                      {isOpen &&
-                        connGroup.devices.map((device) => {
-                          const isSelected = device.deviceId === browserDeviceId;
-                          return (
-                            <button
-                              type="button"
-                              key={device.deviceId || "none"}
-                              onClick={() => {
-                                setBrowserDeviceId(device.deviceId);
-                                setBrowserTagId(null);
-                              }}
-                              className={`w-full flex items-center gap-1.5 pl-8 pr-3 py-1.5 border-b border-white/[0.05] text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
-                                isSelected ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-white/[0.03] border-l-2 border-l-transparent"
-                              }`}
-                            >
-                              <Memory sx={{ fontSize: 13 }} className="text-status-ok flex-shrink-0" />
-                              <span
-                                className={`flex-1 min-w-0 font-ibmPlexMono text-[12.5px] truncate ${
-                                  isSelected ? "text-text-primary" : "text-text-secondary"
+            {filteredList.length === 0 ? (
+              <EmptyState
+                title={list.length === 0 ? "Тегов пока нет" : "Ничего не найдено"}
+                description={
+                  list.length === 0
+                    ? "Создайте первый тег — он определяет, какой регистр устройства опрашивать и как пересчитывать значение."
+                    : "Ни один тег не подходит под текущие фильтры."
+                }
+                action={
+                  hasActiveFilters ? (
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="h-9 px-4 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    >
+                      Сбросить фильтры
+                    </button>
+                  ) : null
+                }
+              />
+            ) : (
+              <>
+                <CustomTable columns={tagColumns} data={paginatedList} />
+
+                <div className="flex flex-col items-center justify-between gap-3 border-t border-surface-border px-4 py-3 sm:flex-row">
+                  <div className="flex items-center gap-2 text-[13px] text-[#6b7280]">
+                    <span>Строк на странице:</span>
+                    {[10, 20, 50].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          setPageSize(size);
+                          setCurrentPage(1);
+                        }}
+                        className={`h-8 w-10 rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                          pageSize === size
+                            ? "border-primary/60 bg-primary/15 text-[#bfdbfe]"
+                            : "border-surface-border bg-surface-1 text-[#bfc7d4] hover:border-[#475569]"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      title="Предыдущая страница"
+                    >
+                      ‹
+                    </button>
+                    <span className="px-2 text-[13px] text-[#6b7280]">
+                      <span className="font-ibmPlexMono text-[#e5e2e1]">{currentPage}</span> из{" "}
+                      <span className="font-ibmPlexMono text-[#e5e2e1]">{totalPages}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      title="Следующая страница"
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  <span className="text-[13px] text-[#6b7280]">
+                    Показано{" "}
+                    <span className="font-ibmPlexMono text-[#e5e2e1]">{paginatedList.length}</span>{" "}
+                    из{" "}
+                    <span className="font-ibmPlexMono text-[#e5e2e1]">{filteredList.length}</span>
+                  </span>
+                </div>
+              </>
+            )}
+          </Panel>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)_340px] gap-2.5 items-start">
+            {/* ---- Дерево «Подключение → Устройство» ---- */}
+            <Panel flush title="Оборудование" description="Выберите устройство, чтобы увидеть его теги.">
+              {connTree.length === 0 ? (
+                <EmptyState compact title="Тегов нет" description="Дерево строится по существующим тегам." />
+              ) : (
+                <div className="max-h-[62vh] overflow-y-auto">
+                  {connTree.map((connGroup) => {
+                    const isOpen = expandedConnIds.has(connGroup.connId);
+                    return (
+                      <div key={connGroup.connId}>
+                        <button
+                          type="button"
+                          onClick={() => toggleConn(connGroup.connId)}
+                          aria-expanded={isOpen}
+                          className="w-full flex items-center gap-1.5 px-3 py-2 border-b border-surface-border/60 hover:bg-surface-3/50 transition-colors text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset"
+                        >
+                          <KeyboardArrowDown
+                            sx={{ fontSize: 16, color: "#5c6270", flexShrink: 0 }}
+                            className="transition-transform"
+                            style={{ transform: isOpen ? "none" : "rotate(-90deg)" }}
+                          />
+                          <Cable sx={{ fontSize: 14 }} className="text-primary flex-shrink-0" />
+                          <span className="flex-1 min-w-0 text-[13.5px] text-[#bfc7d4] truncate">
+                            {connGroup.connName}
+                          </span>
+                          <span className="flex-shrink-0 text-[12.5px] font-ibmPlexMono text-[#6b7280]">
+                            {connGroup.tagCount}
+                          </span>
+                        </button>
+
+                        {isOpen &&
+                          connGroup.devices.map((device) => {
+                            const isSelected = device.deviceId === browserDeviceId;
+                            return (
+                              <button
+                                type="button"
+                                key={device.deviceId || "none"}
+                                onClick={() => {
+                                  setBrowserDeviceId(device.deviceId);
+                                  setBrowserTagId(null);
+                                }}
+                                aria-pressed={isSelected}
+                                className={`w-full flex items-center gap-1.5 pl-8 pr-3 py-2 border-b border-surface-border/60 border-l-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 focus-visible:ring-inset ${
+                                  isSelected
+                                    ? "bg-primary/10 border-l-primary"
+                                    : "border-l-transparent hover:bg-surface-3/50"
                                 }`}
                               >
-                                {device.deviceName || "Без устройства"}
-                              </span>
-                              <span className="font-ibmPlexMono text-[10.5px] px-1.5 py-0.5 rounded-full bg-white/5 text-text-faint">
-                                {device.tags.length}
-                              </span>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Текущие значения выбранного устройства */}
-          <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
-            <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-white/[0.08]">
-              <span className="text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary truncate">
-                {browserDeviceId
-                  ? `${visibleTags[0]?.deviceName || ""} · ${visibleTags.length} тегов`
-                  : "Выберите устройство слева"}
-              </span>
-              {browserDeviceId && (
-                <span className="flex-shrink-0 font-ibmPlexMono text-[10.5px] text-text-faint">/tag-values/latest</span>
-              )}
-            </div>
-            {!browserDeviceId ? (
-              <p className="px-3 py-4 text-[12.5px] text-text-faint italic">
-                Выберите устройство, чтобы увидеть текущие значения его тегов
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-background-dark/40 border-b border-white/[0.08]">
-                      {["Тег", "Значение", "Ед.", "Тренд", "Мин", "Сред", "Макс", "Качество", "Действия"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-3 py-2 text-[10px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-faint whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {browserRows.map(({ tag, live, spark, min, max, avg }) => {
-                      const hasError = live?.isError;
-                      const quality = hasError ? "ОШИБКА" : live ? "НОРМА" : "—";
-                      const isSelected = tag.id === browserTagId;
-                      return (
-                        <tr
-                          key={tag.id}
-                          onClick={() => setBrowserTagId(tag.id)}
-                          className={`border-b border-white/[0.04] cursor-pointer transition-colors ${
-                            isSelected ? "bg-primary/10" : "hover:bg-white/[0.03]"
-                          }`}
-                        >
-                          <td className="px-3 py-1.5 font-ibmPlexMono text-[13px] text-text-primary truncate max-w-[160px]">
-                            {tag.name}
-                          </td>
-                          <td
-                            className={`px-3 py-1.5 text-right font-ibmPlexMono text-[13px] font-medium ${
-                              hasError ? "text-status-fault" : "text-text-primary"
-                            }`}
-                          >
-                            {live ? (hasError ? "ОШБК" : fmt(live.value)) : "—"}
-                          </td>
-                          <td className="px-3 py-1.5 font-ibmPlexMono text-[12px] text-text-faint">
-                            {tag.unit || live?.unit || ""}
-                          </td>
-                          <td className="px-3 py-1.5">
-                            {spark ? (
-                              <svg width="72" height="16" className="block">
-                                <polyline fill="none" stroke="#3987e5" strokeWidth="1" points={spark} />
-                              </svg>
-                            ) : (
-                              <span className="text-text-faint text-[12px]">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-faint">{fmt(min)}</td>
-                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-secondary">{fmt(avg)}</td>
-                          <td className="px-3 py-1.5 text-right font-ibmPlexMono text-[12px] text-text-faint">{fmt(max)}</td>
-                          <td className="px-3 py-1.5">
-                            <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded-[2px] text-[10px] font-ibmPlexMono font-semibold uppercase ${
-                                quality === "НОРМА"
-                                  ? "text-status-ok bg-status-ok/10"
-                                  : quality === "ОШИБКА"
-                                    ? "text-status-fault bg-status-fault/10"
-                                    : "text-text-faint bg-white/5"
-                              }`}
-                            >
-                              {quality}
-                            </span>
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                title="Просмотр"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openViewModal(tag);
-                                }}
-                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-primary hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                              >
-                                <VisibilityRounded sx={{ fontSize: 14 }} />
+                                <Memory
+                                  sx={{ fontSize: 14 }}
+                                  style={{ color: STATUS_COLOR.ok }}
+                                  className="flex-shrink-0"
+                                />
+                                <span
+                                  className={`flex-1 min-w-0 text-[13.5px] truncate ${
+                                    isSelected ? "text-[#e5e2e1]" : "text-[#bfc7d4]"
+                                  }`}
+                                >
+                                  {device.deviceName || "Без устройства"}
+                                </span>
+                                <span className="flex-shrink-0 text-[12.5px] font-ibmPlexMono text-[#6b7280]">
+                                  {device.tags.length}
+                                </span>
                               </button>
-                              <button
-                                type="button"
-                                title="Изменить"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEditModal(tag);
-                                }}
-                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-primary hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-                              >
-                                <EditRounded sx={{ fontSize: 14 }} />
-                              </button>
-                              <button
-                                type="button"
-                                title="Удалить"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openDeleteModal(tag);
-                                }}
-                                className="w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-status-fault hover:bg-white/[0.06] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
-                              >
-                                <DeleteRounded sx={{ fontSize: 14 }} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Статистика + агрегаты выбранного тега */}
-          <div className="flex flex-col gap-3">
-            <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
-              <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary truncate">
-                Статистика {browserTagId ? `· ${visibleTags.find((t) => t.id === browserTagId)?.name}` : ""}
-              </div>
-              {!browserTagId ? (
-                <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Выберите тег в таблице</p>
-              ) : !statisticsForSelectedTag ? (
-                <p className="px-3 py-4 text-[12.5px] text-text-muted">Загрузка…</p>
-              ) : (
-                <div className="px-3 py-2 space-y-0.5">
-                  {[
-                    ["Отсчётов (1ч)", statisticsForSelectedTag.count],
-                    ["Среднее", fmt(statisticsForSelectedTag.avg)],
-                    ["Минимум", fmt(statisticsForSelectedTag.min)],
-                    ["Максимум", fmt(statisticsForSelectedTag.max)],
-                    ["Первое значение", fmt(statisticsForSelectedTag.firstValue)],
-                    ["Последнее значение", fmt(statisticsForSelectedTag.lastValue)],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between gap-2 py-1.5 border-b border-white/[0.05] last:border-b-0">
-                      <span className="text-[12px] font-ibmPlexSans text-text-faint">{k}</span>
-                      <span className="font-ibmPlexMono text-[13px] font-medium text-text-primary">{v}</span>
-                    </div>
-                  ))}
+                            );
+                          })}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-            </div>
+            </Panel>
 
-            <div className="rounded-xl border border-white/[0.08] bg-surface-dark overflow-hidden">
-              <div className="px-3 py-2.5 border-b border-white/[0.08] text-[11px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-secondary">
-                Агрегаты · бакеты 5 мин
-              </div>
-              {!browserTagId ? (
-                <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Выберите тег в таблице</p>
+            {/* ---- Текущие значения выбранного устройства ---- */}
+            <Panel
+              flush
+              title={
+                browserDeviceId
+                  ? `Значения · ${visibleTags[0]?.deviceName || "устройство"}`
+                  : "Текущие значения"
+              }
+              description={
+                browserDeviceId
+                  ? `${visibleTags.length} ${plural(visibleTags.length, ["тег", "тега", "тегов"])} · среднее, минимум и максимум за последний час`
+                  : "Данные приходят из /tag-values за последний час."
+              }
+            >
+              {!browserDeviceId ? (
+                <EmptyState
+                  title="Устройство не выбрано"
+                  description="Выберите устройство в дереве слева — здесь появятся текущие значения его тегов, тренд и качество данных."
+                />
+              ) : browserRows.length === 0 ? (
+                <EmptyState compact title="У устройства нет тегов" />
               ) : (
-                (() => {
-                  const buckets = aggregatesByTagId.get(browserTagId) || [];
-                  const avgs = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
-                  const maxs = buckets.map((b) => b.max).filter((v) => v !== null && v !== undefined);
-                  if (avgs.length < 2) {
-                    return <p className="px-3 py-4 text-[12.5px] text-text-faint italic">Недостаточно данных</p>;
-                  }
-                  const all = [...avgs, ...maxs];
-                  const min = Math.min(...all);
-                  const max = Math.max(...all);
-                  const span = max - min || 1;
-                  const w = 220;
-                  const h = 88;
-                  const toPoints = (values) =>
-                    values
-                      .map((v, i) => {
-                        const x = (i / (values.length - 1)) * w;
-                        const y = h - ((v - min) / span) * h;
-                        return `${x.toFixed(1)},${y.toFixed(1)}`;
-                      })
-                      .join(" ");
-                  return (
-                    <div className="p-3">
-                      <svg width="100%" height="90" viewBox="0 0 220 90" preserveAspectRatio="none">
-                        <line x1="0" y1="88" x2="220" y2="88" stroke="#2a2a2a" />
-                        <line x1="0" y1="44" x2="220" y2="44" stroke="#232222" strokeDasharray="3 3" />
-                        <polyline fill="none" stroke="#3987e5" strokeWidth="1.4" points={toPoints(avgs)} />
-                        <polyline fill="none" stroke="#c98500" strokeWidth="1" strokeDasharray="3 2" points={toPoints(maxs)} />
-                      </svg>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="flex items-center gap-1.5 font-ibmPlexMono text-[11px] text-text-faint">
-                          <span className="w-2.5 h-0.5 inline-block bg-[#3987e5]" />
-                          сред.
-                        </span>
-                        <span className="flex items-center gap-1.5 font-ibmPlexMono text-[11px] text-text-faint">
-                          <span className="w-2.5 h-0.5 inline-block bg-[#c98500]" />
-                          макс.
+                <div className="overflow-auto max-h-[62vh]">
+                  <table className="w-full border-collapse text-[14px]">
+                    <thead className="sticky top-0 z-10">
+                      <tr>
+                        <TagTh>Тег</TagTh>
+                        <TagTh numeric>Значение</TagTh>
+                        <TagTh>Тренд</TagTh>
+                        <TagTh numeric>Мин</TagTh>
+                        <TagTh numeric>Сред</TagTh>
+                        <TagTh numeric>Макс</TagTh>
+                        <TagTh>Качество</TagTh>
+                        <TagTh numeric>Действия</TagTh>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {browserRows.map(({ tag, live, spark, min, max, avg }) => {
+                        const hasError = live?.isError;
+                        const isSelected = tag.id === browserTagId;
+                        return (
+                          <tr
+                            key={tag.id}
+                            onClick={() => setBrowserTagId(tag.id)}
+                            className={`border-b border-surface-border/60 last:border-b-0 cursor-pointer transition-colors ${
+                              isSelected ? "bg-primary/15" : "hover:bg-surface-3/50"
+                            }`}
+                          >
+                            <td className="px-3 py-1.5 min-w-0">
+                              <span
+                                className="block truncate max-w-[200px] text-[13.5px] text-[#e5e2e1]"
+                                title={tag.name}
+                              >
+                                {tag.name}
+                              </span>
+                            </td>
+                            <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                              <span
+                                className="font-ibmPlexMono tabular-nums"
+                                style={{ color: hasError ? STATUS_COLOR.alarm : "#e5e2e1" }}
+                              >
+                                {live ? (hasError ? "ошибка" : fmt(live.value)) : "—"}
+                              </span>
+                              {(tag.unit || live?.unit) && !hasError && (
+                                <span className="ml-1 text-[12.5px] text-[#6b7280]">
+                                  {tag.unit || live?.unit}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-1.5">
+                              {spark ? (
+                                <svg width="72" height="18" className="block" aria-hidden="true">
+                                  <polyline
+                                    fill="none"
+                                    stroke={STATUS_COLOR.ok}
+                                    strokeWidth="1.2"
+                                    points={spark}
+                                  />
+                                </svg>
+                              ) : (
+                                <span className="text-[12.5px] text-[#5c6270]">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[13px] text-[#6b7280]">
+                              {fmt(min)}
+                            </td>
+                            <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[13px] text-[#bfc7d4]">
+                              {fmt(avg)}
+                            </td>
+                            <td className="px-3 py-1.5 text-right font-ibmPlexMono tabular-nums text-[13px] text-[#6b7280]">
+                              {fmt(max)}
+                            </td>
+                            <td className="px-3 py-1.5 whitespace-nowrap">
+                              <span
+                                className="inline-flex items-center gap-1.5 text-[13px]"
+                                style={{
+                                  color: hasError
+                                    ? STATUS_COLOR.alarm
+                                    : live
+                                      ? STATUS_COLOR.ok
+                                      : "#5c6270",
+                                }}
+                              >
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                  style={{
+                                    background: hasError
+                                      ? STATUS_COLOR.alarm
+                                      : live
+                                        ? STATUS_COLOR.ok
+                                        : "#3a3a3a",
+                                  }}
+                                />
+                                {hasError ? "ошибка" : live ? "норма" : "нет данных"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <div className="flex items-center justify-end gap-1">
+                                <RowAction
+                                  title="Просмотр"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openViewModal(tag);
+                                  }}
+                                >
+                                  <VisibilityRounded sx={{ fontSize: 15 }} />
+                                </RowAction>
+                                <RowAction
+                                  title="Изменить"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(tag);
+                                  }}
+                                >
+                                  <EditRounded sx={{ fontSize: 15 }} />
+                                </RowAction>
+                                <RowAction
+                                  title="Удалить"
+                                  danger
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDeleteModal(tag);
+                                  }}
+                                >
+                                  <DeleteRounded sx={{ fontSize: 15 }} />
+                                </RowAction>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Panel>
+
+            {/* ---- Разбор выбранного тега ---- */}
+            {/* На xl колонок только две — разбор тега встаёт под таблицу во всю ширину */}
+            <div className="space-y-2.5 xl:col-span-2 2xl:col-span-1">
+              <Panel
+                title="Статистика за час"
+                description={
+                  browserTagId
+                    ? visibleTags.find((t) => t.id === browserTagId)?.name
+                    : undefined
+                }
+              >
+                {!browserTagId ? (
+                  <EmptyState compact title="Тег не выбран" description="Нажмите строку в таблице значений." />
+                ) : !statisticsForSelectedTag ? (
+                  <p className="py-3 text-[13px] text-[#6b7280]">Загрузка…</p>
+                ) : (
+                  <div>
+                    {[
+                      ["Отсчётов", statisticsForSelectedTag.count],
+                      ["Среднее", fmt(statisticsForSelectedTag.avg)],
+                      ["Минимум", fmt(statisticsForSelectedTag.min)],
+                      ["Максимум", fmt(statisticsForSelectedTag.max)],
+                      ["Первое значение", fmt(statisticsForSelectedTag.firstValue)],
+                      ["Последнее значение", fmt(statisticsForSelectedTag.lastValue)],
+                    ].map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="flex items-baseline justify-between gap-2 py-1.5 border-b border-surface-border/60 last:border-b-0"
+                      >
+                        <span className="text-[13px] text-[#6b7280]">{k}</span>
+                        <span className="text-[13.5px] font-ibmPlexMono tabular-nums text-[#e5e2e1]">
+                          {v}
                         </span>
                       </div>
-                    </div>
-                  );
-                })()
-              )}
+                    ))}
+                  </div>
+                )}
+              </Panel>
+
+              <Panel title="Тренд" description="Пятиминутные интервалы за последний час.">
+                {!browserTagId ? (
+                  <EmptyState compact title="Тег не выбран" />
+                ) : (
+                  (() => {
+                    const buckets = aggregatesByTagId.get(browserTagId) || [];
+                    const avgs = buckets.map((b) => b.avg).filter((v) => v !== null && v !== undefined);
+                    const maxs = buckets.map((b) => b.max).filter((v) => v !== null && v !== undefined);
+                    if (avgs.length < 2) {
+                      return (
+                        <EmptyState
+                          compact
+                          title="Недостаточно данных"
+                          description="Для линии нужно хотя бы два интервала с значениями."
+                        />
+                      );
+                    }
+                    const all = [...avgs, ...maxs];
+                    const min = Math.min(...all);
+                    const max = Math.max(...all);
+                    const span = max - min || 1;
+                    const w = 220;
+                    const h = 88;
+                    const toPoints = (values) =>
+                      values
+                        .map((v, i) => {
+                          const x = (i / (values.length - 1)) * w;
+                          const y = h - ((v - min) / span) * h;
+                          return `${x.toFixed(1)},${y.toFixed(1)}`;
+                        })
+                        .join(" ");
+                    return (
+                      <div>
+                        <svg
+                          width="100%"
+                          height="96"
+                          viewBox="0 0 220 90"
+                          preserveAspectRatio="none"
+                          aria-hidden="true"
+                        >
+                          <line x1="0" y1="88" x2="220" y2="88" stroke="#2a2a2a" />
+                          <line
+                            x1="0"
+                            y1="44"
+                            x2="220"
+                            y2="44"
+                            stroke="#242424"
+                            strokeDasharray="3 3"
+                          />
+                          <polyline
+                            fill="none"
+                            stroke="#38bdf8"
+                            strokeWidth="1.4"
+                            points={toPoints(avgs)}
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          <polyline
+                            fill="none"
+                            stroke="#f59e0b"
+                            strokeWidth="1"
+                            strokeDasharray="3 2"
+                            points={toPoints(maxs)}
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </svg>
+                        <div className="flex items-center justify-between gap-3 mt-2">
+                          <span className="flex items-center gap-1.5 text-[12.5px] text-[#6b7280]">
+                            <span className="w-3 h-0.5 inline-block bg-[#38bdf8]" />
+                            среднее
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[12.5px] text-[#6b7280]">
+                            <span className="w-3 h-0.5 inline-block bg-[#f59e0b]" />
+                            максимум
+                          </span>
+                          <span className="text-[12.5px] font-ibmPlexMono text-[#5c6270]">
+                            {fmt(min)} … {fmt(max)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
+              </Panel>
             </div>
           </div>
-        </div>
         )}
       </div>
 
@@ -1778,5 +1949,44 @@ const Index = () => {
     </DashboardLayout>
   );
 };
+
+/** Заголовок столбца — тот же вид, что у DataTable из общего набора. */
+function TagTh({ children, numeric }) {
+  return (
+    <th
+      scope="col"
+      className={`bg-surface-1 border-b border-surface-border px-3 py-2 text-[12.5px] font-semibold uppercase tracking-wide text-[#6b7280] whitespace-nowrap ${
+        numeric ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function RowAction({ children, title, onClick, danger }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={`w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-[#7c8290] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 ${
+        danger
+          ? "hover:border-[#f87171] hover:text-[#f87171] focus-visible:ring-[#f87171]/60"
+          : "hover:border-primary hover:text-primary focus-visible:ring-primary/60"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function plural(n, [one, few, many]) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
 
 export default Index;

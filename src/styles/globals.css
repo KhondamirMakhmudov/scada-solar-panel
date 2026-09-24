@@ -3,6 +3,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
 
 @theme {
+  --breakpoint-3xl: 1920px;
+
   --font-manrope: Manrope, sans-serif;
   --font-space-grotesk: "Space Grotesk", sans-serif;
   --font-noto-sans: "Noto Sans", sans-serif;
@@ -326,31 +328,6 @@ body {
     opacity: 0.25;
     transform: scale(0.75);
   }
-}
-
-.circle-border {
-  width: 150px;
-  height: 150px;
-  padding: 3px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background: rgb(59, 130, 246);
-  background: linear-gradient(
-    0deg,
-    rgba(59, 130, 246, 0.08) 33%,
-    rgba(96, 165, 250, 1) 100%
-  );
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.18);
-  animation: spin 0.8s linear 0s infinite;
-}
-
-.circle-core {
-  width: 100%;
-  height: 100%;
-  background-color: #131313;
-  border-radius: 50%;
 }
 
 /* width */

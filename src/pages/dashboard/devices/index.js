@@ -54,7 +54,11 @@ const DEFAULT_FORM = {
   enabled: true,
   type: "MODBUS_TCP",
   slave_address: "",
+  siteId: "",
+  ratedPowerKw: "",
 };
+
+const NO_SITE_OPTION = { label: "Без станции", value: "" };
 
 const VIEW_MODE_OPTIONS = [
   { label: "Таблица", value: "table", icon: TableRows },
@@ -127,7 +131,9 @@ const DeviceCard = ({ device, onView, onEdit, onDelete }) => {
 
       <div className="mt-4 text-xs text-text-dim">
         Обновлено:{" "}
-        <span className="text-text-secondary">{formatDate(device.updatedAt)}</span>
+        <span className="text-text-secondary">
+          {formatDate(device.updatedAt)}
+        </span>
       </div>
 
       <div className="mt-4 pt-4 border-t border-surface-border/60">
@@ -173,7 +179,9 @@ const Index = () => {
   // так что не приходится тянуть всех 67+ устройств только чтобы пролистать
   // список из 10.
   const hasActiveFilters =
-    Boolean(searchValue.trim()) || statusFilter !== "all" || protocolFilter !== "all";
+    Boolean(searchValue.trim()) ||
+    statusFilter !== "all" ||
+    protocolFilter !== "all";
 
   useEffect(() => {
     setCurrentPage(1);
@@ -187,7 +195,7 @@ const Index = () => {
     key: KEYS.devices,
     url: URLS.devices,
     params: hasActiveFilters
-      ? { page: 1, pageSize: 500 }
+      ? { page: 1, pageSize: 100 }
       : { page: currentPage, pageSize },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
@@ -202,7 +210,7 @@ const Index = () => {
   const { data: devicesForOptions } = useGetQuery({
     key: [KEYS.devices, "options"],
     url: URLS.devices,
-    params: { page: 1, pageSize: 500 },
+    params: { page: 1, pageSize: 100 },
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       Accept: "application/json",
@@ -235,6 +243,17 @@ const Index = () => {
     enabled: !!session?.accessToken,
   });
 
+  // Станции (GET /sites) — для выбора привязки устройства и колонки «Станция».
+  const { data: sitesData } = useGetQuery({
+    key: KEYS.sites,
+    url: URLS.sites,
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    enabled: !!session?.accessToken,
+  });
+
   const { mutate: createDevice, isLoading: isCreatingDevice } = usePostQuery({
     listKeyId: KEYS.devices,
     hideErrorToast: true,
@@ -251,7 +270,9 @@ const Index = () => {
   const serverPagination = get(devices, "data.pagination", null);
   const optionsList = get(devicesForOptions, "data.data", []);
   const connections = get(connects, "data.data", []);
-  const connectionNameById = new Map(connections.map((c) => [c.id, c.name || c.id]));
+  const connectionNameById = new Map(
+    connections.map((c) => [c.id, c.name || c.id]),
+  );
 
   const tagCountByDevice = new Map();
   get(tagsForCount, "data.data", []).forEach((tag) => {
@@ -262,7 +283,9 @@ const Index = () => {
 
   const protocolOptions = useMemo(() => {
     const unique = Array.from(
-      new Set(optionsList.map((item) => get(item, "params.type", "")).filter(Boolean)),
+      new Set(
+        optionsList.map((item) => get(item, "params.type", "")).filter(Boolean),
+      ),
     );
 
     return [{ label: "Все протоколы", value: "all" }].concat(
@@ -272,7 +295,9 @@ const Index = () => {
 
   const protocolTypeOptions = useMemo(() => {
     const dynamicOptions = Array.from(
-      new Set(optionsList.map((item) => get(item, "params.type", "")).filter(Boolean)),
+      new Set(
+        optionsList.map((item) => get(item, "params.type", "")).filter(Boolean),
+      ),
     ).map((value) => ({ label: value, value }));
 
     const merged = [...PROTOCOL_BASE_OPTIONS, ...dynamicOptions];
@@ -292,7 +317,25 @@ const Index = () => {
     [connections],
   );
 
+  const sites = get(sitesData, "data.data", []);
+  const siteNameById = new Map(sites.map((s) => [s.id, s.name || s.code]));
+  const siteOptions = useMemo(
+    () => [
+      NO_SITE_OPTION,
+      ...sites.map((item) => ({
+        label: `${item.name || item.code}${item.code ? ` (${item.code})` : ""}`,
+        value: item.id,
+      })),
+    ],
+    [sites],
+  );
+
   const toForm = (device) => ({
+    siteId: device?.siteId || "",
+    ratedPowerKw:
+      device?.ratedPowerKw === null || device?.ratedPowerKw === undefined
+        ? ""
+        : String(device.ratedPowerKw),
     name: device?.name || "",
     description: device?.description || "",
     connectionId: device?.connectionId || "",
@@ -333,13 +376,27 @@ const Index = () => {
       }
     }
 
+    const ratedRaw = String(form.ratedPowerKw ?? "").trim();
+    if (ratedRaw) {
+      const rated = Number(ratedRaw);
+      if (!Number.isFinite(rated) || rated < 0) {
+        errors.ratedPowerKw = "Введите неотрицательное число";
+      }
+    }
+
     return errors;
   };
 
+  // siteId/ratedPowerKw: пустое поле уходит как null — для PATCH это
+  // «отвязать от станции» / «номинал не указан», а не «не менять».
   const buildPayload = (form) => ({
     name: form.name.trim(),
     description: form.description?.trim() || "",
     connectionId: form.connectionId,
+    siteId: form.siteId || null,
+    ratedPowerKw: String(form.ratedPowerKw ?? "").trim()
+      ? Number(form.ratedPowerKw)
+      : null,
     enabled: Boolean(form.enabled),
     params: {
       type: form.type,
@@ -516,12 +573,17 @@ const Index = () => {
   // as before. Without filters, the server already returned exactly one
   // page — its own `pagination` block drives the count/page UI instead of
   // being recomputed from a client-side array that may not hold everything.
-  const totalRecords = hasActiveFilters ? filteredDevices.length : serverPagination?.total ?? list.length;
+  const totalRecords = hasActiveFilters
+    ? filteredDevices.length
+    : (serverPagination?.total ?? list.length);
   const totalPages = hasActiveFilters
     ? Math.max(1, Math.ceil(filteredDevices.length / pageSize))
     : Math.max(1, serverPagination?.totalPages ?? 1);
   const paginatedDevices = hasActiveFilters
-    ? filteredDevices.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    ? filteredDevices.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize,
+      )
     : list;
 
   const columns = [
@@ -529,7 +591,9 @@ const Index = () => {
       accessorKey: "name",
       header: "Устройство",
       cell: ({ row }) => (
-        <span style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}>
+        <span
+          style={{ font: "500 13.5px/1.3 'IBM Plex Mono'", color: "#e5e2e1" }}
+        >
           {row.original.name}
         </span>
       ),
@@ -543,15 +607,38 @@ const Index = () => {
           style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
           title={row.original.connectionId}
         >
-          {connectionNameById.get(row.original.connectionId) || row.original.connectionId || "—"}
+          {connectionNameById.get(row.original.connectionId) ||
+            row.original.connectionId ||
+            "—"}
         </span>
       ),
+    },
+    {
+      id: "site",
+      header: "Станция",
+      cell: ({ row }) => {
+        const name = siteNameById.get(row.original.siteId);
+        return (
+          <span
+            className="block max-w-[160px] truncate"
+            style={{
+              font: "400 13px/1.3 'IBM Plex Mono'",
+              color: name ? "#bfc7d4" : "#5c6270",
+            }}
+            title={name || "Не привязано к станции"}
+          >
+            {name || "—"}
+          </span>
+        );
+      },
     },
     {
       id: "protocol",
       header: "Протокол",
       cell: ({ row }) => (
-        <span style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}>
+        <span
+          style={{ font: "400 13px/1.3 'IBM Plex Mono'", color: "#bfc7d4" }}
+        >
           {get(row.original, "params.type", "—")}
         </span>
       ),
@@ -587,7 +674,14 @@ const Index = () => {
               color,
             }}
           >
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />
+            <span
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: color,
+              }}
+            />
             {row.original.enabled ? "ВКЛЮЧЕНО" : "ОТКЛЮЧЕНО"}
           </span>
         );
@@ -611,16 +705,34 @@ const Index = () => {
       header: "Действия",
       meta: { align: "right" },
       cell: ({ row }) => (
-        <div className="text-right" style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}>
-          <button type="button" onClick={() => openViewModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
+        <div
+          className="text-right"
+          style={{ font: "500 12.5px/1.4 'IBM Plex Mono'" }}
+        >
+          <button
+            type="button"
+            onClick={() => openViewModal(row.original)}
+            style={{ color: "#3b82f6" }}
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          >
             ПРОСМОТР
           </button>
           <span style={{ color: "#3b82f6" }}> · </span>
-          <button type="button" onClick={() => openEditModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
+          <button
+            type="button"
+            onClick={() => openEditModal(row.original)}
+            style={{ color: "#3b82f6" }}
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          >
             ИЗМЕНИТЬ
           </button>
           <span style={{ color: "#3b82f6" }}> · </span>
-          <button type="button" onClick={() => openDeleteModal(row.original)} style={{ color: "#3b82f6" }} className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60">
+          <button
+            type="button"
+            onClick={() => openDeleteModal(row.original)}
+            style={{ color: "#3b82f6" }}
+            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          >
             УДАЛИТЬ
           </button>
         </div>
@@ -662,10 +774,22 @@ const Index = () => {
               font: "400 14px/1.3 'IBM Plex Mono'",
             }}
           />
-          <ChipSelect value={statusFilter} onChange={setStatusFilter} label="СТАТУС" options={STATUS_OPTIONS} />
-          <ChipSelect value={protocolFilter} onChange={setProtocolFilter} label="ПРОТОКОЛ" options={protocolOptions} />
+          <ChipSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            label="СТАТУС"
+            options={STATUS_OPTIONS}
+          />
+          <ChipSelect
+            value={protocolFilter}
+            onChange={setProtocolFilter}
+            label="ПРОТОКОЛ"
+            options={protocolOptions}
+          />
           {isFetchingDevices && (
-            <span className="text-[13px] font-ibmPlexMono text-text-faint animate-pulse">обновление…</span>
+            <span className="text-[13px] font-ibmPlexMono text-text-faint animate-pulse">
+              обновление…
+            </span>
           )}
 
           <div className="flex-1" />
@@ -683,7 +807,8 @@ const Index = () => {
                     padding: "6px 12px",
                     cursor: "pointer",
                     font: "500 12.5px/1.5 'IBM Plex Mono'",
-                    borderLeft: idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
+                    borderLeft:
+                      idx > 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
                     background: isActive ? "#3b82f6" : "transparent",
                     color: isActive ? "#fff" : "#9aa0ac",
                     textTransform: "uppercase",
@@ -937,6 +1062,29 @@ const Index = () => {
               placeholder="Например, 18"
               error={formErrors.slave_address}
             />
+
+            <CustomSelect
+              label="Станция"
+              options={siteOptions}
+              value={createForm.siteId}
+              onChange={(value) => handleChangeCreateField("siteId", value)}
+              placeholder="Без станции"
+              sortOptions={false}
+            />
+
+            <Input
+              label="Номинальная мощность, кВт"
+              name="ratedPowerKw"
+              type="number"
+              min="0"
+              step="any"
+              value={createForm.ratedPowerKw}
+              onChange={(event) =>
+                handleChangeCreateField("ratedPowerKw", event.target.value)
+              }
+              placeholder="Например, 185"
+              error={formErrors.ratedPowerKw}
+            />
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">
@@ -1042,6 +1190,29 @@ const Index = () => {
               }
               placeholder="Например, 18"
               error={editErrors.slave_address}
+            />
+
+            <CustomSelect
+              label="Станция"
+              options={siteOptions}
+              value={editForm.siteId}
+              onChange={(value) => handleChangeEditField("siteId", value)}
+              placeholder="Без станции"
+              sortOptions={false}
+            />
+
+            <Input
+              label="Номинальная мощность, кВт"
+              name="ratedPowerKw"
+              type="number"
+              min="0"
+              step="any"
+              value={editForm.ratedPowerKw}
+              onChange={(event) =>
+                handleChangeEditField("ratedPowerKw", event.target.value)
+              }
+              placeholder="Например, 185"
+              error={editErrors.ratedPowerKw}
             />
           </div>
 
