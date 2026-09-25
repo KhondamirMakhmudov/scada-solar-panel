@@ -1,4 +1,5 @@
 import { getToken } from "next-auth/jwt";
+import { config } from "@/config";
 
 /**
  * Диагностика сессии: почему пользователя выкидывает на страницу входа.
@@ -53,6 +54,42 @@ export default async function handler(req, res) {
   const remaining = (ms) =>
     Number.isFinite(ms) ? Math.round((ms - now) / 1000) : null;
 
+  // Главная проверка: принимают ли SCADA-сервисы тот самый токен, который
+  // лежит в сессии прямо сейчас. Запрос уходит с сервера, поэтому исключает
+  // из картины браузер, react-query и заголовки на фронте — если здесь 200, а
+  // во вкладке 401, значит фронт отправляет не этот токен.
+  const probe = async (label, url) => {
+    try {
+      const r = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token.accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      const body = await r.text();
+      return { label, url, status: r.status, body: body.slice(0, 600) };
+    } catch (e) {
+      return { label, url, status: null, error: e.message };
+    }
+  };
+
+  const backends = token.accessToken
+    ? await Promise.all([
+        probe("config 8100", `${config.PYTHON_API_URL}devices?page=1&pageSize=1`),
+        probe("config 8100", `${config.PYTHON_API_URL}overview`),
+        probe("screens 8102", `${config.SCREENS_API_URL}overview/stations`),
+        probe("auth", `${config.GENERAL_AUTH_URL}/auth/api/v2/users/me`),
+        // Список сессий учётной записи на самом auth-сервисе. Если проекты
+        // логинятся одной учёткой, здесь будет видно, сколько сессий живо и
+        // какая из них текущая: одна активная на всех — и вход во втором
+        // проекте гасит сессию первого.
+        probe(
+          "auth sessions",
+          `${config.GENERAL_AUTH_URL}/auth/api/v2/users/me/sessions`,
+        ),
+      ])
+    : [];
+
   return res.status(200).json({
     ok: true,
     now: new Date(now).toISOString(),
@@ -73,6 +110,24 @@ export default async function handler(req, res) {
         ? new Date(token.refreshTokenExpires).toISOString()
         : null,
     },
+
+    // Ответы бэкендов на ТЕКУЩИЙ токен сессии
+    backends,
+
+    // Claims access-токена — по ним видно, за кого сервер его считает и для
+    // какой аудитории он выписан. Сам токен не печатаем.
+    accessClaims: accessPayload
+      ? {
+          sub: accessPayload.sub,
+          username: accessPayload.username,
+          iss: accessPayload.iss,
+          aud: accessPayload.aud,
+          scope: accessPayload.scope ?? accessPayload.scopes,
+          roles: accessPayload.roles,
+          type: accessPayload.type ?? accessPayload.token_type,
+          keys: Object.keys(accessPayload),
+        }
+      : null,
 
     // Состояние цикла обновления из [...nextauth].js
     error: token.error || null,

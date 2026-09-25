@@ -11,14 +11,19 @@ export const SITE_TYPE_OPTIONS = Object.entries(SITE_TYPE_LABELS).map(
 
 export const siteTypeLabel = (type) => SITE_TYPE_LABELS[type] || type || "—";
 
-/** 1250 -> "1.25 МВт", 640 -> "640 кВт", null -> "—". Установленная мощность в API приходит в кВт. */
+/**
+ * 1250 -> "1 250 кВт", 640 -> "640 кВт", null -> "—".
+ *
+ * Установленная мощность приходит в кВт и в кВт же и показывается. Раньше от
+ * мегаватта формат переключался на МВт, и в таблице станций колонка шла
+ * вперемешку — «640 кВт» рядом с «1.25 МВт», а итог внизу мог оказаться в
+ * третьей единице. Единица по всему проекту одна (см. formatPower в
+ * features/overview/overviewDisplay.ts).
+ */
 export function formatInstalledPower(kw) {
   if (kw === null || kw === undefined || kw === "") return "—";
   const value = Number(kw);
   if (!Number.isFinite(value)) return "—";
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(2).replace(/\.?0+$/, "")} МВт`;
-  }
   return `${value.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} кВт`;
 }
 

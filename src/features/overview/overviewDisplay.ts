@@ -77,20 +77,32 @@ export const DEVICE_STATUS_ORDER: OverviewDeviceStatus[] = ["online", "idle", "e
 
 export { STATUS_COLOR, STATUS_LABEL };
 
-/** 412870.5 W -> "412.9 кВт" / 1.2e6 W -> "1.20 МВт". Below 1kW shown in whole watts — a few hundred W of standby draw doesn't need decimal kW. */
+/**
+ * 412870.5 W -> "412,9 кВт", 1.2e6 W -> "1 200,0 кВт", 50 W -> "0,1 кВт".
+ *
+ * Единица всегда одна — киловатты. Раньше формат переключался сам: ватты до
+ * 1 кВт, киловатты до мегаватта, дальше мегаватты — и соседние плитки сводки
+ * оказывались в разных единицах, а величины в них становились несравнимыми с
+ * одного взгляда. Хуже того, единица у одной и той же плитки менялась на
+ * ходу при пересечении порога.
+ */
 export function formatPower(watts: number): string {
   if (!Number.isFinite(watts)) return "—";
-  const abs = Math.abs(watts);
-  if (abs >= 1_000_000) return `${(watts / 1_000_000).toFixed(2)} МВт`;
-  if (abs >= 1000) return `${(watts / 1000).toFixed(1)} кВт`;
-  return `${Math.round(watts)} Вт`;
+  return `${(watts / 1000).toLocaleString("ru-RU", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })} кВт`;
 }
 
-/** 5218.4 kWh -> "5 218 кВт·ч" / 19472301.2 -> "19.47 ГВт·ч" — a running lifetime total in kWh reads better as GWh once it's 7 digits long. */
+/**
+ * 5218.4 kWh -> "5 218 кВт·ч", 19472301.2 -> "19 472 301 кВт·ч".
+ *
+ * Единица всегда одна — киловатт-часы, по той же причине, что и у мощности
+ * выше: «Выработка сегодня» и «Выработка всего» стоят рядом, и если вторая
+ * переключается в ГВт·ч, сравнить их глазом уже нельзя.
+ */
 export function formatEnergy(kwh: number): string {
   if (!Number.isFinite(kwh)) return "—";
-  const abs = Math.abs(kwh);
-  if (abs >= 1_000_000) return `${(kwh / 1_000_000).toFixed(2)} ГВт·ч`;
   return `${Math.round(kwh).toLocaleString("ru-RU")} кВт·ч`;
 }
 
