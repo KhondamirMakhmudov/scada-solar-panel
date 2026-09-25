@@ -112,8 +112,11 @@ function extractPermissions(rolesArray) {
 function isAdmin(rolesArray) {
   if (!Array.isArray(rolesArray)) return false;
   return rolesArray.some((role) => {
-    const name = (role.name || "").toLowerCase();
-    return name === "admin" || name === "super_admin";
+    // Разделители убираем перед сравнением: бэкенд для одной и той же роли
+    // встречался и как "super_admin", и как "superadmin", и прямое сравнение
+    // строк молча пропускало второй вариант.
+    const name = (role.name || "").toLowerCase().replace(/[\s_-]/g, "");
+    return name === "admin" || name === "superadmin";
   });
 }
 
@@ -160,10 +163,9 @@ async function refreshAccessToken(token) {
 
     if (!token.refreshToken) throw new Error("Отсутствует refresh-токен");
 
-    const decodedRefresh = decodeJWT(token.refreshToken);
-    if (decodedRefresh?.exp && decodedRefresh.exp * 1000 < Date.now()) {
-      throw new Error("RefreshTokenExpired");
-    }
+    // Локальной проверки exp здесь тоже нет — по той же причине, что и в
+    // jwt-колбэке: она объявляла сессию мёртвой по таймеру, ни разу не
+    // спросив сервер, и одна эта строка сводила бы правку на нет.
 
     const response = await fetch(
       `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:refresh`,
@@ -179,18 +181,14 @@ async function refreshAccessToken(token) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Обновление токена не удалось:", response.status, errorText);
-      // Этот auth-сервис НЕ отвечает 401 на негодный refresh-токен: на
-      // повреждённый он даёт 400 ("Неверный формат токена"), на структурно
-      // верный, но не проходящий проверку — 500. Раньше фатальным считался
-      // только 401, поэтому мёртвый токен обновлялся ещё три цикла подряд, и
-      // всё это время пользователь работал с уже протухшим access-токеном.
+      // По коду статуса здесь ничего решать нельзя. Замеры на app.tpp.uz:
+      // повреждённый токен — 400 «Неверный формат токена», структурно верный
+      // но не прошедший проверку — 500. Ни 401, ни какого-либо отдельного
+      // кода для «токен мёртв» сервис не отдаёт, так что отличить «отвергнут
+      // окончательно» от «сервис моргнул» по ответу невозможно.
       //
-      // 4xx — сервер посмотрел на токен и отверг его, повторять бессмысленно.
-      // 5xx и сетевые сбои остаются временными: их сервер мог вернуть и
-      // просто из-за собственной аварии, и разлогинивать из-за этого нельзя.
-      if (response.status >= 400 && response.status < 500) {
-        throw new Error("RefreshTokenExpired");
-      }
+      // Поэтому судим не по статусу, а по бюджету повторов (refreshFailCount
+      // ниже): несколько неудач подряд — сессия мертва, единичная — нет.
       throw new Error(`Обновление не удалось: ${response.status}`);
     }
 
@@ -207,8 +205,12 @@ async function refreshAccessToken(token) {
       `Новый токен истекает через ${Math.floor((accessTokenExpires - Date.now()) / 1000)} сек`,
     );
 
+    // Если /users/me при обновлении не ответил — оставляем прежние роли.
+    // Пустой массив означал бы «прав нет», и Layout по ROUTE_ACCESS_RULES
+    // увёл бы администратора с его раздела из-за одного сбоя справочного
+    // запроса, хотя токен обновился успешно.
     const userDetails = await fetchUserDetails(tokens.accessToken);
-    const sanitizedRoles = sanitizeRoles(userDetails?.roles || []);
+    const sanitizedRoles = sanitizeRoles(userDetails?.roles || token.rolesDetail || []);
 
     const newDecodedRefresh = decodeJWT(tokens.refreshToken ?? token.refreshToken);
     const refreshTokenExpires = newDecodedRefresh?.exp
@@ -222,6 +224,7 @@ async function refreshAccessToken(token) {
       tokenType: tokens.tokenType || token.tokenType || "Bearer",
       accessTokenExpires,
       refreshTokenExpires,
+      lastRefreshedAt: Date.now(),
       userData: {
         username: newDecoded.username,
         employee_id: newDecoded.employeeId,
@@ -330,6 +333,7 @@ export const authOptions = {
             tokenType: tokens.tokenType || "Bearer",
             accessTokenExpires,
             refreshTokenExpires,
+            lastRefreshedAt: Date.now(),
             userData: {
               username: decoded.username,
               employee_id: decoded.employeeId,
@@ -359,6 +363,7 @@ export const authOptions = {
           tokenType: user.tokenType,
           accessTokenExpires: user.accessTokenExpires,
           refreshTokenExpires: user.refreshTokenExpires,
+          lastRefreshedAt: user.lastRefreshedAt,
           userData: user.userData,
           rolesDetail: user.rolesDetail,
           refreshFailCount: 0,
@@ -380,21 +385,18 @@ export const authOptions = {
         return token;
       }
 
-      if (token.refreshTokenExpires && token.refreshTokenExpires < Date.now()) {
-        // Печатаем и сам срок жизни: если refresh-токен окажется таким же
-        // коротким, как access (15 минут), выход будет происходить строго по
-        // этой ветке и никакие запасы времени не помогут — лечится только на
-        // стороне auth-сервиса.
-        const lifetimeMin = Math.round(
-          (token.refreshTokenExpires - (token.accessTokenExpires - 15 * 60 * 1000)) / 60000,
-        );
-        console.log(
-          `Refresh-токен истёк по времени (локальная проверка exp). ` +
-            `Истёк ${Math.round((Date.now() - token.refreshTokenExpires) / 1000)} с назад, ` +
-            `ориентировочный срок жизни ~${lifetimeMin} мин`,
-        );
-        return { ...token, error: "RefreshTokenExpired" };
-      }
+      // Локальной проверки exp у refresh-токена здесь СОЗНАТЕЛЬНО нет.
+      //
+      // Раньше стояло `if (token.refreshTokenExpires < Date.now()) ->
+      // RefreshTokenExpired`, и это выбрасывало пользователя на страницу
+      // входа строго по таймеру, ни разу не спросив auth-сервис. Если
+      // refresh-токен выдан с коротким exp (а по симптому — примерно тем же,
+      // что у access), ветка срабатывала ровно через 15 минут после входа:
+      // отсюда и «разлогинивает каждые 15 минут».
+      //
+      // Кто именно решает, жив ли токен, — сам auth-сервис. Он и ответит на
+      // попытку обновления; бюджет повторов (refreshFailCount) ниже
+      // защищает от бесконечного цикла, если токен действительно мёртв.
 
       const now = Date.now();
       const secondsUntilExpiry = Math.floor(
@@ -403,6 +405,23 @@ export const authOptions = {
       console.log(`JWT callback: токен истекает через ${secondsUntilExpiry} сек`);
 
       if (secondsUntilExpiry >= REFRESH_MARGIN_SECONDS) {
+        // Токен снова здоров — снимаем метку единичного сбоя, иначе
+        // session.error навсегда оставался бы выставленным после одной
+        // неудачной попытки, хотя обновление давно прошло успешно.
+        if (token.error === "RefreshAccessTokenError") {
+          const { error, refreshFailCount, ...healthy } = token;
+          return healthy;
+        }
+        return token;
+      }
+
+      // Второй параллельный вызов, пришедший сразу после удачного обновления,
+      // работает с ЕЩЁ СТАРЫМ токеном из своей cookie и попытался бы обновить
+      // его повторно — уже использованным refresh-токеном. Блокировка внутри
+      // refreshAccessToken живёт 15 секунд и такой случай не ловит, потому что
+      // ключ у неё — сам refresh-токен, а он тут старый.
+      if (token.lastRefreshedAt && now - token.lastRefreshedAt < 10000) {
+        console.log("Обновление пропущено — токен обновлён только что");
         return token;
       }
 
@@ -470,15 +489,24 @@ export const authOptions = {
     async signOut({ token }) {
       console.log("=== ПОЛЬЗОВАТЕЛЬ ВЫШЕЛ ИЗ СИСТЕМЫ ===");
       try {
-        await fetch(`${config.GENERAL_AUTH_URL}/auth/logout`, {
-          method: "POST",
-          headers: {
-            Authorization: `${token.tokenType || "Bearer"} ${token.accessToken}`,
+        // Было /auth/logout — такого эндпоинта в API нет вовсе (см.
+        // app.tpp.uz/auth/openapi.json), поэтому серверная сессия при выходе
+        // не отзывалась и продолжала числиться активной. В v2 текущую сессию
+        // закрывает :revoke-current по access-токену.
+        if (!token.accessToken) return;
+        const response = await fetch(
+          `${config.GENERAL_AUTH_URL}/auth/api/v2/sessions:revoke-current`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `${token.tokenType || "Bearer"} ${token.accessToken}`,
+              "Content-Type": "application/json",
+            },
           },
-        });
-        console.log("Logout API успешно вызван");
+        );
+        console.log("Отзыв сессии:", response.status);
       } catch (error) {
-        console.error("Ошибка при вызове logout API:", error);
+        console.error("Ошибка при отзыве сессии:", error);
       }
     },
   },
@@ -486,6 +514,10 @@ export const authOptions = {
   session: {
     strategy: "jwt",
     maxAge: 10 * 24 * 60 * 60,
+    // Как часто next-auth перевыпускает cookie сессии. По умолчанию сутки:
+    // обновлённый в jwt-колбэке токен мог подолгу не доезжать до браузера, и
+    // вкладка продолжала слать уже протухший access-токен.
+    updateAge: 60,
   },
 
   pages: {

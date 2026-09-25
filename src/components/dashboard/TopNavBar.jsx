@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { get } from "lodash";
 import Avatar from "@mui/material/Avatar";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
@@ -10,9 +9,6 @@ import { motion } from "framer-motion";
 
 import ExitModal from "../modal/exit-modal";
 import Brand from "@/components/brand";
-import useGetPythonQuery from "@/hooks/python/useGetQuery";
-import { KEYS } from "@/constants/key";
-import { URLS } from "@/constants/url";
 import storage from "@/services/storage";
 import { SAVED_ACCOUNTS_KEY } from "@/lib/savedAccounts";
 import SystemStatusRibbon from "./SystemStatusRibbon";
@@ -64,16 +60,6 @@ export default function TopNavBar() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [openExitModal, setOpenExitModal] = useState(false);
 
-  const { data: getMe } = useGetPythonQuery({
-    key: KEYS.getMe,
-    url: URLS.getMe,
-    headers: {
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    enabled: !!session?.accessToken,
-  });
-
   const handleLogout = async () => {
     const preservedAccounts = storage.get(SAVED_ACCOUNTS_KEY);
     await signOut({ callbackUrl: "/" });
@@ -82,10 +68,13 @@ export default function TopNavBar() {
     if (preservedAccounts) storage.set(SAVED_ACCOUNTS_KEY, preservedAccounts);
   };
 
-  const firstName = get(getMe, "data.first_name", "");
-  const lastName = get(getMe, "data.last_name", "");
-  const userFullName = `${firstName} ${lastName}`.trim();
-  const username = get(getMe, "data.username", "");
+  // Имя берём из сессии, а не отдельным запросом. Раньше здесь висел GET
+  // /api/v1/me к сервису на 8100 — такого эндпоинта там нет вовсе (отвечает
+  // 404 Not Found), поэтому запрос падал при каждой загрузке страницы, а в
+  // шапке всегда стояло «Пользователь». Те же данные next-auth уже положил в
+  // сессию при входе, взяв их из /auth/api/v2/users/me.
+  const userFullName = session?.user?.name || "";
+  const username = session?.user?.username || "";
 
   return (
     <div className="flex-shrink-0 flex items-center gap-3 h-11 px-3 bg-surface-dark border-b border-surface-border font-ibmPlexSans">
