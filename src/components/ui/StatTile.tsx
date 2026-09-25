@@ -29,7 +29,7 @@ const StatTile = ({ label, value, unit, status, hint, dense = false }: StatTileP
 
   return (
     <div
-      className={`rounded-[2px] border border-surface-border bg-surface-1 ${
+      className={`rounded-[8px] border border-surface-border bg-surface-1 ${
         dense ? "px-3 py-2" : "p-3.5"
       }`}
     >

@@ -11,7 +11,7 @@ const SimpleModal = ({ children, classname }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-[16px] shadow-lg  min-h-screen font-sf "
+          className="bg-white rounded-[8px] shadow-lg  min-h-screen font-sf "
         >
           {children}
         </motion.div>

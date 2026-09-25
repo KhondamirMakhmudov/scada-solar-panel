@@ -13,7 +13,7 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
           bgcolor: "#1c1b1b",
           boxShadow: 24,
           p: 4,
-          borderRadius: "2px",
+          borderRadius: "8px",
           border: "1px solid #2a2a2a",
         }}
       >
@@ -51,7 +51,7 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
               textTransform: "none",
               fontSize: "15px",
               fontFamily: "'IBM Plex Sans', sans-serif",
-              borderRadius: "2px",
+              borderRadius: "8px",
               fontWeight: 500,
               py: 1.5,
               "&:hover": {
@@ -74,7 +74,7 @@ const DeleteModal = ({ open, onClose, deleting, title, children }) => {
               fontSize: "15px",
               fontWeight: 600,
               fontFamily: "'IBM Plex Sans', sans-serif",
-              borderRadius: "2px",
+              borderRadius: "8px",
               py: 1.5,
               "&:hover": {
                 backgroundColor: "#dc2626",

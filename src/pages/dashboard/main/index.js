@@ -30,7 +30,7 @@ const MetricCard = ({ icon: Icon, label, value, active, total, hint }) => {
 
   return (
     <div
-      className="bg-surface-dark border border-surface-border rounded-[2px] p-3.5 hover:border-surface-border-hover transition-colors"
+      className="bg-surface-dark border border-surface-border rounded-[8px] p-3.5 hover:border-surface-border-hover transition-colors"
       style={
         status
           ? { borderLeftWidth: 2, borderLeftColor: STATUS_COLOR[status] }
@@ -190,7 +190,7 @@ const Index = () => {
         >
           {hasConnectionTypes && <ConnectionsBarChart data={connectionTypes} />}
 
-          <section className="bg-surface-dark border border-surface-border rounded-[2px] overflow-hidden">
+          <section className="bg-surface-dark border border-surface-border rounded-[8px] overflow-hidden">
             <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted px-3.5 pt-3.5 pb-1">
               Статус системы
             </h3>
@@ -212,7 +212,7 @@ const Index = () => {
           </section>
         </div>
 
-        <section className="bg-surface-dark border border-surface-border rounded-[2px]">
+        <section className="bg-surface-dark border border-surface-border rounded-[8px]">
           <div className="flex items-baseline justify-between px-3.5 py-2.5 border-b border-surface-border">
             <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
               Мониторинг параметров

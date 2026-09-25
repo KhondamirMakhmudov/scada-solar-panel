@@ -211,7 +211,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={() => handleRemoveAccount(account.username)}
                     title="Удалить сохранённый вход"
-                    className="rounded-[2px] px-1.5 py-0.5 transition-colors hover:bg-red-500/10 active:scale-[0.96] active:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1"
+                    className="rounded-[8px] px-1.5 py-0.5 transition-colors hover:bg-red-500/10 active:scale-[0.96] active:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1"
                     style={{ font: "500 12.5px/1.4 'IBM Plex Mono'", color: "#ef4444" }}
                   >
                     УДАЛИТЬ

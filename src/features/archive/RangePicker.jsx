@@ -43,7 +43,7 @@ const RangePicker = ({
   if (variant === "buttons") {
     return (
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="inline-flex flex-wrap rounded-[2px] border border-surface-border bg-surface-1 p-0.5">
+        <div className="inline-flex flex-wrap rounded-[8px] border border-surface-border bg-surface-1 p-0.5">
           {RANGE_PRESETS.map((preset) => {
             const isActive = preset.value === range;
             return (
@@ -52,7 +52,7 @@ const RangePicker = ({
                 type="button"
                 onClick={() => onRangeChange(preset.value)}
                 aria-pressed={isActive}
-                className={`h-8 px-2.5 rounded-[2px] text-[13px] whitespace-nowrap transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
+                className={`h-8 px-2.5 rounded-[8px] text-[13px] whitespace-nowrap transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
                   isActive
                     ? "bg-primary/20 text-[#93c5fd] hover:bg-primary/30"
                     : "text-[#6b7280] hover:text-[#e5e2e1] hover:bg-surface-2"

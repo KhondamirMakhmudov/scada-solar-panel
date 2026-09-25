@@ -26,7 +26,7 @@ const MethodModal = ({
           color: "white",
           boxShadow: "0 24px 60px rgba(0,0,0,0.55)",
           p: padding,
-          borderRadius: "16px",
+          borderRadius: "8px",
           fontFamily: "IBM Plex Sans",
         }}
       >

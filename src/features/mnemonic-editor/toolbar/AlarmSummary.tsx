@@ -39,7 +39,7 @@ const Counter = ({ kind, label, count, onClick }: CounterProps) => {
       onClick={onClick}
       disabled={!isActive}
       title={label}
-      className={`flex items-center gap-1.5 h-6 px-2 rounded-[2px] border text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+      className={`flex items-center gap-1.5 h-6 px-2 rounded-[8px] border text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
         isActive ? styles.active : styles.idle
       } ${isActive ? "hover:brightness-125 active:scale-95 cursor-pointer" : "cursor-default"}`}
     >
@@ -91,7 +91,7 @@ const AlarmSummary = () => {
         onClick={() => setIsOpen((open) => !open)}
       />
       <span
-        className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border text-[13px] text-text-dim"
+        className="flex items-center gap-1.5 h-6 px-2 rounded-[8px] border border-surface-border text-[13px] text-text-dim"
         title={`В работе ${okCount} из ${boundCount} привязанных элементов`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" />
@@ -100,7 +100,7 @@ const AlarmSummary = () => {
       </span>
 
       {isOpen && alarms.length > 0 && (
-        <div className="absolute top-full left-0 z-50 mt-1.5 w-80 max-h-72 overflow-y-auto rounded-[2px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50">
+        <div className="absolute top-full left-0 z-50 mt-1.5 w-80 max-h-72 overflow-y-auto rounded-[8px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50">
           {alarms.map((alarm) => (
             <button
               key={`${alarm.elementId}-${alarm.severity}`}

@@ -26,7 +26,7 @@ const ColorField = ({ label, value, onChange }: ColorFieldProps) => {
             beforeRef.current = null;
           }
         }}
-        className="w-9 h-7 rounded border border-surface-border bg-background-dark cursor-pointer"
+        className="w-9 h-7 rounded-[8px] border border-surface-border bg-background-dark cursor-pointer"
       />
     </label>
   );

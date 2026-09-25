@@ -251,7 +251,7 @@ const EditorCanvas = () => {
         </g>
       </svg>
       {isDraggingOver && (
-        <div className="pointer-events-none absolute inset-2 rounded-lg border-2 border-dashed border-blue-400 bg-blue-500/5 flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-2 rounded-[8px] border-2 border-dashed border-blue-400 bg-blue-500/5 flex items-center justify-center">
           <span className="text-sm text-blue-300">
             {isDraggingOver === "shape"
               ? "Отпустите, чтобы разместить элемент"

@@ -58,7 +58,7 @@ const CustomSelect = ({
         type="button"
         onClick={toggleDropdown}
         className={clsx(
-          "w-full h-11 border text-[15px] rounded-lg px-3.5 text-left bg-[#2c2c32] text-text-primary flex items-center justify-between focus:outline-none transition-colors active:scale-[0.99]",
+          "w-full h-11 border text-[15px] rounded-[8px] px-3.5 text-left bg-[#2c2c32] text-text-primary flex items-center justify-between focus:outline-none transition-colors active:scale-[0.99]",
           error
             ? "border-status-fault"
             : isOpen
@@ -78,7 +78,7 @@ const CustomSelect = ({
       </button>
 
       {isOpen && (
-        <ul className="absolute z-[9999] mt-1.5 w-full bg-[#2c2c32] text-text-primary border border-white/15 rounded-lg shadow-xl shadow-black/50 max-h-60 overflow-auto py-1">
+        <ul className="absolute z-[9999] mt-1.5 w-full bg-[#2c2c32] text-text-primary border border-white/15 rounded-[8px] shadow-xl shadow-black/50 max-h-60 overflow-auto py-1">
           {finalOptions.map((opt, idx) => (
             <li
               key={idx}

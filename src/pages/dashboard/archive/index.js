@@ -5,7 +5,8 @@ import { get } from "lodash";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
 import CustomSelect from "@/components/select";
-import { Panel, EmptyState, seriesColor } from "@/components/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Panel, EmptyState, Reveal, seriesColor } from "@/components/ui";
 import { KEYS } from "@/constants/key";
 import { URLS } from "@/constants/url";
 import useAllPages from "@/hooks/all/useAllPages";
@@ -226,7 +227,7 @@ const Index = () => {
                 на странице архива его переключают чаще всего остального, а
                 раньше он лежал внутри панели выборки за выпадающим списком —
                 два действия вместо одного на каждое движение по времени. */}
-            <div className="rounded-[2px] border border-surface-border bg-surface-2">
+            <Reveal className="rounded-[8px] border border-surface-border bg-surface-2">
               <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
                 <RangePicker
                   variant="buttons"
@@ -281,18 +282,20 @@ const Index = () => {
                   </span>
                 )}
               </div>
-            </div>
+            </Reveal>
 
             {/* Тело: постоянная колонка выбора тегов + графики.
                 Прежний «облако чипов высотой 176 px» не масштабировался —
                 при «всех устройствах» это сотни чипов подряд без группировки,
                 и найти нужный тег можно было только поиском по имени. */}
             <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-2.5 items-start">
+              {/* Липкость живёт на обёртке Reveal — она и есть элемент сетки;
+                  на самой панели она бы отсчитывалась от обёртки и не работала */}
+              <Reveal index={1} className="xl:sticky xl:top-0">
               <Panel
                 flush
                 title="Теги"
                 description="Отметьте, что построить. Список сгруппирован по устройствам."
-                className="xl:sticky xl:top-0"
               >
                 <div className="px-4 py-3 space-y-2 border-b border-surface-border">
                   <CustomSelect
@@ -307,7 +310,7 @@ const Index = () => {
                     value={tagQuery}
                     onChange={(event) => setTagQuery(event.target.value)}
                     placeholder="поиск по имени тега"
-                    className="w-full h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    className="w-full h-9 px-3 rounded-[8px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
                   />
                   <div className="flex items-center justify-between gap-2 text-[13px]">
                     <span className="font-ibmPlexMono text-[#6b7280]">
@@ -322,7 +325,7 @@ const Index = () => {
                             Array.from(new Set([...prev, ...visibleTags.map((t) => t.id)])),
                           )
                         }
-                        className="text-primary hover:text-[#60a5fa] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                        className="text-primary hover:text-[#60a5fa] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         Выбрать все
                       </button>
@@ -330,7 +333,7 @@ const Index = () => {
                         type="button"
                         disabled={selectedTagIds.length === 0}
                         onClick={() => setSelectedTagIds([])}
-                        className="text-[#7c8290] hover:text-[#e5e2e1] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                        className="text-[#7c8290] hover:text-[#e5e2e1] disabled:text-[#5c6270] disabled:cursor-not-allowed transition-colors rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         Очистить
                       </button>
@@ -399,19 +402,32 @@ const Index = () => {
                   </div>
                 )}
               </Panel>
+              </Reveal>
 
-              <div className="min-w-0 space-y-2.5">
+              <Reveal index={2} className="min-w-0 space-y-2.5">
                 {/* Выбранное всегда на виду. Раньше выбор жил чипами внутри
                     того же облака: стоило переключить фильтр устройства, и
                     понять, что именно построено, было можно только по самим
                     графикам ниже. */}
+                {/* Чипы появляются и исчезают, а не мигают: при выборе
+                    десятка тегов подряд мгновенная перерисовка строки не даёт
+                    заметить, что именно добавилось */}
                 {selectedTags.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 rounded-[2px] border border-surface-border bg-surface-2 px-3 py-2">
+                  <motion.div
+                    layout
+                    className="flex flex-wrap items-center gap-1.5 rounded-[8px] border border-surface-border bg-surface-2 px-3 py-2"
+                  >
+                    <AnimatePresence initial={false} mode="popLayout">
                     {selectedTags.map((tag) => (
-                      <span
+                      <motion.span
                         key={tag.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                         title={`${tag.name}${tag.unit ? `, ${tag.unit}` : ""} · ${tag.deviceName}`}
-                        className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[2px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[260px]"
+                        className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[8px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[260px]"
                       >
                         <span
                           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -422,13 +438,14 @@ const Index = () => {
                           type="button"
                           onClick={() => toggleTag(tag.id)}
                           title="Убрать из выборки"
-                          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[2px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[8px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                         >
                           ×
                         </button>
-                      </span>
+                      </motion.span>
                     ))}
-                  </div>
+                    </AnimatePresence>
+                  </motion.div>
                 )}
 
                 {selectedTags.length === 0 ? (
@@ -450,7 +467,7 @@ const Index = () => {
                     onRemoveTag={toggleTag}
                   />
                 )}
-              </div>
+              </Reveal>
             </div>
           </>
         )}

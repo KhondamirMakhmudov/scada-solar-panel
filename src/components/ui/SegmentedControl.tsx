@@ -1,3 +1,6 @@
+import { useId } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+
 interface SegmentedOption<T extends string> {
   value: T;
   label: string;
@@ -28,10 +31,16 @@ function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const height = size === "sm" ? "h-7" : "h-8";
   const text = size === "sm" ? "text-[13px]" : "text-xs";
+  // Заливка активного сегмента — один общий элемент, переезжающий между
+  // кнопками (layoutId), а не отдельный фон у каждой. Переезд показывает,
+  // откуда и куда переключились: при мгновенной перекраске на широком
+  // переключателе глаз теряет, какой сегмент стал активным.
+  const indicatorId = useId();
+  const reduceMotion = useReducedMotion();
 
   return (
     <div
-      className={`inline-flex flex-shrink-0 rounded-[2px] border border-surface-border bg-surface-1 p-0.5 ${className}`}
+      className={`inline-flex flex-shrink-0 rounded-[8px] border border-surface-border bg-surface-1 p-0.5 ${className}`}
       role="group"
     >
       {options.map((option) => {
@@ -43,13 +52,23 @@ function SegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             title={option.title}
             aria-pressed={isActive}
-            className={`${height} ${text} px-2.5 rounded-md transition-colors whitespace-nowrap active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
-              isActive
-                ? "bg-primary/20 text-[#93c5fd] hover:bg-primary/30"
-                : "text-[#6b7280] hover:text-[#e5e2e1] hover:bg-surface-2"
+            className={`relative ${height} ${text} px-2.5 rounded-[8px] transition-colors whitespace-nowrap active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
+              isActive ? "text-[#93c5fd]" : "text-[#6b7280] hover:text-[#e5e2e1]"
             }`}
           >
-            {option.label}
+            {isActive && (
+              <motion.span
+                layoutId={indicatorId}
+                aria-hidden="true"
+                className="absolute inset-0 rounded-[8px] bg-primary/20"
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 420, damping: 34 }
+                }
+              />
+            )}
+            <span className="relative">{option.label}</span>
           </button>
         );
       })}

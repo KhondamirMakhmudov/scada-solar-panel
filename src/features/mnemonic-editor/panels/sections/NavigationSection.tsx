@@ -57,7 +57,7 @@ const NavigationSection = ({ element, currentScreenId }: NavigationSectionProps)
         value={element.navigateToScreenId ?? ""}
         onChange={(event) => handleChange(event.target.value)}
         disabled={isLoading}
-        className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500 disabled:opacity-50"
+        className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500 disabled:opacity-50"
       >
         <option value="">Без перехода</option>
         {screens.map((screen) => (

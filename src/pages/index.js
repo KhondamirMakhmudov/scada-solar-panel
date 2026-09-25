@@ -120,7 +120,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-lg  bg-[#1c1b1b]/60 shadow-[0_0_40px_rgba(33,150,243,0.15)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-[8px]  bg-[#1c1b1b]/60 shadow-[0_0_40px_rgba(33,150,243,0.15)] backdrop-blur-xl">
           <div className="flex items-center justify-between bg-[#353534] px-8 py-4">
             <span className="text-[0.7rem] font-bold uppercase tracking-[0.15em] text-[#e5e2e1]">
               Доступ к терминалу
@@ -159,7 +159,7 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={handleEnter}
-                  className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#2196f3] text-sm font-bold uppercase tracking-[0.14em] text-[#002c4f] transition-all hover:shadow-[0_0_20px_rgba(33,150,243,0.4)]"
+                  className="flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#2196f3] text-sm font-bold uppercase tracking-[0.14em] text-[#002c4f] transition-all hover:shadow-[0_0_20px_rgba(33,150,243,0.4)]"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-base">
@@ -170,7 +170,7 @@ export default function Home() {
 
                 <button
                   onClick={handleExit}
-                  className="flex h-12 items-center justify-center gap-2 rounded-lg border border-red-400/30 bg-red-700 text-sm font-bold uppercase tracking-[0.14em] text-red-100 transition-all hover:bg-red-600"
+                  className="flex h-12 items-center justify-center gap-2 rounded-[8px] border border-red-400/30 bg-red-700 text-sm font-bold uppercase tracking-[0.14em] text-red-100 transition-all hover:bg-red-600"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-base">
@@ -287,13 +287,13 @@ export default function Home() {
                 </div>
 
                 {error && (
-                  <div className="rounded border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                  <div className="rounded-[8px] border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
                     {error}
                   </div>
                 )}
 
                 <button
-                  className="group flex w-full items-center justify-center gap-3 rounded-lg bg-[#2196f3] py-4 font-bold uppercase tracking-[0.2em] text-[#002c4f] transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,150,243,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="group flex w-full items-center justify-center gap-3 rounded-[8px] bg-[#2196f3] py-4 font-bold uppercase tracking-[0.2em] text-[#002c4f] transition-all duration-300 hover:shadow-[0_0_20px_rgba(33,150,243,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                   type="submit"
                   disabled={isLoading}
                 >

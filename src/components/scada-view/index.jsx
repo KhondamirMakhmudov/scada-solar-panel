@@ -110,7 +110,7 @@ const ScadaFlowComponent = ({
           border: "2px solid rgba(255, 255, 255, 0.2)",
           width: 200,
           minHeight: 120,
-          borderRadius: "12px",
+          borderRadius: "8px",
           padding: "15px",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
           fontSize: "14px",
@@ -136,7 +136,7 @@ const ScadaFlowComponent = ({
         color: "white",
         border: "2px solid #1e40af",
         width: 200,
-        borderRadius: "12px",
+        borderRadius: "8px",
         padding: "15px",
         boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
       },
@@ -158,7 +158,7 @@ const ScadaFlowComponent = ({
         color: "white",
         border: "2px solid #9d174d",
         width: 200,
-        borderRadius: "12px",
+        borderRadius: "8px",
         padding: "15px",
         boxShadow: "0 4px 12px rgba(236, 72, 153, 0.3)",
       },
@@ -337,7 +337,7 @@ const ScadaFlowComponent = ({
               {onClose && (
                 <button
                   onClick={onClose}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors duration-200"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-[8px] transition-colors duration-200"
                 >
                   <span className="text-xl">в†ђ</span>
                   РќР°Р·Р°Рґ Рє РїР°РЅРµР»Рё
@@ -358,7 +358,7 @@ const ScadaFlowComponent = ({
                   {connected ? "РџРѕРґРєР»СЋС‡РµРЅРѕ" : "РћС‚РєР»СЋС‡РµРЅРѕ"}
                 </span>
               </div>
-              <div className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold">
+              <div className="px-4 py-2 bg-green-500 text-white rounded-[8px] font-bold">
                 {totals.power?.toFixed(0) || 0}W
               </div>
             </div>
@@ -374,9 +374,9 @@ const ScadaFlowComponent = ({
             onConnect={onConnect}
             fitView
           >
-            <Controls className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg" />
+            <Controls className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[8px] shadow-lg" />
             <MiniMap
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[8px] shadow-lg"
               nodeStrokeColor={(n) => {
                 switch (n.data?.type) {
                   case "meter":
@@ -410,7 +410,7 @@ const ScadaFlowComponent = ({
 
             <Panel
               position="top-right"
-              className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-800"
+              className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-[8px] p-4 shadow-lg border border-gray-200 dark:border-gray-800"
             >
               <h3 className="font-bold text-gray-900 dark:text-white mb-3">
                 РЎС‚Р°С‚РёСЃС‚РёРєР° СЃРёСЃС‚РµРјС‹
@@ -457,10 +457,10 @@ const ScadaFlowComponent = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+    <div className="bg-white dark:bg-gray-800 rounded-[8px] border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
       <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-900 dark:to-emerald-900/20">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-[8px] bg-green-500/10 border border-green-500/20 flex items-center justify-center">
             <span className="text-2xl">рџЊђ</span>
           </div>
           <div>
@@ -475,7 +475,7 @@ const ScadaFlowComponent = ({
         {onClose && (
           <button
             onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors duration-200 font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-[8px] transition-colors duration-200 font-medium"
           >
             <span className="text-xl">в›¶</span>
             РћС‚РєСЂС‹С‚СЊ РІ РїРѕР»РЅС‹Р№ СЌРєСЂР°РЅ
@@ -497,7 +497,7 @@ const ScadaFlowComponent = ({
           elementsSelectable={false}
         >
           <Controls
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[8px] shadow-lg"
             showInteractive={false}
           />
           <Background
@@ -513,25 +513,25 @@ const ScadaFlowComponent = ({
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
         <div className="flex flex-wrap gap-3 justify-center">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-green-500 border border-green-600"></div>
+            <div className="w-3 h-3 rounded-[8px] bg-green-500 border border-green-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
               РРЅРІРµСЂС‚РѕСЂС‹
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-purple-500 border border-purple-600"></div>
+            <div className="w-3 h-3 rounded-[8px] bg-purple-500 border border-purple-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
               РЎС‡С‘С‚С‡РёРєРё
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-blue-500 border border-blue-600"></div>
+            <div className="w-3 h-3 rounded-[8px] bg-blue-500 border border-blue-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
               Р­Р»РµРєС‚СЂРѕСЃРµС‚СЊ
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-pink-500 border border-pink-600"></div>
+            <div className="w-3 h-3 rounded-[8px] bg-pink-500 border border-pink-600"></div>
             <span className="text-sm text-gray-700 dark:text-gray-300">
               РњРѕРЅРёС‚РѕСЂРёРЅРі
             </span>

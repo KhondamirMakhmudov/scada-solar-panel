@@ -90,14 +90,14 @@ const TagChipList = ({ names, max = 3 }) => {
       {visible.map((name) => (
         <span
           key={name}
-          className="inline-flex items-center gap-1 rounded-[2px] bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
+          className="inline-flex items-center gap-1 rounded-[8px] bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs px-2 py-0.5"
         >
           <Sell sx={{ fontSize: 11 }} />
           {name}
         </span>
       ))}
       {overflow > 0 && (
-        <span className="inline-flex items-center rounded-[2px] bg-surface-border/40 border border-surface-border-hover/50 text-text-muted text-xs px-2 py-0.5">
+        <span className="inline-flex items-center rounded-[8px] bg-surface-border/40 border border-surface-border-hover/50 text-text-muted text-xs px-2 py-0.5">
           +{overflow}
         </span>
       )}
@@ -181,7 +181,7 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
             <button
               type="button"
               onClick={() => onChange([])}
-              className="ml-2 text-red-300/80 hover:text-red-300 active:opacity-70 rounded-[2px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60"
+              className="ml-2 text-red-300/80 hover:text-red-300 active:opacity-70 rounded-[8px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60"
             >
               Очистить
             </button>
@@ -194,13 +194,13 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
           {value.map((id) => (
             <span
               key={id}
-              className="inline-flex items-center gap-1 rounded-[2px] bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
+              className="inline-flex items-center gap-1 rounded-[8px] bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs px-2 py-0.5"
             >
               {labelById.get(id) || id}
               <button
                 type="button"
                 onClick={() => toggleTag(id)}
-                className="text-blue-300/60 hover:text-red-300 active:opacity-70 transition-colors leading-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60 rounded-[2px]"
+                className="text-blue-300/60 hover:text-red-300 active:opacity-70 transition-colors leading-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-400/60 rounded-[8px]"
                 title="Убрать тег"
               >
                 ×
@@ -210,13 +210,13 @@ const TagTreeSelect = ({ label, tree = [], value = [], onChange }) => {
         </div>
       )}
 
-      <div className="rounded-[2px] border border-primary/30 bg-surface-dark text-text-primary">
+      <div className="rounded-[8px] border border-primary/30 bg-surface-dark text-text-primary">
         <div className="p-2 border-b border-surface-border/60">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск: подключение, устройство или тег..."
-            className="w-full h-9 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+            className="w-full h-9 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           />
         </div>
         <div className="h-56 overflow-auto py-1">
@@ -343,7 +343,7 @@ const ScreenCard = ({
   // (dashboard/screens/index.jsx) for why the earlier text labels no
   // longer fit this card at the current base font size.
   const iconBtnStyle =
-    "w-7 h-7 flex items-center justify-center rounded-[2px] border transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 disabled:opacity-30 disabled:cursor-not-allowed";
+    "w-7 h-7 flex items-center justify-center rounded-[8px] border transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 disabled:opacity-30 disabled:cursor-not-allowed";
 
   return (
     <div
@@ -367,7 +367,7 @@ const ScreenCard = ({
           </span>
           <span
             className="flex-shrink-0 font-ibmPlexMono font-semibold uppercase"
-            style={{ padding: "1px 5px", border: `1px solid ${stateColor}`, borderRadius: 2, fontSize: 9, color: stateColor, marginLeft: 6 }}
+            style={{ padding: "1px 5px", border: `1px solid ${stateColor}`, borderRadius: 8, fontSize: 9, color: stateColor, marginLeft: 6 }}
           >
             {screen.isActive ? "АКТИВЕН" : "ЧЕРНОВИК"}
           </span>
@@ -827,7 +827,7 @@ const ScreensDraftPage = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[12px] font-semibold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[8px] border text-[12px] font-semibold uppercase tracking-wide ${
             row.original.isActive ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
           }`}
         >
@@ -849,7 +849,7 @@ const ScreensDraftPage = () => {
             <button
               type="button"
               onClick={() => openRuntime(row.original)}
-              className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+              className="text-primary hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
             >
               ПРОСМОТР
             </button>
@@ -860,7 +860,7 @@ const ScreensDraftPage = () => {
               <button
                 type="button"
                 onClick={() => openDiagram(row.original)}
-                className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                className="text-primary hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
               >
                 ИЗМЕНИТЬ
               </button>
@@ -868,7 +868,7 @@ const ScreensDraftPage = () => {
               <button
                 type="button"
                 onClick={() => handleCloneScreen(row.original)}
-                className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                className="text-primary hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
               >
                 КЛОН
               </button>
@@ -880,7 +880,7 @@ const ScreensDraftPage = () => {
               <button
                 type="button"
                 onClick={() => openDeleteModal(row.original)}
-                className="text-status-fault hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
+                className="text-status-fault hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
               >
                 УДАЛИТЬ
               </button>
@@ -903,12 +903,12 @@ const ScreensDraftPage = () => {
   return (
     <DashboardLayout headerTitle="Экраны (черновик)">
       <div className="font-ibmPlexSans space-y-2.5">
-        <div className="rounded-[2px] border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-300 font-ibmPlexMono">
+        <div className="rounded-[8px] border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-300 font-ibmPlexMono">
           Черновой бэкенд (порт 8103) — дубликат сервиса экранов. Изменения здесь не влияют на прод.
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex border border-surface-border rounded-[2px] overflow-hidden">
+          <div className="flex border border-surface-border rounded-[8px] overflow-hidden">
             <button
               type="button"
               onClick={() => setScreenTab("runtime")}
@@ -939,7 +939,7 @@ const ScreensDraftPage = () => {
             <button
               type="button"
               onClick={() => openDiagram(activeScreen)}
-              className="h-8 px-3 rounded-[2px] border border-surface-border text-text-secondary text-[13px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[8px] border border-surface-border text-text-secondary text-[13px] font-ibmPlexMono hover:border-surface-border-hover hover:bg-background-dark active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               ОТКРЫТЬ РЕДАКТОР
             </button>
@@ -951,7 +951,7 @@ const ScreensDraftPage = () => {
                 resetCreateForm();
                 setShowCreateModal(true);
               }}
-              className="h-8 px-3 rounded-[2px] border border-primary bg-primary text-white text-[13px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+              className="h-8 px-3 rounded-[8px] border border-primary bg-primary text-white text-[13px] font-ibmPlexMono font-medium hover:bg-primary/90 active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
             >
               + ЭКРАН
             </button>
@@ -959,7 +959,7 @@ const ScreensDraftPage = () => {
         </div>
 
         {screenTab === "runtime" ? (
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark">
             {!activeScreen ? (
               <NoData title="Нет экранов" description="Создайте первый экран, чтобы увидеть просмотр." />
             ) : (
@@ -969,7 +969,7 @@ const ScreensDraftPage = () => {
                     {activeScreen.name}
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-[2px] border text-[11.5px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
+                    className={`px-1.5 py-0.5 rounded-[8px] border text-[11.5px] font-ibmPlexMono font-semibold uppercase tracking-wide ${
                       activeScreen.isActive ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
                     }`}
                   >
@@ -996,7 +996,7 @@ const ScreensDraftPage = () => {
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="поиск экранов…"
-                className="w-[230px] h-11 px-3.5 rounded-lg border border-white/15 bg-[#2c2c32] text-[15px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
+                className="w-[230px] h-11 px-3.5 rounded-[8px] border border-white/15 bg-[#2c2c32] text-[15px] font-ibmPlexSans text-text-primary placeholder:text-text-faint outline-none hover:border-white/25 focus:border-primary focus:ring-2 focus:ring-primary transition-colors"
               />
               <div className="w-[160px]">
                 <CustomSelect
@@ -1025,7 +1025,7 @@ const ScreensDraftPage = () => {
                 >
                   Экраны (черновик) · {filteredList.length}
                 </span>
-                <div className="flex rounded-lg border border-white/15 overflow-hidden">
+                <div className="flex rounded-[8px] border border-white/15 overflow-hidden">
                   {VIEW_MODE_OPTIONS.map((item, idx) => {
                     const isActive = viewMode === item.value;
                     return (
@@ -1096,7 +1096,7 @@ const ScreensDraftPage = () => {
                         setPageSize(size);
                         setCurrentPage(1);
                       }}
-                      className={`h-7 w-9 rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                      className={`h-7 w-9 rounded-[8px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                         pageSize === size
                           ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                           : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1112,7 +1112,7 @@ const ScreensDraftPage = () => {
                     type="button"
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Первая"
                   >
                     «
@@ -1121,7 +1121,7 @@ const ScreensDraftPage = () => {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Назад"
                   >
                     ‹
@@ -1146,7 +1146,7 @@ const ScreensDraftPage = () => {
                           key={item}
                           type="button"
                           onClick={() => setCurrentPage(item)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                          className={`flex h-7 w-7 items-center justify-center rounded-[8px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                             currentPage === item
                               ? "border-primary/70 bg-primary/20 text-primary hover:bg-primary/30"
                               : "border-surface-border bg-background-dark text-text-secondary hover:border-surface-border-hover"
@@ -1161,7 +1161,7 @@ const ScreensDraftPage = () => {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Вперёд"
                   >
                     ›
@@ -1170,7 +1170,7 @@ const ScreensDraftPage = () => {
                     type="button"
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                    className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-surface-border bg-background-dark text-text-secondary transition-colors enabled:hover:border-surface-border-hover enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     title="Последняя"
                   >
                     »
@@ -1326,35 +1326,35 @@ const ScreensDraftPage = () => {
         width={680}
       >
         <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Название</p>
             <p className="text-text-primary font-semibold">{selectedScreen?.name || "—"}</p>
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Описание</p>
             <p className="text-text-primary">{selectedScreen?.description || "—"}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Статус</p>
               <p className="text-text-primary">{selectedScreen?.isActive ? "Активен" : "Неактивен"}</p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Обновлено</p>
               <p className="text-text-primary">{formatDate(selectedScreen?.updatedAt)}</p>
             </div>
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted mb-2">Теги</p>
             <div className="flex flex-wrap gap-1.5">
               {selectedScreen?.tagNames?.length ? (
                 selectedScreen.tagNames.map((name) => (
                   <span
                     key={name}
-                    className="inline-flex rounded-[2px] px-2 py-0.5 text-xs border border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
+                    className="inline-flex rounded-[8px] px-2 py-0.5 text-xs border border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
                   >
                     {name}
                   </span>
@@ -1365,7 +1365,7 @@ const ScreensDraftPage = () => {
             </div>
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3 overflow-hidden">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3 overflow-hidden">
             <p className="text-text-muted mb-2">Параметры</p>
             {selectedScreen?.params && Object.keys(selectedScreen.params).length ? (
               <div className="space-y-2">
@@ -1377,7 +1377,7 @@ const ScreensDraftPage = () => {
                         {(value.nodes || []).length} узлов, {(value.edges || []).length} связей
                       </p>
                     ) : (
-                      <pre className="text-text-primary bg-background-dark/60 rounded-[2px] p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
+                      <pre className="text-text-primary bg-background-dark/60 rounded-[8px] p-2 whitespace-pre-wrap break-all overflow-y-auto max-h-40">
                         {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
                       </pre>
                     )}
@@ -1389,7 +1389,7 @@ const ScreensDraftPage = () => {
             )}
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Идентификатор</p>
             <p className="text-text-primary break-all">{selectedScreen?.id || "—"}</p>
           </div>

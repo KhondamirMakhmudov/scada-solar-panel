@@ -49,11 +49,11 @@ const InverterCard = ({ inverter }: InverterCardProps) => {
   const getCardClass = (status: string) => {
     switch (status) {
       case "Предупреждение":
-        return "bg-white rounded-xl p-5 shadow-md border-l-4 border-orange-500";
+        return "bg-white rounded-[8px] p-5 shadow-md border-l-4 border-orange-500";
       case "Офлайн":
-        return "bg-white rounded-xl p-5 shadow-md border-l-4 border-red-500";
+        return "bg-white rounded-[8px] p-5 shadow-md border-l-4 border-red-500";
       default:
-        return "bg-white rounded-xl p-5 shadow-md border-l-4 border-green-500";
+        return "bg-white rounded-[8px] p-5 shadow-md border-l-4 border-green-500";
     }
   };
 
@@ -80,7 +80,7 @@ const InverterCard = ({ inverter }: InverterCardProps) => {
 };
 
 const RegionCard = ({ region, isExpanded, onToggle }) => (
-  <div className="border border-[#555555] rounded-2xl overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-0.5 manrope">
+  <div className="border border-[#555555] rounded-[8px] overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-0.5 manrope">
     <div
       className="bg-gradient-to-br bg-[#A877FD] text-white px-6 py-5 cursor-pointer flex justify-between items-center"
       onClick={onToggle}

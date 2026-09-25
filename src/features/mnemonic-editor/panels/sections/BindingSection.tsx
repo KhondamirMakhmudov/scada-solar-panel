@@ -231,7 +231,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
         value={element.dataBinding?.tagId ?? ""}
         onChange={(event) => handleChange(event.target.value)}
         disabled={isLoading}
-        className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500 disabled:opacity-50"
+        className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500 disabled:opacity-50"
       >
         <option value="">Без привязки</option>
         {groups.map((group) => (
@@ -259,7 +259,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
       {(element.dataBinding?.tagId || extraBindings.length > 0) && (
         <div className="pt-1">
           <p className="text-[13px] text-text-dim mb-1">Показ данных на экране</p>
-          <div className="flex rounded-[2px] border border-surface-border overflow-hidden">
+          <div className="flex rounded-[8px] border border-surface-border overflow-hidden">
             {PANEL_DISPLAY_OPTIONS.map((option, idx) => (
               <button
                 key={option.value}
@@ -293,7 +293,7 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
             </p>
           )}
           {mismatchedExtraIds.length > 0 && (
-            <div className="rounded-[2px] border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
+            <div className="rounded-[8px] border border-amber-700/50 bg-amber-500/10 px-2 py-1.5 space-y-1.5">
               <p className="text-[12.5px] text-amber-400">
                 ⚠ {mismatchedExtraIds.length} доп.{" "}
                 {mismatchedExtraIds.length === 1 ? "тег принадлежит" : "тега принадлежат"}{" "}
@@ -302,13 +302,13 @@ const BindingSection = ({ element, screenTagIds = [] }: BindingSectionProps) => 
               <button
                 type="button"
                 onClick={handleRemoveCrossDeviceExtras}
-                className="text-[12.5px] px-2 py-1 rounded border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 active:scale-95 active:bg-amber-500/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
+                className="text-[12.5px] px-2 py-1 rounded-[8px] border border-amber-600/50 text-amber-300 hover:bg-amber-500/10 active:scale-95 active:bg-amber-500/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
               >
                 Убрать теги других устройств
               </button>
             </div>
           )}
-          <div className="max-h-40 overflow-y-auto rounded-[2px] border border-surface-border/60 bg-background-dark/40">
+          <div className="max-h-40 overflow-y-auto rounded-[8px] border border-surface-border/60 bg-background-dark/40">
             {extraGroups.map((group) => {
               const selectable = group.tags.filter(
                 (tag) => tag.id !== element.dataBinding?.tagId,

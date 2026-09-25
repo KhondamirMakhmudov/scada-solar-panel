@@ -15,7 +15,7 @@ const theme = createTheme({
     text: { primary: "#e5e2e1", secondary: "#7c8290" },
     divider: "#2a2a2a",
   },
-  shape: { borderRadius: 2 },
+  shape: { borderRadius: 8 },
   typography: {
     fontFamily: "'IBM Plex Sans', sans-serif",
     button: { textTransform: "none", fontWeight: 600 },
@@ -24,7 +24,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 2,
+          borderRadius: 8,
           fontFamily: "'IBM Plex Sans', sans-serif",
         },
       },
@@ -65,7 +65,7 @@ const theme = createTheme({
     MuiAvatar: {
       styleOverrides: {
         root: {
-          borderRadius: 2,
+          borderRadius: 8,
           fontFamily: "'IBM Plex Mono', monospace",
         },
       },

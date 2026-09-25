@@ -124,7 +124,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => imageInputRef.current?.click()}
-          className="w-full flex items-center justify-center px-3 py-2 rounded-[2px] border border-surface-border bg-background-dark/60 text-sm text-text-primary hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-[0.98] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+          className="w-full flex items-center justify-center px-3 py-2 rounded-[8px] border border-surface-border bg-background-dark/60 text-sm text-text-primary hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-[0.98] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
         >
           {hasImage ? "Заменить изображение" : "Загрузить изображение"}
         </button>
@@ -152,7 +152,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={range}
           onChange={(event) => commitImmediate(() => setState({ range: event.target.value }))}
-          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {Object.entries(TREND_RANGE_META).map(([value, meta]) => (
             <option key={value} value={value}>
@@ -202,7 +202,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => commitImmediate(() => setState({ charging: !charging }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
             charging
               ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
               : "border-surface-border bg-background-dark/60 text-text-muted"
@@ -225,7 +225,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <select
             value={status}
             onChange={(event) => commitImmediate(() => setState({ status: event.target.value }))}
-            className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+            className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           >
             {INVERTER_STATUSES.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -268,7 +268,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <select
             value={color}
             onChange={(event) => commitImmediate(() => setState({ color: event.target.value }))}
-            className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+            className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
           >
             {LAMP_COLORS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -280,7 +280,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <button
           type="button"
           onClick={() => commitImmediate(() => setState({ blinking: !blinking }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
             blinking
               ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
               : "border-surface-border bg-background-dark/60 text-text-muted"
@@ -302,7 +302,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={sensorType}
           onChange={(event) => commitImmediate(() => setState({ sensorType: event.target.value }))}
-          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {SENSOR_TYPES.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -323,7 +323,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
         <select
           value={variant}
           onChange={(event) => commitImmediate(() => setState({ variant: event.target.value }))}
-          className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+          className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
         >
           {PIPE_VARIANTS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -335,7 +335,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           <button
             type="button"
             onClick={() => commitImmediate(() => setState({ flowing: !flowing }))}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] border text-sm transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
               flowing
                 ? "border-green-500/50 bg-green-500/10 text-green-300"
                 : "border-surface-border bg-background-dark/60 text-text-muted"
@@ -360,7 +360,7 @@ const ShapeStateSection = ({ element }: ShapeStateSectionProps) => {
           type="button"
           disabled={isBound}
           onClick={() => commitImmediate(() => setState({ [booleanField.key]: !active }))}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-[2px] border text-sm transition-colors enabled:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] border text-sm transition-colors enabled:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-40 disabled:cursor-not-allowed ${
             active
               ? "border-green-500/50 bg-green-500/10 text-green-300"
               : "border-surface-border bg-background-dark/60 text-text-muted"

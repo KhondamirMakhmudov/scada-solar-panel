@@ -64,19 +64,19 @@ const StationCard = ({ station, generatedAt, index = 0 }: StationCardProps) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.05, 0.3) }}
-      className="rounded-[2px] border border-surface-border bg-surface-dark hover:border-surface-border-hover transition-colors"
+      className="rounded-[8px] border border-surface-border bg-surface-dark hover:border-surface-border-hover transition-colors"
       style={{ borderLeftWidth: 2, borderLeftColor: STATUS_COLOR[status] }}
     >
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-start justify-between gap-3 p-3.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[2px]"
+        className="w-full flex items-start justify-between gap-3 p-3.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[8px]"
       >
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-text-primary text-[18px] font-semibold truncate">{humanizeDriverId(station.driverId)}</p>
             <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] text-[12.5px] font-semibold uppercase tracking-wide"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[8px] text-[12.5px] font-semibold uppercase tracking-wide"
               style={{ color: STATUS_COLOR[status], background: `${STATUS_COLOR[status]}1a` }}
             >
               {/* online gets the infinite "live" ping, offline gets the same
@@ -159,7 +159,7 @@ const StationCard = ({ station, generatedAt, index = 0 }: StationCardProps) => {
                       return (
                         <div
                           key={device.id}
-                          className="flex items-center gap-2 px-2 py-1 rounded-[2px] bg-background-dark/60"
+                          className="flex items-center gap-2 px-2 py-1 rounded-[8px] bg-background-dark/60"
                           title={device.errorMessage ?? undefined}
                         >
                           {device.status === "online" ? (

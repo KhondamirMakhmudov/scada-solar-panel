@@ -55,7 +55,7 @@ const CombinedHistoryTable = ({ tags, seriesByTagId, valueMaps, isFetching }) =>
   }
 
   return (
-    <div className="rounded-lg border border-surface-border overflow-hidden">
+    <div className="rounded-[8px] border border-surface-border overflow-hidden">
       <DataTable
         columns={columns}
         rows={rows}

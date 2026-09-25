@@ -31,7 +31,7 @@ const TextField = ({ label, value, onChange }: TextFieldProps) => {
             beforeRef.current = null;
           }
         }}
-        className="w-full h-8 rounded-[2px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
+        className="w-full h-8 rounded-[8px] bg-background-dark border border-surface-border px-2 text-sm text-text-primary outline-none focus:border-blue-500"
       />
     </div>
   );

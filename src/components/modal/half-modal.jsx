@@ -19,7 +19,7 @@ const HalfModal = ({ children, isOpen, onClose, width = "w-[30px]" }) => {
             exit={{ opacity: 0, x: 50 }}
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
-            className={`bg-white rounded-bl-[16px] rounded-tl-[16px] shadow-lg ${width} h-screen overflow-y-auto p-[24px] z-50`}
+            className={`bg-white rounded-bl-[8px] rounded-tl-[8px] shadow-lg ${width} h-screen overflow-y-auto p-[24px] z-50`}
           >
             {children}
 

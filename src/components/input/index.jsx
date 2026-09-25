@@ -44,7 +44,7 @@ const Input = ({
           w-full h-11 border bg-[#2c2c32] text-text-primary text-[15px]
           placeholder:text-text-faint
           ${error ? "border-status-fault" : "border-white/15"}
-          rounded-lg px-3.5 pr-10 focus:outline-none
+          rounded-[8px] px-3.5 pr-10 focus:outline-none
           transition-colors duration-150
           hover:border-white/25
           focus:border-primary focus:ring-2 focus:ring-primary

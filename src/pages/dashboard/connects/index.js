@@ -587,7 +587,7 @@ const Index = () => {
               gap: 5,
               padding: "1px 6px",
               border: `1px solid ${color}`,
-              borderRadius: 2,
+              borderRadius: 8,
               font: "600 12px/1.6 'IBM Plex Mono'",
               color,
             }}
@@ -631,7 +631,7 @@ const Index = () => {
             type="button"
             onClick={() => setSelectedConnection(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ПРОСМОТР
           </button>
@@ -640,7 +640,7 @@ const Index = () => {
             type="button"
             onClick={() => handleOpenEditModal(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             ИЗМЕНИТЬ
           </button>
@@ -649,7 +649,7 @@ const Index = () => {
             type="button"
             onClick={() => handleOpenDeleteModal(row.original)}
             style={{ color: "#3b82f6" }}
-            className="hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             УДАЛИТЬ
           </button>
@@ -710,7 +710,7 @@ const Index = () => {
 
         <div className="flex-1" />
 
-        <div className="flex border border-white/15 rounded-lg overflow-hidden">
+        <div className="flex border border-white/15 rounded-[8px] overflow-hidden">
           <button
             onClick={() => setActiveTab("table")}
             className={`flex items-center gap-1.5 h-8 px-2.5 text-[13px] font-ibmPlexMono uppercase tracking-wide transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset ${
@@ -738,7 +738,7 @@ const Index = () => {
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="h-9 px-4 rounded-lg border border-primary text-primary text-[13px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
+          className="h-9 px-4 rounded-[8px] border border-primary text-primary text-[13px] font-ibmPlexMono font-semibold hover:bg-primary hover:text-white active:scale-[0.96] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background-dark"
         >
           + ПОДКЛЮЧЕНИЕ
         </button>
@@ -752,7 +752,7 @@ const Index = () => {
       ) : (
         <>
           {activeTab === "table" && (
-            <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
+            <div className="rounded-[8px] border border-white/[0.08] bg-surface-dark">
               <CustomTable columns={columns} data={filteredConnections} />
             </div>
           )}
@@ -764,14 +764,14 @@ const Index = () => {
                 return (
                   <div
                     key={connection.id}
-                    className="rounded-xl bg-surface-dark border border-white/[0.08] p-3 hover:border-primary/40 transition-colors"
+                    className="rounded-[8px] bg-surface-dark border border-white/[0.08] p-3 hover:border-primary/40 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <span className="font-ibmPlexMono text-[14.5px] font-semibold text-text-primary">
                         {connection.name}
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[12px] font-semibold uppercase tracking-wide ${
+                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[8px] border text-[12px] font-semibold uppercase tracking-wide ${
                           connection.enabled
                             ? "border-status-ok text-status-ok"
                             : "border-status-fault text-status-fault"
@@ -782,7 +782,7 @@ const Index = () => {
                     </div>
 
                     <div className="flex items-center gap-2 mb-2.5">
-                      <span className="w-7 h-7 rounded-[2px] bg-background-dark border border-surface-border flex items-center justify-center text-primary">
+                      <span className="w-7 h-7 rounded-[8px] bg-background-dark border border-surface-border flex items-center justify-center text-primary">
                         <ProtocolIcon sx={{ fontSize: 15 }} />
                       </span>
                       <span className="text-[13px] font-ibmPlexMono text-text-secondary">
@@ -814,7 +814,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedConnection(connection)}
-                        className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                        className="text-primary hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         ПРОСМОТР
                       </button>
@@ -822,7 +822,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(connection)}
-                        className="text-primary hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                        className="text-primary hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       >
                         ИЗМЕНИТЬ
                       </button>
@@ -830,7 +830,7 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenDeleteModal(connection)}
-                        className="text-status-fault hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
+                        className="text-status-fault hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
                       >
                         УДАЛИТЬ
                       </button>
@@ -884,7 +884,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-[#18181c] p-5">
+          <div className="rounded-[8px] border border-white/[0.08] bg-[#18181c] p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
@@ -903,7 +903,7 @@ const Index = () => {
                   color: "#bfdbfe",
                   borderColor: "#426080",
                   background: "#1b2633",
-                  borderRadius: "10px",
+                  borderRadius: "8px",
                   fontWeight: 600,
                   py: 0.9,
                   px: 2,
@@ -938,7 +938,7 @@ const Index = () => {
                 textTransform: "none",
                 color: "#bfc7d4",
                 borderColor: "rgba(255,255,255,0.15)",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 fontWeight: 600,
                 fontFamily: "'Manrope', sans-serif",
                 py: 1.1,
@@ -959,7 +959,7 @@ const Index = () => {
                 textTransform: "none",
                 background: "#2563eb",
                 color: "#eff6ff",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 fontWeight: 600,
                 fontFamily: "'Manrope', sans-serif",
                 py: 1.1,
@@ -1020,7 +1020,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-[#18181c] p-5">
+          <div className="rounded-[8px] border border-white/[0.08] bg-[#18181c] p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div>
                 <p className="text-white font-semibold">
@@ -1044,7 +1044,7 @@ const Index = () => {
                   color: "#bfdbfe",
                   borderColor: "#426080",
                   background: "#1b2633",
-                  borderRadius: "10px",
+                  borderRadius: "8px",
                   fontWeight: 600,
                   fontFamily: "'Manrope', sans-serif",
                   py: 0.9,
@@ -1080,7 +1080,7 @@ const Index = () => {
                 textTransform: "none",
                 color: "#bfc7d4",
                 borderColor: "rgba(255,255,255,0.15)",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 fontWeight: 600,
                 py: 1.1,
                 px: 3,
@@ -1100,7 +1100,7 @@ const Index = () => {
                 textTransform: "none",
                 background: "#d97706",
                 color: "#fffbeb",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 fontWeight: 600,
                 py: 1.1,
                 px: 3,

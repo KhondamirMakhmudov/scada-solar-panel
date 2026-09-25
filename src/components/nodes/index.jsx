@@ -17,10 +17,10 @@ const NodeGroup = ({ nodes = [] }) => {
   return (
     <div className="space-y-2 node-tree manrope">
       {nodes.map((node) => (
-        <div key={node.id} className="bg-gray-700 rounded-lg">
+        <div key={node.id} className="bg-gray-700 rounded-[8px]">
           {/* Node title row */}
           <div
-            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-600 transition-colors duration-200 rounded-lg"
+            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-600 transition-colors duration-200 rounded-[8px]"
             onClick={() => handleNodeToggle(node.id)}
           >
             <div className="flex items-center gap-2">
@@ -55,11 +55,11 @@ const NodeGroup = ({ nodes = [] }) => {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="p-5 border-t border-gray-700 bg-[#1E1E2F] rounded-b-lg"
+                className="p-5 border-t border-gray-700 bg-[#1E1E2F] rounded-b-[8px]"
               >
                 <div className="grid md:grid-cols-2 gap-4">
                   {/* Описание */}
-                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-xl p-4 shadow-sm border border-gray-700">
+                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-[8px] p-4 shadow-sm border border-gray-700">
                     <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                       Описание
                     </div>
@@ -69,7 +69,7 @@ const NodeGroup = ({ nodes = [] }) => {
                   </div>
 
                   {/* Идентификатор */}
-                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-xl p-4 shadow-sm border border-gray-700">
+                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-[8px] p-4 shadow-sm border border-gray-700">
                     <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                       Идентификатор
                     </div>
@@ -79,7 +79,7 @@ const NodeGroup = ({ nodes = [] }) => {
                   </div>
 
                   {/* Единицы измерения */}
-                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-xl p-4 shadow-sm border border-gray-700">
+                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-[8px] p-4 shadow-sm border border-gray-700">
                     <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                       Единицы измерения
                     </div>
@@ -89,7 +89,7 @@ const NodeGroup = ({ nodes = [] }) => {
                   </div>
 
                   {/* Тип */}
-                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-xl p-4 shadow-sm border border-gray-700">
+                  <div className="bg-[#2B2B3F] hover:bg-[#34344A] transition-all duration-200 rounded-[8px] p-4 shadow-sm border border-gray-700">
                     <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                       Тип
                     </div>

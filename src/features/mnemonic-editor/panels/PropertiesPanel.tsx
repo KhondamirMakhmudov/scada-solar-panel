@@ -64,7 +64,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
               type="button"
               onClick={togglePinned}
               title="Свернуть панель"
-              className="w-6 h-6 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+              className="w-6 h-6 flex items-center justify-center rounded-[8px] text-text-dim hover:bg-background-dark hover:text-text-secondary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
             >
               »
             </button>
@@ -80,7 +80,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           type="button"
           onClick={togglePinned}
           title="Настройки холста"
-          className="w-8 h-8 flex items-center justify-center rounded-[2px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-8 h-8 flex items-center justify-center rounded-[8px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           «
         </button>
@@ -112,7 +112,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
       className="w-80 flex-shrink-0 border-l border-surface-border bg-surface-dark/40 flex flex-col"
     >
       <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-surface-border/70">
-        <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[2px] bg-background-dark/50 border border-surface-border text-text-muted">
+        <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[8px] bg-background-dark/50 border border-surface-border text-text-muted">
           <ShapeThumbnail kind={element.type} size={24} />
         </span>
         <span className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
           type="button"
           onClick={clearSelection}
           title="Снять выделение"
-          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-text-dim hover:bg-background-dark hover:text-text-secondary text-sm leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-[8px] text-text-dim hover:bg-background-dark hover:text-text-secondary text-sm leading-none transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           ✕
         </button>
@@ -203,7 +203,7 @@ const PropertiesPanel = ({ screenTagIds = [], screenId }: PropertiesPanelProps) 
         <button
           type="button"
           onClick={handleDelete}
-          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 active:bg-rose-500/20 active:scale-[0.98] rounded-[2px] py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+          className="w-full text-sm text-rose-400 border border-rose-900/50 hover:bg-rose-500/10 active:bg-rose-500/20 active:scale-[0.98] rounded-[8px] py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
         >
           Удалить элемент
         </button>

@@ -23,7 +23,7 @@ const HistoryTimeline = () => {
   if (total === 0) {
     return (
       <div
-        className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
+        className="flex items-center gap-px h-6 px-1.5 rounded-[8px] border border-surface-border/70"
         title="История правок пуста"
       >
         <span className="text-[12.5px] text-text-faint">нет правок</span>
@@ -46,7 +46,7 @@ const HistoryTimeline = () => {
 
   return (
     <div
-      className="flex items-center gap-px h-6 px-1.5 rounded-[2px] border border-surface-border/70"
+      className="flex items-center gap-px h-6 px-1.5 rounded-[8px] border border-surface-border/70"
       title={`Правок: ${past.length} выполнено, ${future.length} отменено`}
     >
       {skipped > 0 && <span className="text-[11.5px] text-text-faint mr-0.5">+{skipped}</span>}
@@ -60,7 +60,7 @@ const HistoryTimeline = () => {
             // длина past должна стать index + 1
             onClick={() => jumpTo(index + 1)}
             title={isApplied ? `Откатить до шага ${index + 1}` : `Повторить до шага ${index + 1}`}
-            className={`w-1 h-3 rounded-sm transition-all hover:h-4 active:h-4 active:brightness-125 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+            className={`w-1 h-3 rounded-[8px] transition-all hover:h-4 active:h-4 active:brightness-125 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
               isApplied ? "bg-blue-500/70 hover:bg-blue-400" : "bg-surface-border hover:bg-text-dim"
             }`}
           />

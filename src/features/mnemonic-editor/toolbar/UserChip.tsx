@@ -27,10 +27,10 @@ const UserChip = () => {
 
   return (
     <div
-      className="flex items-center gap-2 h-8 pl-1 pr-2.5 rounded-[2px] border border-surface-border bg-surface-dark/60"
+      className="flex items-center gap-2 h-8 pl-1 pr-2.5 rounded-[8px] border border-surface-border bg-surface-dark/60"
       title={`${displayName} · ${role}`}
     >
-      <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded bg-blue-500/15 border border-blue-500/30 text-[12.5px] font-semibold text-blue-300">
+      <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-[8px] bg-blue-500/15 border border-blue-500/30 text-[12.5px] font-semibold text-blue-300">
         {initials(displayName)}
       </span>
       <span className="hidden lg:block min-w-0 leading-none">

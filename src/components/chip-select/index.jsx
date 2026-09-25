@@ -36,7 +36,7 @@ const ChipSelect = ({ value, onChange, label, options }) => {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex items-center gap-1.5 h-9 rounded-lg border px-3 transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
+        className={`flex items-center gap-1.5 h-9 rounded-[8px] border px-3 transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
           isOpen
             ? "border-primary bg-[#2c2c32] ring-2 ring-primary"
             : "border-white/15 bg-[#1c1b1e] hover:border-white/25"
@@ -55,7 +55,7 @@ const ChipSelect = ({ value, onChange, label, options }) => {
       </button>
 
       {isOpen && (
-        <ul className="absolute z-[9999] mt-1.5 min-w-full w-max bg-[#2c2c32] text-text-primary border border-white/15 rounded-lg shadow-xl shadow-black/50 max-h-60 overflow-auto py-1">
+        <ul className="absolute z-[9999] mt-1.5 min-w-full w-max bg-[#2c2c32] text-text-primary border border-white/15 rounded-[8px] shadow-xl shadow-black/50 max-h-60 overflow-auto py-1">
           {options.map((option) => (
             <li
               key={option.value}

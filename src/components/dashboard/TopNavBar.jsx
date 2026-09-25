@@ -111,7 +111,7 @@ export default function TopNavBar() {
         <button
           type="button"
           onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-          className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-[2px] border border-transparent hover:border-surface-border hover:bg-white/[0.02] active:scale-[0.97] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
+          className="flex items-center gap-2 h-8 pl-1 pr-2 rounded-[8px] border border-transparent hover:border-surface-border hover:bg-white/[0.02] active:scale-[0.97] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
         >
           <Avatar
             {...stringAvatar(userFullName)}
@@ -131,7 +131,7 @@ export default function TopNavBar() {
             animate={{ opacity: 1, y: 0 }}
             className="absolute right-0 top-full mt-1 w-48 z-50"
           >
-            <div className="bg-surface-dark border border-surface-border rounded-[2px] shadow-xl shadow-black/50 overflow-hidden">
+            <div className="bg-surface-dark border border-surface-border rounded-[8px] shadow-xl shadow-black/50 overflow-hidden">
               <Link
                 href="/dashboard/settings"
                 onClick={() => setIsProfileMenuOpen(false)}

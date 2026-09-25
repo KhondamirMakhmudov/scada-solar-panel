@@ -90,12 +90,12 @@ const SchemaSearch = () => {
             if (event.key === "Enter" && results.length > 0) handleSelect(results[0].id);
           }}
           placeholder="Поиск по схеме"
-          className="w-56 h-8 pl-7 pr-2 rounded-[2px] bg-background-dark/60 border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
+          className="w-56 h-8 pl-7 pr-2 rounded-[8px] bg-background-dark/60 border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
         />
       </div>
 
       {isOpen && normalized.length > 0 && (
-        <div className="absolute z-50 mt-1 w-72 rounded-[2px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50 overflow-hidden">
+        <div className="absolute z-50 mt-1 w-72 rounded-[8px] border border-surface-border bg-surface-dark shadow-xl shadow-black/50 overflow-hidden">
           {results.length === 0 ? (
             <p className="px-3 py-3 text-[13px] text-text-dim">Совпадений не найдено</p>
           ) : (

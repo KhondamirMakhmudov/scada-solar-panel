@@ -65,7 +65,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="w-full max-w-2xl rounded-lg border border-[#404752]/15 bg-gradient-to-br from-[#201f1f]/80 to-[#1c1b1b]/60 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="w-full max-w-2xl rounded-[8px] border border-[#404752]/15 bg-gradient-to-br from-[#201f1f]/80 to-[#1c1b1b]/60 p-8 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-col justify-between gap-8 md:flex-row">
               <div className="flex-1 space-y-4">
                 <h2 className="text-2xl font-bold tracking-tight text-[#fabd00]">
@@ -99,7 +99,7 @@ const Index = () => {
               <div className="flex min-w-[200px] flex-col justify-center gap-3">
                 <Link
                   href="/dashboard/main"
-                  className="group flex items-center justify-between rounded bg-[#2196f3] px-4 py-3 text-xs font-bold uppercase tracking-widest text-[#002c4f] transition-all hover:brightness-110 active:scale-95 [box-shadow:0_0_15px_rgba(158,202,255,0.2)]"
+                  className="group flex items-center justify-between rounded-[8px] bg-[#2196f3] px-4 py-3 text-xs font-bold uppercase tracking-widest text-[#002c4f] transition-all hover:brightness-110 active:scale-95 [box-shadow:0_0_15px_rgba(158,202,255,0.2)]"
                 >
                   Перейти в панель
                   <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">
@@ -110,7 +110,7 @@ const Index = () => {
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="group flex items-center justify-between rounded bg-[#353534] px-4 py-3 text-xs font-bold uppercase tracking-widest text-[#e5e2e1] transition-all hover:bg-[#393939] active:scale-95"
+                  className="group flex items-center justify-between rounded-[8px] bg-[#353534] px-4 py-3 text-xs font-bold uppercase tracking-widest text-[#e5e2e1] transition-all hover:bg-[#393939] active:scale-95"
                 >
                   Назад
                   <span className="material-symbols-outlined text-sm">
@@ -121,7 +121,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mt-12 w-full max-w-2xl overflow-hidden rounded border border-[#404752]/10 bg-[#0e0e0e]/80">
+          <div className="mt-12 w-full max-w-2xl overflow-hidden rounded-[8px] border border-[#404752]/10 bg-[#0e0e0e]/80">
             <div className="flex items-center justify-between bg-[#2a2a2a] px-3 py-1.5">
               <span className="font-mono text-[12.5px] font-bold uppercase tracking-widest text-[#404752]">
                 Журнал доступа

@@ -45,7 +45,7 @@ function CopyButton({ value, title = "Скопировать" }) {
       type="button"
       onClick={handleCopy}
       title={title}
-      className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+      className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[8px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
     >
       {copied ? (
         <CheckCircleRounded sx={{ fontSize: 14 }} className="text-status-ok" />
@@ -75,7 +75,7 @@ function ParamRow({ row }) {
           <span className="text-[14.5px] text-text-faint font-ibmPlexMono">—</span>
         ) : isBoolean ? (
           <span
-            className={`inline-flex items-center gap-1 text-[13px] font-medium px-1.5 py-0.5 rounded-[2px] ${
+            className={`inline-flex items-center gap-1 text-[13px] font-medium px-1.5 py-0.5 rounded-[8px] ${
               value ? "text-status-ok bg-status-ok/10" : "text-text-muted bg-white/5"
             }`}
           >
@@ -91,7 +91,7 @@ function ParamRow({ row }) {
               type="button"
               onClick={() => setRevealed((v) => !v)}
               title={revealed ? "Скрыть" : "Показать"}
-              className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+              className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[8px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
             >
               {revealed ? <VisibilityOffRounded sx={{ fontSize: 14 }} /> : <VisibilityRounded sx={{ fontSize: 14 }} />}
             </button>
@@ -148,9 +148,9 @@ const ConnectionDetailsModal = ({ connection, onClose }) => {
     <MethodModal open={Boolean(connection)} onClose={onClose} closeClick={onClose} showCloseIcon title="Детали подключения" width={640}>
       <div className="font-ibmPlexSans space-y-3.5">
         {/* Identity header */}
-        <div className="flex items-start justify-between gap-3 flex-wrap p-3.5 rounded-[2px] border border-surface-border bg-background-dark/60">
+        <div className="flex items-start justify-between gap-3 flex-wrap p-3.5 rounded-[8px] border border-surface-border bg-background-dark/60">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="w-10 h-10 flex-shrink-0 rounded-[2px] bg-primary/15 border border-primary/40 flex items-center justify-center text-blue-300">
+            <span className="w-10 h-10 flex-shrink-0 rounded-[8px] bg-primary/15 border border-primary/40 flex items-center justify-center text-blue-300">
               <Icon fontSize="small" />
             </span>
             <div className="min-w-0">
@@ -163,11 +163,11 @@ const ConnectionDetailsModal = ({ connection, onClose }) => {
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] border border-surface-border-hover bg-white/[0.03] text-[13px] font-ibmPlexMono text-text-secondary">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] border border-surface-border-hover bg-white/[0.03] text-[13px] font-ibmPlexMono text-text-secondary">
               {connection.type}
             </span>
             <span
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] border text-[13px] font-semibold uppercase tracking-wide ${
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[8px] border text-[13px] font-semibold uppercase tracking-wide ${
                 connection.enabled ? "border-status-ok/50 bg-status-ok/10 text-status-ok" : "border-status-fault/50 bg-status-fault/10 text-status-fault"
               }`}
             >
@@ -178,7 +178,7 @@ const ConnectionDetailsModal = ({ connection, onClose }) => {
         </div>
 
         {hasInsecureOpcSession && (
-          <div className="flex items-start gap-2 px-3 py-2 rounded-[2px] border border-status-warn/40 bg-status-warn/10">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-[8px] border border-status-warn/40 bg-status-warn/10">
             <WarningAmberRounded sx={{ fontSize: 16 }} className="text-status-warn flex-shrink-0 mt-0.5" />
             <p className="text-[13.5px] text-status-warn leading-snug">
               Сессия работает без шифрования и подписи (Security Mode/Policy — None). Трафик OPC UA идёт в открытом виде.
@@ -193,7 +193,7 @@ const ConnectionDetailsModal = ({ connection, onClose }) => {
             <button
               type="button"
               onClick={handleCopyRaw}
-              className="flex items-center gap-1 text-[13px] text-text-faint hover:text-text-secondary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[2px] px-1"
+              className="flex items-center gap-1 text-[13px] text-text-faint hover:text-text-secondary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[8px] px-1"
             >
               <ContentCopyRounded sx={{ fontSize: 12 }} />
               Скопировать как JSON
@@ -201,11 +201,11 @@ const ConnectionDetailsModal = ({ connection, onClose }) => {
           </div>
 
           {paramRows.length === 0 ? (
-            <p className="px-3.5 py-4 text-center text-[13.5px] text-text-faint rounded-[2px] border border-surface-border bg-background-dark/40">
+            <p className="px-3.5 py-4 text-center text-[13.5px] text-text-faint rounded-[8px] border border-surface-border bg-background-dark/40">
               Подключение не вернуло параметров
             </p>
           ) : (
-            <div className="rounded-[2px] border border-surface-border bg-background-dark/40 overflow-hidden">
+            <div className="rounded-[8px] border border-surface-border bg-background-dark/40 overflow-hidden">
               {paramRows.map((row) => (
                 <ParamRow key={row.key} row={row} />
               ))}

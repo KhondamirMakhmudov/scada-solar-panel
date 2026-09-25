@@ -5,7 +5,7 @@ import { exportTagHistoryToExcel } from "./exportToExcel";
 
 /**
  * "Экспорт в Excel" for the current tag-history selection. Styled to match
- * SegmentedControl (h-8, rounded-[2px], surface border) since it always sits
+ * SegmentedControl (h-8, rounded-[8px], surface border) since it always sits
  * next to it in the toolbar.
  *
  * Gated on `isFetching`, not just on having a selection: the history query is
@@ -60,7 +60,7 @@ const ExportExcelButton = ({
           ? "Дождитесь загрузки данных"
           : "Экспортировать выбранные теги в Excel"
       }
-      className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-[2px] border border-surface-border bg-surface-1 px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
+      className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-[8px] border border-surface-border bg-surface-1 px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
         isDisabled
           ? "cursor-not-allowed text-[#3a3a3a]"
           : "text-[#6b7280] hover:text-[#e5e2e1] hover:bg-surface-2 active:scale-[0.96] active:bg-surface-3"

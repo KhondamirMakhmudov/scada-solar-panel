@@ -175,12 +175,12 @@ const RuntimeCanvas = () => {
         </g>
       </svg>
 
-      <div className="absolute bottom-3 right-3 flex items-center gap-0.5 rounded-[2px] border border-surface-border bg-surface-dark/90 backdrop-blur px-1 py-1 pointer-events-auto">
+      <div className="absolute bottom-3 right-3 flex items-center gap-0.5 rounded-[8px] border border-surface-border bg-surface-dark/90 backdrop-blur px-1 py-1 pointer-events-auto">
         <button
           type="button"
           onClick={() => stepZoom(-1)}
           title="Уменьшить"
-          className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-7 h-7 flex items-center justify-center rounded-[8px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           −
         </button>
@@ -188,7 +188,7 @@ const RuntimeCanvas = () => {
           type="button"
           onClick={fitToContent}
           title="По размеру экрана"
-          className="w-14 h-7 rounded text-[13px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-14 h-7 rounded-[8px] text-[13px] text-text-muted font-ibmPlexMono tabular-nums hover:bg-background-dark hover:text-text-primary transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           {Math.round(viewport.zoom * 100)}%
         </button>
@@ -196,7 +196,7 @@ const RuntimeCanvas = () => {
           type="button"
           onClick={() => stepZoom(1)}
           title="Увеличить"
-          className="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="w-7 h-7 flex items-center justify-center rounded-[8px] text-text-muted hover:bg-background-dark hover:text-text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           +
         </button>

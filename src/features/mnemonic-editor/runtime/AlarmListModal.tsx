@@ -31,7 +31,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 font-ibmPlexSans">
-      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border border-surface-border/70 bg-[#0e0e0e] shadow-2xl">
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-[8px] border border-surface-border/70 bg-[#0e0e0e] shadow-2xl">
         <div className="flex flex-shrink-0 items-center justify-between border-b border-surface-border px-5 py-4">
           <div className="flex items-center gap-2 min-w-0">
             <NotificationsActiveRounded className="text-status-fault flex-shrink-0" fontSize="small" />
@@ -43,7 +43,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-text-muted transition hover:bg-background-dark hover:text-text-primary active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-text-muted transition hover:bg-background-dark hover:text-text-primary active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             <Close fontSize="small" />
           </button>
@@ -68,7 +68,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
             </div>
 
             {alarms.length === 0 ? (
-              <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-4 text-center text-xs text-text-dim">
+              <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-4 text-center text-xs text-text-dim">
                 Активных тревог нет.
               </div>
             ) : (
@@ -76,7 +76,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
                 {alarms.map((alarm) => (
                   <div
                     key={alarm.tagId}
-                    className={`rounded-[2px] border p-2.5 flex items-start gap-3 ${
+                    className={`rounded-[8px] border p-2.5 flex items-start gap-3 ${
                       alarm.acked
                         ? "border-surface-border bg-surface-dark/50"
                         : "border-status-fault/40 bg-status-fault/10"
@@ -97,14 +97,14 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
                       )}
                     </div>
                     {alarm.acked ? (
-                      <span className="flex-shrink-0 text-[12px] font-semibold uppercase tracking-wide text-text-dim border border-surface-border rounded-[2px] px-1.5 py-0.5">
+                      <span className="flex-shrink-0 text-[12px] font-semibold uppercase tracking-wide text-text-dim border border-surface-border rounded-[8px] px-1.5 py-0.5">
                         Подтверждено
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => ackAlarm(alarm.tagId)}
-                        className="flex-shrink-0 text-[12.5px] font-semibold uppercase tracking-wide text-primary border border-primary/50 rounded-[2px] px-2 py-1 hover:bg-primary/10 active:scale-95 transition-colors"
+                        className="flex-shrink-0 text-[12.5px] font-semibold uppercase tracking-wide text-primary border border-primary/50 rounded-[8px] px-2 py-1 hover:bg-primary/10 active:scale-95 transition-colors"
                       >
                         Подтвердить
                       </button>
@@ -121,7 +121,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
               Недавно снятые
             </p>
             {alarmLog.length === 0 ? (
-              <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-4 text-center text-xs text-text-dim">
+              <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-4 text-center text-xs text-text-dim">
                 Пока ничего не зафиксировано в этой сессии.
               </div>
             ) : (
@@ -129,7 +129,7 @@ const AlarmListModal = ({ alarms, onAckAll, onClose }: AlarmListModalProps) => {
                 {alarmLog.map((entry, idx) => (
                   <div
                     key={`${entry.tagId}-${entry.clearedAt}-${idx}`}
-                    className="rounded-[2px] border border-surface-border/70 bg-surface-dark/40 px-2.5 py-1.5 flex items-center gap-3 text-[13px]"
+                    className="rounded-[8px] border border-surface-border/70 bg-surface-dark/40 px-2.5 py-1.5 flex items-center gap-3 text-[13px]"
                   >
                     <span className="font-ibmPlexMono text-text-faint flex-shrink-0">
                       {formatClock(entry.since)} → {formatClock(entry.clearedAt)}

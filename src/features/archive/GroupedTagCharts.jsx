@@ -1,7 +1,7 @@
 import { useState } from "react";
 import TagChartCard from "./TagChartCard";
 import CombinedHistoryTable from "./CombinedHistoryTable";
-import { seriesColor } from "@/components/ui";
+import { Reveal, seriesColor } from "@/components/ui";
 
 /**
  * История тегов, сгруппированная по источнику (устройство / элемент схемы),
@@ -57,11 +57,16 @@ const GroupedTagCharts = ({
           ) : (
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
               {group.tags.map((tag) => {
-                const color = seriesColor(colorIndex);
+                const cardIndex = colorIndex;
+                const color = seriesColor(cardIndex);
                 colorIndex += 1;
                 const isExpanded = expandedTagIds.includes(tag.id);
                 return (
-                  <div key={tag.id} className={isExpanded ? "xl:col-span-2" : undefined}>
+                  <Reveal
+                    key={tag.id}
+                    index={cardIndex}
+                    className={isExpanded ? "xl:col-span-2" : undefined}
+                  >
                     <TagChartCard
                       tag={tag}
                       color={color}
@@ -77,7 +82,7 @@ const GroupedTagCharts = ({
                       onToggleExpand={() => toggleExpanded(tag.id)}
                       onRemove={onRemoveTag ? () => onRemoveTag(tag.id) : undefined}
                     />
-                  </div>
+                  </Reveal>
                 );
               })}
             </div>

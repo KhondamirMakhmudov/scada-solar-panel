@@ -66,7 +66,7 @@ const TagChartCard = ({
     : chartData;
 
   return (
-    <div className="rounded-xl border border-surface-border bg-surface-2">
+    <div className="rounded-[8px] border border-surface-border bg-surface-2">
       <header className="flex items-center gap-2 px-3.5 py-2.5 border-b border-surface-border">
         <span
           className="h-2 w-2 flex-shrink-0 rounded-full"
@@ -87,7 +87,7 @@ const TagChartCard = ({
             type="button"
             onClick={onToggleExpand}
             title={isExpanded ? "Свернуть" : "Развернуть: показать разброс мин–макс"}
-            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[#6b7280] transition-colors hover:bg-surface-3 hover:text-[#e5e2e1]"
+            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[8px] text-[#6b7280] transition-colors hover:bg-surface-3 hover:text-[#e5e2e1]"
           >
             {isExpanded ? (
               <UnfoldLess sx={{ fontSize: 16 }} />
@@ -101,7 +101,7 @@ const TagChartCard = ({
             type="button"
             onClick={onRemove}
             title="Убрать тег"
-            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[#6b7280] transition-colors hover:bg-surface-3 hover:text-[#f87171]"
+            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[8px] text-[#6b7280] transition-colors hover:bg-surface-3 hover:text-[#f87171]"
           >
             <Close sx={{ fontSize: 16 }} />
           </button>
@@ -211,7 +211,7 @@ const TagChartCard = ({
         {showRangeBand && hasPoints && (
           <p className="mt-2 flex items-center gap-1.5 text-[12.5px] text-[#6b7280]">
             <span
-              className="inline-block h-2 w-4 rounded-sm"
+              className="inline-block h-2 w-4 rounded-[8px]"
               style={{ backgroundColor: color, opacity: 0.14 }}
             />
             разброс мин–макс внутри интервала усреднения

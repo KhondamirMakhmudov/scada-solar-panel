@@ -11,6 +11,7 @@ export { default as StatTile } from "./StatTile";
 export { default as SegmentedControl } from "./SegmentedControl";
 export { default as Chip } from "./Chip";
 export { default as EmptyState } from "./EmptyState";
+export { default as Reveal, REVEAL_STEP, REVEAL_MAX_DELAY, REVEAL_DURATION } from "./Reveal";
 export { default as StatusDot } from "./StatusDot";
 export { default as DataTable } from "./DataTable";
 export type { DataTableColumn } from "./DataTable";

@@ -12,13 +12,13 @@ const Index = () => {
       <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-[#131313] px-6 shadow-[0_4px_20px_rgba(33,150,243,0.08)]">
         <Brand />
         <div className="flex items-center gap-6">
-          <span className="material-symbols-outlined cursor-pointer rounded-lg p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
+          <span className="material-symbols-outlined cursor-pointer rounded-[8px] p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
             help
           </span>
-          <span className="material-symbols-outlined cursor-pointer rounded-lg p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
+          <span className="material-symbols-outlined cursor-pointer rounded-[8px] p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
             settings
           </span>
-          <span className="material-symbols-outlined cursor-pointer rounded-lg p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
+          <span className="material-symbols-outlined cursor-pointer rounded-[8px] p-2 text-[#bfc7d4]/70 transition-colors duration-200 hover:bg-[#393939]">
             account_circle
           </span>
         </div>
@@ -52,7 +52,7 @@ const Index = () => {
                 уведомлены и работают над решением проблемы.
               </p>
               <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2 rounded-sm bg-[#93000a]/30 px-3 py-1.5">
+                <div className="flex items-center gap-2 rounded-[8px] bg-[#93000a]/30 px-3 py-1.5">
                   <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#ffb4ab]">
                     Код ошибки:
                   </span>
@@ -60,7 +60,7 @@ const Index = () => {
                     500_INTERNAL_SERVER_ERROR
                   </span>
                 </div>
-                <div className="flex items-center gap-2 rounded-sm bg-[#2a2a2a] px-3 py-1.5">
+                <div className="flex items-center gap-2 rounded-[8px] bg-[#2a2a2a] px-3 py-1.5">
                   <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
                     ID трассировки:
                   </span>
@@ -92,7 +92,7 @@ const Index = () => {
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-5">
-            <div className="overflow-hidden rounded-lg bg-[#2a2a2a] p-1 shadow-2xl">
+            <div className="overflow-hidden rounded-[8px] bg-[#2a2a2a] p-1 shadow-2xl">
               <div className="flex items-center justify-between bg-[#353534] px-4 py-2">
                 <span className="text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#bfc7d4]">
                   Журнал_ядра_trace
@@ -143,7 +143,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2 rounded-lg bg-[#1c1b1b] p-4">
+              <div className="flex flex-col gap-2 rounded-[8px] bg-[#1c1b1b] p-4">
                 <span className="text-[11.5px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
                   НАГРУЗКА CPU
                 </span>
@@ -154,7 +154,7 @@ const Index = () => {
                   <div className="h-8 w-1 bg-[#ffb4ab] shadow-[0_0_8px_rgba(255,180,171,0.5)]" />
                 </div>
               </div>
-              <div className="flex flex-col justify-center rounded-lg bg-[#1c1b1b] p-4">
+              <div className="flex flex-col justify-center rounded-[8px] bg-[#1c1b1b] p-4">
                 <span className="mb-1 text-[11.5px] font-bold uppercase tracking-[0.15em] text-[#bfc7d4]/60">
                   NODE_ID
                 </span>

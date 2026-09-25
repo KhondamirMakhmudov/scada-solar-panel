@@ -83,7 +83,7 @@ const CustomTable = ({ data, columns, pagination }) => {
   };
 
   return (
-    <div className="overflow-x-auto border border-white/[0.08] rounded-xl font-ibmPlexSans">
+    <div className="overflow-x-auto border border-white/[0.08] rounded-[8px] font-ibmPlexSans">
       <table className="min-w-full text-left">
         <thead className="bg-[#18181c] border-b border-white/[0.08]">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -157,7 +157,7 @@ const CustomTable = ({ data, columns, pagination }) => {
           <button
             onClick={() => currentPage > 1 && handlePageClick(currentPage - 1)}
             disabled={currentPage === 1}
-            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-lg text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-[8px] text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <ChevronLeftIcon sx={{ fontSize: 15 }} />
           </button>
@@ -167,7 +167,7 @@ const CustomTable = ({ data, columns, pagination }) => {
               key={i}
               onClick={() => handlePageClick(p)}
               disabled={p === "..."}
-              className={`min-w-8 h-8 px-1.5 border rounded-lg text-[13px] font-ibmPlexMono cursor-pointer transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
+              className={`min-w-8 h-8 px-1.5 border rounded-[8px] text-[13px] font-ibmPlexMono cursor-pointer transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
                 p === currentPage
                   ? "bg-primary border-primary text-white"
                   : p === "..."
@@ -184,7 +184,7 @@ const CustomTable = ({ data, columns, pagination }) => {
               currentPage < totalPages && handlePageClick(currentPage + 1)
             }
             disabled={currentPage === totalPages}
-            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-lg text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            className="w-8 h-8 flex items-center justify-center border border-white/15 rounded-[8px] text-text-secondary cursor-pointer transition-colors enabled:hover:border-primary/40 enabled:active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <ChevronRightIcon sx={{ fontSize: 15 }} />
           </button>

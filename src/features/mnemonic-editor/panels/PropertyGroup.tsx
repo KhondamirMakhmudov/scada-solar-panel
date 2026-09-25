@@ -22,7 +22,7 @@ const PropertyGroup = ({ title, badge, defaultOpen = true, children }: PropertyG
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="rounded-[2px] border border-surface-border/80 bg-background-dark/30">
+    <div className="rounded-[8px] border border-surface-border/80 bg-background-dark/30">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}

@@ -32,7 +32,7 @@ const HeroTile = ({
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.25, delay }}
-    className="bg-surface-dark border border-surface-border rounded-[2px] p-4"
+    className="bg-surface-dark border border-surface-border rounded-[8px] p-4"
   >
     <div className="flex items-center gap-2.5 mb-3">
       <Icon sx={{ fontSize: 23, color: "#3987e5" }} />
@@ -59,7 +59,7 @@ const StationsOverviewSection = () => {
 
   if (isLoading) {
     return (
-      <section className="bg-surface-dark border border-surface-border rounded-[2px] p-6">
+      <section className="bg-surface-dark border border-surface-border rounded-[8px] p-6">
         <ContentLoader classNames="" />
       </section>
     );
@@ -67,7 +67,7 @@ const StationsOverviewSection = () => {
 
   if (isError || !response) {
     return (
-      <section className="bg-surface-dark border border-surface-border rounded-[2px]">
+      <section className="bg-surface-dark border border-surface-border rounded-[8px]">
         <NoData
           title="Обзор станций недоступен"
           description="Не удалось получить /overview/stations — проверьте, что scada_storage доступен."
@@ -114,7 +114,7 @@ const StationsOverviewSection = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.15 }}
-        className="bg-surface-dark border border-surface-border rounded-[2px] p-3.5"
+        className="bg-surface-dark border border-surface-border rounded-[8px] p-3.5"
       >
         <p className="text-[13px] font-ibmPlexSans uppercase tracking-wide text-text-faint mb-3">
           {response.totals.devices} устройств на {response.totals.stations}{" "}

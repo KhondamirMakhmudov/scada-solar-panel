@@ -102,7 +102,7 @@ const MapOfUz = ({
       <div className={`col-span-6 relative transition-all duration-300`}>
         {tooltip && (
           <div
-            className="fixed bg-gray-800 text-white text-sm p-3 rounded-lg shadow-xl z-50 max-w-xs manrope"
+            className="fixed bg-gray-800 text-white text-sm p-3 rounded-[8px] shadow-xl z-50 max-w-xs manrope"
             style={{
               top: tooltip.y + 10,
               left: tooltip.x + 10,
@@ -331,7 +331,7 @@ const MapOfUz = ({
       </div>
       {/* Details Panel */}
       {selectedMarker && (
-        <div className="col-span-6 bg-[#1A132A] rounded-xl shadow-2xl overflow-hidden h-full manrope border border-[#2A1F3C] flex flex-col">
+        <div className="col-span-6 bg-[#1A132A] rounded-[8px] shadow-2xl overflow-hidden h-full manrope border border-[#2A1F3C] flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] p-4 sm:p-6">
             <div className="flex justify-between items-start gap-3">
@@ -366,7 +366,7 @@ const MapOfUz = ({
             style={{ maxHeight: "calc(100vh - 220px)" }}
           >
             {/* Coordinates */}
-            <div className="bg-[#0F0A1E] rounded-lg p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
+            <div className="bg-[#0F0A1E] rounded-[8px] p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
               <h4 className="text-[#8B5CF6] text-xs sm:text-sm font-semibold mb-3 uppercase tracking-wide">
                 Координаты
               </h4>
@@ -387,7 +387,7 @@ const MapOfUz = ({
             </div>
             {/* DESCRIPTION */}
             {selectedMarker.description && (
-              <div className="bg-[#0F0A1E] rounded-lg p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
+              <div className="bg-[#0F0A1E] rounded-[8px] p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
                 <h4 className="text-[#8B5CF6] text-xs sm:text-sm font-semibold mb-3 uppercase tracking-wide">
                   Описание
                 </h4>
@@ -399,7 +399,7 @@ const MapOfUz = ({
 
             {/* CREATED AT */}
             {selectedMarker.created_at && (
-              <div className="bg-[#0F0A1E] rounded-lg p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
+              <div className="bg-[#0F0A1E] rounded-[8px] p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
                 <h4 className="text-[#8B5CF6] text-xs sm:text-sm font-semibold mb-3 uppercase tracking-wide">
                   Дата создания
                 </h4>
@@ -411,7 +411,7 @@ const MapOfUz = ({
 
             {/* UPDATED AT */}
             {selectedMarker.updated_at && (
-              <div className="bg-[#0F0A1E] rounded-lg p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
+              <div className="bg-[#0F0A1E] rounded-[8px] p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
                 <h4 className="text-[#8B5CF6] text-xs sm:text-sm font-semibold mb-3 uppercase tracking-wide">
                   Дата обновления
                 </h4>
@@ -423,7 +423,7 @@ const MapOfUz = ({
 
             {/* CONNECTS */}
             {selectedMarker.connect && selectedMarker.connect.length > 0 && (
-              <div className="bg-[#0F0A1E] rounded-lg p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
+              <div className="bg-[#0F0A1E] rounded-[8px] p-4 border border-[#2A1F3C] hover:border-[#8B5CF6]/50 transition">
                 <h4 className="text-[#8B5CF6] text-xs sm:text-sm font-semibold mb-3 uppercase tracking-wide">
                   Подключения
                 </h4>
@@ -432,7 +432,7 @@ const MapOfUz = ({
                   {selectedMarker.connect.map((item) => (
                     <div
                       key={item.id}
-                      className="p-4 rounded-lg bg-[#161122] border border-[#2A1F3C] hover:border-[#8B5CF6]/40 transition"
+                      className="p-4 rounded-[8px] bg-[#161122] border border-[#2A1F3C] hover:border-[#8B5CF6]/40 transition"
                     >
                       <p className="text-[#E4E4E7] text-sm mb-2">
                         <strong className="text-[#8B5CF6]">Название:</strong>{" "}
@@ -508,13 +508,13 @@ const MapOfUz = ({
           <div className="sticky bottom-0 bg-[#120C22] border-t border-[#2A1F3C] px-4 sm:px-6 py-4 flex justify-end gap-2 sm:gap-3">
             <button
               onClick={() => onClickEdit(selectedMarker.id)}
-              className="!w-auto !h-8 sm:!h-10 px-3 hover:bg-[#d1651d] bg-[#FF6200] text-white rounded-md text-xs sm:text-sm font-medium transition cursor-pointer"
+              className="!w-auto !h-8 sm:!h-10 px-3 hover:bg-[#d1651d] bg-[#FF6200] text-white rounded-[8px] text-xs sm:text-sm font-medium transition cursor-pointer"
             >
               Изменить
             </button>
             <button
               onClick={() => onClickDelete(selectedMarker.id)}
-              className="!w-auto !h-8 sm:!h-10 px-3 text-white hover:bg-[#d62912] bg-[#FF1E00] rounded-md text-xs sm:text-sm font-medium transition cursor-pointer"
+              className="!w-auto !h-8 sm:!h-10 px-3 text-white hover:bg-[#d62912] bg-[#FF1E00] rounded-[8px] text-xs sm:text-sm font-medium transition cursor-pointer"
             >
               Удалить
             </button>

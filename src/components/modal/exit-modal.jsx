@@ -14,12 +14,12 @@ const ExitModal = ({ open, onClose, handleLogout }) => {
           bgcolor: "#1c1b1b",
           boxShadow: 24,
           p: 4,
-          borderRadius: "2px",
+          borderRadius: "8px",
           border: "1px solid #2a2a2a",
         }}
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/15 text-red-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-red-500/15 text-red-400">
             <LogoutRoundedIcon fontSize="small" />
           </div>
           <Typography
@@ -54,7 +54,7 @@ const ExitModal = ({ open, onClose, handleLogout }) => {
               textTransform: "none",
               fontSize: "15px",
               fontFamily: "'IBM Plex Sans', sans-serif",
-              borderRadius: "2px",
+              borderRadius: "8px",
               fontWeight: 500,
               py: 1.5,
               "&:hover": {
@@ -76,7 +76,7 @@ const ExitModal = ({ open, onClose, handleLogout }) => {
               fontSize: "15px",
               fontWeight: 600,
               fontFamily: "'IBM Plex Sans', sans-serif",
-              borderRadius: "2px",
+              borderRadius: "8px",
               py: 1.5,
               "&:hover": {
                 backgroundColor: "#dc2626",

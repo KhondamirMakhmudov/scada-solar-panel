@@ -72,7 +72,7 @@ const ContextMenu = () => {
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-[180px] rounded-[2px] border border-surface-border bg-surface-dark shadow-xl py-1 text-sm text-text-primary"
+      className="fixed z-50 min-w-[180px] rounded-[8px] border border-surface-border bg-surface-dark shadow-xl py-1 text-sm text-text-primary"
       style={{ left: contextMenu.x, top: contextMenu.y }}
     >
       <button

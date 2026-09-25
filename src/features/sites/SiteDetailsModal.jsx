@@ -20,7 +20,7 @@ function Scalar({ value }) {
   if (typeof value === "boolean") {
     return (
       <span
-        className={`text-[13px] font-medium px-1.5 py-0.5 rounded-[2px] ${
+        className={`text-[13px] font-medium px-1.5 py-0.5 rounded-[8px] ${
           value ? "text-status-ok bg-status-ok/10" : "text-text-muted bg-white/5"
         }`}
       >
@@ -51,7 +51,7 @@ function PassportNode({ value, depth = 0 }) {
         {value.map((item, index) => (
           <div
             key={index}
-            className="rounded-[2px] border border-surface-border/70 bg-background-dark/40"
+            className="rounded-[8px] border border-surface-border/70 bg-background-dark/40"
           >
             <div className="px-3 py-1.5 border-b border-surface-border/60 text-[12.5px] font-ibmPlexMono text-text-faint">
               #{index + 1}
@@ -148,7 +148,7 @@ const SiteDetailsModal = ({ site, deviceCount = 0, onClose }) => {
           <h4 className="mb-2 text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
             Основное
           </h4>
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark">
             <InfoRow label="Код">{site.code}</InfoRow>
             <InfoRow label="Организация">{site.groupName || "—"}</InfoRow>
             <InfoRow label="Тип">{siteTypeLabel(site.type)}</InfoRow>
@@ -168,7 +168,7 @@ const SiteDetailsModal = ({ site, deviceCount = 0, onClose }) => {
           <h4 className="mb-2 text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted">
             Паспорт оборудования
           </h4>
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark">
             {hasPassport ? (
               <PassportNode value={site.passport} />
             ) : (

@@ -38,7 +38,7 @@ const NumberField = ({ label, value, onChange, step = 1 }: NumberFieldProps) => 
             beforeRef.current = null;
           }
         }}
-        className="w-16 h-7 rounded-[2px] bg-background-dark border border-surface-border px-2 text-right text-text-primary outline-none focus:border-blue-500"
+        className="w-16 h-7 rounded-[8px] bg-background-dark border border-surface-border px-2 text-right text-text-primary outline-none focus:border-blue-500"
       />
     </label>
   );

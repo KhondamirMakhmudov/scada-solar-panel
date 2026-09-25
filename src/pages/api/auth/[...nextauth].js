@@ -121,6 +121,16 @@ function isAdmin(rolesArray) {
 // jwt-колбэка в один запрос к бэкенду.
 const REFRESH_LOCK_TTL_MS = 15000;
 
+// За сколько до истечения access-токена начинать его обновлять.
+//
+// Было 60 секунд при опросе сессии раз в минуту (refetchInterval в _app.js) —
+// то есть на всё обновление приходилась ровно ОДНА попытка. Стоило ей не
+// удаться (сетевой блип, auth-сервис моргнул), и токен истекал до следующего
+// опроса: дальше каждый запрос к API получал 401, а перехватчик выкидывал
+// пользователя на страницу входа. При токене в 15 минут пять минут запаса
+// дают пять попыток вместо одной и не учащают обновления.
+const REFRESH_MARGIN_SECONDS = 5 * 60;
+
 const refreshLocks = new Map();
 
 // Один HTTP-запрос на обновление токена к app.tpp.uz за вызов — без цикла
@@ -169,7 +179,18 @@ async function refreshAccessToken(token) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Обновление токена не удалось:", response.status, errorText);
-      if (response.status === 401) throw new Error("RefreshTokenExpired");
+      // Этот auth-сервис НЕ отвечает 401 на негодный refresh-токен: на
+      // повреждённый он даёт 400 ("Неверный формат токена"), на структурно
+      // верный, но не проходящий проверку — 500. Раньше фатальным считался
+      // только 401, поэтому мёртвый токен обновлялся ещё три цикла подряд, и
+      // всё это время пользователь работал с уже протухшим access-токеном.
+      //
+      // 4xx — сервер посмотрел на токен и отверг его, повторять бессмысленно.
+      // 5xx и сетевые сбои остаются временными: их сервер мог вернуть и
+      // просто из-за собственной аварии, и разлогинивать из-за этого нельзя.
+      if (response.status >= 400 && response.status < 500) {
+        throw new Error("RefreshTokenExpired");
+      }
       throw new Error(`Обновление не удалось: ${response.status}`);
     }
 
@@ -360,7 +381,18 @@ export const authOptions = {
       }
 
       if (token.refreshTokenExpires && token.refreshTokenExpires < Date.now()) {
-        console.log("Refresh-токен истёк по времени (локальная проверка exp)");
+        // Печатаем и сам срок жизни: если refresh-токен окажется таким же
+        // коротким, как access (15 минут), выход будет происходить строго по
+        // этой ветке и никакие запасы времени не помогут — лечится только на
+        // стороне auth-сервиса.
+        const lifetimeMin = Math.round(
+          (token.refreshTokenExpires - (token.accessTokenExpires - 15 * 60 * 1000)) / 60000,
+        );
+        console.log(
+          `Refresh-токен истёк по времени (локальная проверка exp). ` +
+            `Истёк ${Math.round((Date.now() - token.refreshTokenExpires) / 1000)} с назад, ` +
+            `ориентировочный срок жизни ~${lifetimeMin} мин`,
+        );
         return { ...token, error: "RefreshTokenExpired" };
       }
 
@@ -370,7 +402,7 @@ export const authOptions = {
       );
       console.log(`JWT callback: токен истекает через ${secondsUntilExpiry} сек`);
 
-      if (secondsUntilExpiry >= 60) {
+      if (secondsUntilExpiry >= REFRESH_MARGIN_SECONDS) {
         return token;
       }
 

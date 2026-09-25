@@ -61,7 +61,7 @@ const BasicShapesMenu = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         title="Фигуры: треугольники, стрелки, звёзды и другие"
-        className={`w-7 h-7 flex items-center justify-center rounded-[2px] text-sm transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+        className={`w-7 h-7 flex items-center justify-center rounded-[8px] text-sm transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
           isOpen
             ? "bg-blue-500/20 text-blue-300 border border-blue-500/50"
             : "text-text-secondary border border-transparent hover:bg-background-dark"
@@ -73,7 +73,7 @@ const BasicShapesMenu = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-[180px] rounded-[2px] border border-surface-border bg-surface-dark p-2 shadow-xl">
+        <div className="absolute left-0 top-full mt-2 z-50 w-[180px] rounded-[8px] border border-surface-border bg-surface-dark p-2 shadow-xl">
           <p className="text-[12.5px] uppercase tracking-wide text-text-dim mb-1.5 px-0.5">
             Фигуры
           </p>
@@ -84,7 +84,7 @@ const BasicShapesMenu = () => {
                 type="button"
                 onClick={() => handleAdd(variant)}
                 title={label}
-                className="flex items-center justify-center h-9 rounded-[2px] border border-surface-border/70 bg-background-dark/60 hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-90 transition-colors text-text-secondary hover:text-blue-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+                className="flex items-center justify-center h-9 rounded-[8px] border border-surface-border/70 bg-background-dark/60 hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-90 transition-colors text-text-secondary hover:text-blue-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
               >
                 <svg width={24} height={20} viewBox="-2 -2 28 24">
                   <path

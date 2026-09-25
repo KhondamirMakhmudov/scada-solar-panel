@@ -51,7 +51,7 @@ const Sparkline = ({ points, width = 96, height = 28 }) => {
 };
 
 const NumericTile = ({ tag, current, points, isLoading }) => (
-  <div className="bg-background-dark border border-surface-border rounded-[2px] px-3 py-2.5 flex flex-col gap-1.5">
+  <div className="bg-background-dark border border-surface-border rounded-[8px] px-3 py-2.5 flex flex-col gap-1.5">
     <p className="text-[12.5px] font-ibmPlexMono text-text-muted truncate" title={tag}>
       {tag}
     </p>
@@ -69,7 +69,7 @@ const NumericTile = ({ tag, current, points, isLoading }) => (
 );
 
 const StatusTile = ({ tag, label, isError }) => (
-  <div className="bg-background-dark border border-surface-border rounded-[2px] px-3 py-2.5 flex flex-col justify-between gap-1.5">
+  <div className="bg-background-dark border border-surface-border rounded-[8px] px-3 py-2.5 flex flex-col justify-between gap-1.5">
     <p className="text-[12.5px] font-ibmPlexMono text-text-muted truncate" title={tag}>
       {tag}
     </p>

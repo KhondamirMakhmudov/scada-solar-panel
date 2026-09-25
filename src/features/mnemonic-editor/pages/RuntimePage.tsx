@@ -199,7 +199,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
           <button
             type="button"
             onClick={() => router.push(basePath)}
-            className="h-8 px-4 text-[14.5px] font-medium text-text-secondary border border-surface-border hover:border-surface-border-hover hover:bg-white/[0.04] hover:text-text-primary active:scale-[0.96] transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+            className="h-8 px-4 text-[14.5px] font-medium text-text-secondary border border-surface-border hover:border-surface-border-hover hover:bg-white/[0.04] hover:text-text-primary active:scale-[0.96] transition-colors rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
           >
             Назад
           </button>
@@ -208,7 +208,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
               type="button"
               onClick={() => router.push(`${basePath}/${screenId}`)}
               title="Открыть редактор мнемосхемы"
-              className="h-8 flex items-center gap-1.5 px-3 text-[14.5px] font-medium text-blue-300 border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/60 hover:text-blue-200 active:scale-[0.96] transition-colors rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
+              className="h-8 flex items-center gap-1.5 px-3 text-[14.5px] font-medium text-blue-300 border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-400/60 hover:text-blue-200 active:scale-[0.96] transition-colors rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-dark"
             >
               <EditRounded sx={{ fontSize: 16 }} />
               Редактировать
@@ -230,7 +230,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
         <button
           type="button"
           onClick={() => setActiveTab("scheme")}
-          className={`flex items-center gap-1.5 h-7 px-3 rounded-[2px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+          className={`flex items-center gap-1.5 h-7 px-3 rounded-[8px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
             activeTab === "scheme"
               ? "bg-blue-500/15 text-blue-300 border border-blue-500/40"
               : "text-text-muted border border-transparent hover:text-text-primary hover:bg-white/[0.03]"
@@ -245,7 +245,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
             <button
               type="button"
               onClick={() => setActiveTab("trends")}
-              className={`flex items-center gap-1.5 h-7 px-3 rounded-[2px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+              className={`flex items-center gap-1.5 h-7 px-3 rounded-[8px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                 activeTab === "trends"
                   ? "bg-blue-500/15 text-blue-300 border border-blue-500/40"
                   : "text-text-muted border border-transparent hover:text-text-primary hover:bg-white/[0.03]"
@@ -257,7 +257,7 @@ const RuntimePage = ({ screenId, accessToken }: RuntimePageProps) => {
             <button
               type="button"
               onClick={() => setActiveTab("table")}
-              className={`flex items-center gap-1.5 h-7 px-3 rounded-[2px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
+              className={`flex items-center gap-1.5 h-7 px-3 rounded-[8px] text-[14px] font-medium transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 ${
                 activeTab === "table"
                   ? "bg-blue-500/15 text-blue-300 border border-blue-500/40"
                   : "text-text-muted border border-transparent hover:text-text-primary hover:bg-white/[0.03]"

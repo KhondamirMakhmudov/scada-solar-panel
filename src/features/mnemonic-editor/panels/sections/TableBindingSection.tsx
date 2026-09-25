@@ -142,7 +142,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
           <button
             type="button"
             onClick={() => apply([])}
-            className="text-[13px] px-2 py-0.5 rounded border border-surface-border text-text-muted hover:text-rose-300 hover:border-rose-900/60 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="text-[13px] px-2 py-0.5 rounded-[8px] border border-surface-border text-text-muted hover:text-rose-300 hover:border-rose-900/60 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             Очистить
           </button>
@@ -154,10 +154,10 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Поиск: тег, устройство, подключение"
-        className="w-full h-8 px-2 rounded-[2px] bg-background-dark border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
+        className="w-full h-8 px-2 rounded-[8px] bg-background-dark border border-surface-border focus:border-blue-500/60 focus:outline-none text-xs text-text-primary placeholder:text-text-faint transition-colors"
       />
 
-      <div className="max-h-72 overflow-y-auto rounded-[2px] border border-surface-border/60 bg-background-dark/40">
+      <div className="max-h-72 overflow-y-auto rounded-[8px] border border-surface-border/60 bg-background-dark/40">
         {isLoading && <p className="px-2 py-4 text-center text-[13px] text-text-faint">Загрузка тегов…</p>}
         {!isLoading && tree.length === 0 && (
           <p className="px-2 py-4 text-center text-[13px] text-text-faint">
@@ -183,7 +183,7 @@ const TableBindingSection = ({ element, screenTagIds = [] }: TableBindingSection
                       type="button"
                       onClick={() => toggleOpen(deviceKey)}
                       title={isOpen ? "Свернуть" : "Развернуть"}
-                      className="w-4 h-4 flex items-center justify-center text-[11.5px] text-text-faint focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[2px]"
+                      className="w-4 h-4 flex items-center justify-center text-[11.5px] text-text-faint focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60 rounded-[8px]"
                     >
                       <span style={{ display: "inline-block", transform: isOpen ? "rotate(90deg)" : "none", transition: "transform .15s" }}>
                         ▶

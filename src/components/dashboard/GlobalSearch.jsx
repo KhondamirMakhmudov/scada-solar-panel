@@ -105,15 +105,15 @@ const GlobalSearch = () => {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Поиск раздела"
-          className="w-52 xl:w-64 h-8 pl-8 pr-10 rounded-lg bg-[#0e0e0e] border border-[#2a2a2a] focus:border-[#3b82f6]/60 focus:outline-none text-xs text-[#e5e2e1] placeholder:text-[#6b7280] transition-colors"
+          className="w-52 xl:w-64 h-8 pl-8 pr-10 rounded-[8px] bg-[#0e0e0e] border border-[#2a2a2a] focus:border-[#3b82f6]/60 focus:outline-none text-xs text-[#e5e2e1] placeholder:text-[#6b7280] transition-colors"
         />
-        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[11.5px] text-[#6b7280] border border-[#2a2a2a] rounded px-1 py-0.5 pointer-events-none">
+        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[11.5px] text-[#6b7280] border border-[#2a2a2a] rounded-[8px] px-1 py-0.5 pointer-events-none">
           Ctrl K
         </kbd>
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-1 w-72 max-h-80 overflow-y-auto rounded-lg border border-[#2a2a2a] bg-[#1c1b1b] shadow-xl shadow-black/60">
+        <div className="absolute right-0 z-50 mt-1 w-72 max-h-80 overflow-y-auto rounded-[8px] border border-[#2a2a2a] bg-[#1c1b1b] shadow-xl shadow-black/60">
           {results.length === 0 ? (
             <p className="px-3 py-3 text-[13px] text-[#6b7280]">Разделов не найдено</p>
           ) : (

@@ -48,7 +48,7 @@ function FieldControl({ field, value, onChange }) {
         <button
           type="button"
           onClick={() => setRevealed((v) => !v)}
-          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[2px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-[8px] text-text-faint hover:text-text-primary hover:bg-white/[0.06] active:scale-90 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
         >
           {revealed ? <VisibilityOffRounded sx={{ fontSize: 14 }} /> : <VisibilityRounded sx={{ fontSize: 14 }} />}
         </button>
@@ -79,14 +79,14 @@ function FieldControl({ field, value, onChange }) {
 const ConnectionParamFields = ({ fields, values, errors = {}, onChange }) => {
   if (fields.length === 0) {
     return (
-      <p className="px-3.5 py-4 text-center text-[13.5px] text-text-faint rounded-[2px] border border-surface-border bg-background-dark/40">
+      <p className="px-3.5 py-4 text-center text-[13.5px] text-text-faint rounded-[8px] border border-surface-border bg-background-dark/40">
         У этого типа подключения нет настраиваемых параметров
       </p>
     );
   }
 
   return (
-    <div className="rounded-[2px] border border-surface-border bg-background-dark/40 overflow-hidden">
+    <div className="rounded-[8px] border border-surface-border bg-background-dark/40 overflow-hidden">
       {fields.map((field) => (
         <div key={field.name} className={ROW_CLASS}>
           <label

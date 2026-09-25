@@ -13,7 +13,8 @@ import {
   EditRounded,
   DeleteRounded,
 } from "@mui/icons-material";
-import { Panel, StatTile, SegmentedControl, EmptyState } from "@/components/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Panel, StatTile, SegmentedControl, EmptyState, Reveal } from "@/components/ui";
 import { STATUS_COLOR } from "@/constants/statusPalette";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import ContentLoader from "@/components/loader";
@@ -367,7 +368,7 @@ const Index = () => {
       header: "Статус",
       cell: ({ row }) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[2px] border text-[10.5px] font-semibold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-[8px] border text-[10.5px] font-semibold uppercase tracking-wide ${
             row.original.enabled ? "border-status-ok text-status-ok" : "border-status-warn text-status-warn"
           }`}
         >
@@ -386,7 +387,7 @@ const Index = () => {
             type="button"
             title="Просмотр"
             onClick={() => openViewModal(row.original)}
-            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="w-7 h-7 flex items-center justify-center rounded-[8px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             <VisibilityRounded sx={{ fontSize: 15 }} />
           </button>
@@ -394,7 +395,7 @@ const Index = () => {
             type="button"
             title="Изменить"
             onClick={() => openEditModal(row.original)}
-            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
+            className="w-7 h-7 flex items-center justify-center rounded-[8px] border border-surface-border text-text-secondary hover:border-primary hover:text-primary transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60"
           >
             <EditRounded sx={{ fontSize: 15 }} />
           </button>
@@ -402,7 +403,7 @@ const Index = () => {
             type="button"
             title="Удалить"
             onClick={() => openDeleteModal(row.original)}
-            className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-status-fault hover:border-status-fault transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
+            className="w-7 h-7 flex items-center justify-center rounded-[8px] border border-surface-border text-status-fault hover:border-status-fault transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/60"
           >
             <DeleteRounded sx={{ fontSize: 15 }} />
           </button>
@@ -865,16 +866,21 @@ const Index = () => {
       <div className="font-ibmPlexSans space-y-2.5">
         {/* Сводка по всей выборке — постраничная таблица ниже её не показывает */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
-          <StatTile label="Всего тегов" value={summary.total} dense />
-          <StatTile label="Опрашивается" value={summary.enabled} status="ok" dense />
-          <StatTile
-            label="Отключено"
-            value={summary.disabled}
-            status={summary.disabled ? "warn" : undefined}
-            dense
-          />
-          <StatTile label="Устройств" value={summary.devices} dense />
-          <StatTile label="Протоколов" value={summary.protocols} dense />
+          {[
+            { label: "Всего тегов", value: summary.total },
+            { label: "Опрашивается", value: summary.enabled, status: "ok" },
+            {
+              label: "Отключено",
+              value: summary.disabled,
+              status: summary.disabled ? "warn" : undefined,
+            },
+            { label: "Устройств", value: summary.devices },
+            { label: "Протоколов", value: summary.protocols },
+          ].map((tile, index) => (
+            <Reveal key={tile.label} index={index}>
+              <StatTile label={tile.label} value={tile.value} status={tile.status} dense />
+            </Reveal>
+          ))}
         </div>
 
         {/* Режим работы с разделом: описание тегов или их живые значения */}
@@ -905,7 +911,7 @@ const Index = () => {
               resetCreateForm();
               setShowCreateModal(true);
             }}
-            className="h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            className="h-9 px-4 rounded-[8px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             + Тег
           </button>
@@ -931,7 +937,7 @@ const Index = () => {
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="поиск по имени, устройству, описанию"
-                className="w-[280px] h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+                className="w-[280px] h-9 px-3 rounded-[8px] border border-surface-border bg-surface-1 text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
               <ChipSelect
                 value={protocolFilter}
@@ -961,7 +967,7 @@ const Index = () => {
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  className="h-9 px-3 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   Сбросить фильтры
                 </button>
@@ -981,7 +987,7 @@ const Index = () => {
                     <button
                       type="button"
                       onClick={resetFilters}
-                      className="h-9 px-4 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      className="h-9 px-4 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       Сбросить фильтры
                     </button>
@@ -1003,7 +1009,7 @@ const Index = () => {
                           setPageSize(size);
                           setCurrentPage(1);
                         }}
-                        className={`h-8 w-10 rounded-[2px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
+                        className={`h-8 w-10 rounded-[8px] border text-[13px] font-ibmPlexMono transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 ${
                           pageSize === size
                             ? "border-primary/60 bg-primary/15 text-[#bfdbfe]"
                             : "border-surface-border bg-surface-1 text-[#bfc7d4] hover:border-[#475569]"
@@ -1019,7 +1025,7 @@ const Index = () => {
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       title="Предыдущая страница"
                     >
                       ‹
@@ -1032,7 +1038,7 @@ const Index = () => {
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-surface-border bg-surface-1 text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                       title="Следующая страница"
                     >
                       ›
@@ -1081,8 +1087,20 @@ const Index = () => {
                           </span>
                         </button>
 
-                        {isOpen &&
-                          connGroup.devices.map((device) => {
+                        {/* Раскрытие — рост высоты, а не мгновенная вставка:
+                            при щелчке по подключению список устройств иначе
+                            выталкивает всё, что ниже, без объяснения откуда */}
+                        <AnimatePresence initial={false}>
+                          {isOpen && (
+                            <motion.div
+                              key="devices"
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2, ease: "easeInOut" }}
+                              className="overflow-hidden"
+                            >
+                              {connGroup.devices.map((device) => {
                             const isSelected = device.deviceId === browserDeviceId;
                             return (
                               <button
@@ -1116,7 +1134,10 @@ const Index = () => {
                                 </span>
                               </button>
                             );
-                          })}
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
@@ -1530,7 +1551,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-[2px] border border-surface-border p-3 bg-surface-dark/50">
+          <div className="rounded-[8px] border border-surface-border p-3 bg-surface-dark/50">
             <p className="text-xs text-text-muted font-semibold mb-2 uppercase tracking-wider">
               Параметры регистра
             </p>
@@ -1755,7 +1776,7 @@ const Index = () => {
             />
           </div>
 
-          <div className="rounded-[2px] border border-surface-border p-3 bg-surface-dark/50">
+          <div className="rounded-[8px] border border-surface-border p-3 bg-surface-dark/50">
             <p className="text-xs text-text-muted font-semibold mb-2 uppercase tracking-wider">
               Параметры регистра
             </p>
@@ -1863,61 +1884,61 @@ const Index = () => {
         width={680}
       >
         <div className="space-y-3 font-mono text-sm">
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Имя</p>
             <p className="text-text-primary font-semibold">
               {selectedTag?.name || "—"}
             </p>
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Описание</p>
             <p className="text-text-primary">{selectedTag?.description || "—"}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Тип данных</p>
               <p className="text-cyan-200">{selectedTag?.dataType || "—"}</p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Интервал опроса</p>
               <p className="text-text-primary">
                 {selectedTag?.scanRateMs || "—"} ms
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Масштаб / Смещение / Deadband</p>
               <p className="text-text-primary">
                 {selectedTag?.scale} / {selectedTag?.offset} /{" "}
                 {selectedTag?.deadband}
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Статус</p>
               <p className="text-text-primary">
                 {selectedTag?.enabled ? "Включено" : "Отключено"}
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Протокол / Регистр</p>
               <p className="text-text-primary">
                 {selectedTag?.protocolType} / {selectedTag?.registerType}
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Адрес / Количество</p>
               <p className="text-text-primary">
                 {selectedTag?.address} / {selectedTag?.count}
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Порядок байтов / Порядок слов</p>
               <p className="text-text-primary">
                 {selectedTag?.byteOrder} / {selectedTag?.wordOrder}
               </p>
             </div>
-            <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+            <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
               <p className="text-text-muted">Устройство</p>
               <p className="text-cyan-200 break-all">
                 {selectedTag?.deviceName || "—"}
@@ -1925,7 +1946,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="rounded-[2px] border border-surface-border bg-surface-dark/70 p-3">
+          <div className="rounded-[8px] border border-surface-border bg-surface-dark/70 p-3">
             <p className="text-text-muted">Идентификатор</p>
             <p className="text-text-primary break-all">{selectedTag?.id || "—"}</p>
           </div>
@@ -1970,7 +1991,7 @@ function RowAction({ children, title, onClick, danger }) {
       type="button"
       title={title}
       onClick={onClick}
-      className={`w-7 h-7 flex items-center justify-center rounded-[2px] border border-surface-border text-[#7c8290] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 ${
+      className={`w-7 h-7 flex items-center justify-center rounded-[8px] border border-surface-border text-[#7c8290] transition-colors active:scale-90 focus-visible:outline-none focus-visible:ring-1 ${
         danger
           ? "hover:border-[#f87171] hover:text-[#f87171] focus-visible:ring-[#f87171]/60"
           : "hover:border-primary hover:text-primary focus-visible:ring-primary/60"

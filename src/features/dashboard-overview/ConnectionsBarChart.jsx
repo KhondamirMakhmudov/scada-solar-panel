@@ -28,7 +28,7 @@ const ConnectionsBarChart = ({ data }) => {
   const max = Math.max(...rows.map((r) => r.count), 1);
 
   return (
-    <div className="bg-surface-dark border border-surface-border rounded-[2px] p-3.5">
+    <div className="bg-surface-dark border border-surface-border rounded-[8px] p-3.5">
       <h3 className="text-[13px] font-ibmPlexSans font-semibold uppercase tracking-wider text-text-muted mb-3">
         Соединения по типам
       </h3>

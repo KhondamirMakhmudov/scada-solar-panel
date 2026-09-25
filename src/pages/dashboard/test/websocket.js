@@ -26,7 +26,8 @@ import { requestScreens } from "@/services/api";
 import { formatTagLabelShort } from "@/lib/tagNameTranslation";
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout";
 import MethodModal from "@/components/modal/method-modal";
-import { Panel, EmptyState, SegmentedControl, seriesColor } from "@/components/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Panel, EmptyState, SegmentedControl, Reveal, seriesColor } from "@/components/ui";
 import { STATUS_COLOR } from "@/constants/statusPalette";
 
 /* ---------- Каналы --------------------------------------------------------
@@ -537,10 +538,10 @@ export default function WebSocketTestPage() {
     <DashboardLayout headerTitle="Поток значений">
       <div className="font-ibmPlexSans space-y-2.5">
         {/* ---------- Шапка: источник, состояние, управление ---------- */}
-        <div className="rounded-[2px] border border-surface-border bg-surface-2">
+        <Reveal className="rounded-[8px] border border-surface-border bg-surface-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-2.5">
             <span
-              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[2px] text-[13.5px] font-semibold flex-shrink-0"
+              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[8px] text-[13.5px] font-semibold flex-shrink-0"
               style={{ color: stateColor, background: `${stateColor}1a` }}
             >
               <span
@@ -553,7 +554,7 @@ export default function WebSocketTestPage() {
             <button
               type="button"
               onClick={openPicker}
-              className="inline-flex items-center gap-2 h-9 px-3 rounded-[2px] border border-surface-border bg-surface-1 text-[13.5px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-[8px] border border-surface-border bg-surface-1 text-[13.5px] text-[#bfc7d4] transition-colors hover:border-[#475569] hover:text-[#e5e2e1] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <TuneRoundedIcon sx={{ fontSize: 16 }} />
               {CHANNEL_META[channel].label}
@@ -601,7 +602,7 @@ export default function WebSocketTestPage() {
                 type="button"
                 onClick={clearMessages}
                 disabled={messages.length === 0}
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
                 Очистить
@@ -613,7 +614,7 @@ export default function WebSocketTestPage() {
                   onClick={() => setIsRunning(true)}
                   disabled={!hasSelection}
                   title={hasSelection ? undefined : "Сначала выберите источники"}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-primary text-white text-[13px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   <PlayArrowRoundedIcon sx={{ fontSize: 17 }} />
                   Подключиться
@@ -622,7 +623,7 @@ export default function WebSocketTestPage() {
                 <button
                   type="button"
                   onClick={() => setIsRunning(false)}
-                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[2px] border text-[13px] font-semibold transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] border text-[13px] font-semibold transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2"
                   style={{ borderColor: `${STATUS_COLOR.alarm}66`, color: STATUS_COLOR.alarm }}
                 >
                   <StopRoundedIcon sx={{ fontSize: 17 }} />
@@ -635,14 +636,23 @@ export default function WebSocketTestPage() {
           {/* Выбранные источники живыми фишками: видно состояние каждого
               сокета и можно снять один, не открывая окно выбора. */}
           {hasSelection && (
-            <div className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-t border-surface-border">
+            <motion.div
+              layout
+              className="flex flex-wrap items-center gap-1.5 px-4 py-2 border-t border-surface-border"
+            >
+              <AnimatePresence initial={false} mode="popLayout">
               {selectedEntities.map((entity) => {
                 const meta = socketMeta(connStatus.get(entity.id));
                 return (
-                  <span
+                  <motion.span
                     key={entity.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
                     title={isRunning ? `сокет: ${meta.label}` : "сокет ещё не открыт"}
-                    className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[2px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[240px]"
+                    className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-[8px] border border-surface-border bg-surface-1 text-[13px] text-[#bfc7d4] max-w-[240px]"
                   >
                     {isRunning && (
                       <span
@@ -655,16 +665,17 @@ export default function WebSocketTestPage() {
                       type="button"
                       onClick={() => toggleEntity(entity.id)}
                       title="Убрать источник"
-                      className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[2px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-[8px] text-[#5c6270] hover:text-[#e5e2e1] hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
                     >
                       <CloseRoundedIcon sx={{ fontSize: 13 }} />
                     </button>
-                  </span>
+                  </motion.span>
                 );
               })}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           )}
-        </div>
+        </Reveal>
 
         {/* ---------- Рабочая область ---------- */}
         {!hasSelection ? (
@@ -687,7 +698,7 @@ export default function WebSocketTestPage() {
               />
               {errorTagCount > 0 && (
                 <span
-                  className="inline-flex items-center gap-1.5 text-[13px] px-2 py-1 rounded-[2px]"
+                  className="inline-flex items-center gap-1.5 text-[13px] px-2 py-1 rounded-[8px]"
                   style={{ color: STATUS_COLOR.alarm, background: `${STATUS_COLOR.alarm}14` }}
                 >
                   <ErrorOutlineRoundedIcon sx={{ fontSize: 14 }} />
@@ -712,7 +723,9 @@ export default function WebSocketTestPage() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-2">
                   {tagCards.map((t, i) => (
-                    <TagTile key={t.tagId} t={t} color={seriesColor(i)} />
+                    <Reveal key={t.tagId} index={i}>
+                      <TagTile t={t} color={seriesColor(i)} />
+                    </Reveal>
                   ))}
                 </div>
               ))}
@@ -730,7 +743,7 @@ export default function WebSocketTestPage() {
                         type="button"
                         onClick={() => setAutoScroll((v) => !v)}
                         aria-pressed={autoScroll}
-                        className={`h-8 px-2.5 rounded-[2px] border text-[13px] transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                        className={`h-8 px-2.5 rounded-[8px] border text-[13px] transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                           autoScroll
                             ? "border-primary/60 bg-primary/15 text-[#bfdbfe]"
                             : "border-surface-border text-[#6b7280] hover:text-[#e5e2e1]"
@@ -798,7 +811,7 @@ export default function WebSocketTestPage() {
                         type="button"
                         onClick={handleCopyFrame}
                         title="Скопировать тело кадра"
-                        className="inline-flex items-center gap-1 h-8 px-2 rounded-[2px] text-[13px] text-[#6b7280] hover:text-[#e5e2e1] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="inline-flex items-center gap-1 h-8 px-2 rounded-[8px] text-[13px] text-[#6b7280] hover:text-[#e5e2e1] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
                         <ContentCopyRoundedIcon sx={{ fontSize: 14 }} />
                         Копировать
@@ -822,7 +835,7 @@ export default function WebSocketTestPage() {
                           <button
                             type="button"
                             onClick={() => setPinnedSeq(null)}
-                            className="inline-flex items-center gap-1 text-[13px] text-primary hover:text-[#60a5fa] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded-[2px]"
+                            className="inline-flex items-center gap-1 text-[13px] text-primary hover:text-[#60a5fa] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded-[8px]"
                           >
                             <PushPinRoundedIcon sx={{ fontSize: 13 }} />
                             Закреплён — открепить
@@ -854,7 +867,7 @@ export default function WebSocketTestPage() {
 
                       {selectedFrame.parsed?.is_error && (
                         <p
-                          className="flex items-start gap-1.5 text-[13px] rounded-[2px] px-2.5 py-2"
+                          className="flex items-start gap-1.5 text-[13px] rounded-[8px] px-2.5 py-2"
                           style={{
                             color: STATUS_COLOR.alarm,
                             background: `${STATUS_COLOR.alarm}14`,
@@ -886,7 +899,7 @@ export default function WebSocketTestPage() {
                       </div>
 
                       <div
-                        className="rounded-[2px] border border-surface-border bg-surface-1 p-3 overflow-auto"
+                        className="rounded-[8px] border border-surface-border bg-surface-1 p-3 overflow-auto"
                         style={{ maxHeight: "32vh" }}
                       >
                         {frameTab === "json" && selectedFrame.parsed ? (
@@ -1010,13 +1023,13 @@ export default function WebSocketTestPage() {
                       <input
                         value={sendText}
                         onChange={(e) => setSendText(e.target.value)}
-                        className="min-w-0 flex-1 h-9 px-2.5 rounded-[2px] bg-surface-1 border border-surface-border text-[13px] font-ibmPlexMono text-[#e5e2e1] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+                        className="min-w-0 flex-1 h-9 px-2.5 rounded-[8px] bg-surface-1 border border-surface-border text-[13px] font-ibmPlexMono text-[#e5e2e1] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
                       />
                       <button
                         type="button"
                         onClick={handleSend}
                         disabled={openCount === 0}
-                        className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="h-9 px-3 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
                         Отправить
                       </button>
@@ -1054,7 +1067,7 @@ export default function WebSocketTestPage() {
                   type="button"
                   onClick={() => setChannel(key)}
                   aria-pressed={active}
-                  className={`text-left p-3 rounded-[2px] border transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                  className={`text-left p-3 rounded-[8px] border transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                     active
                       ? "border-primary/60 bg-primary/15"
                       : "border-surface-border bg-surface-1 hover:border-[#475569]"
@@ -1091,7 +1104,7 @@ export default function WebSocketTestPage() {
                 value={entitySearch}
                 onChange={(e) => setEntitySearch(e.target.value)}
                 placeholder="поиск по названию"
-                className="w-full h-9 pl-8 pr-2.5 rounded-[2px] bg-surface-1 border border-surface-border text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
+                className="w-full h-9 pl-8 pr-2.5 rounded-[8px] bg-surface-1 border border-surface-border text-[14px] text-[#e5e2e1] placeholder:text-[#5c6270] outline-none transition-colors hover:border-[#475569] focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
             </div>
             <button
@@ -1104,7 +1117,7 @@ export default function WebSocketTestPage() {
                 })
               }
               disabled={filteredEntities.length === 0}
-              className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="h-9 px-3 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               Отметить найденные
             </button>
@@ -1112,14 +1125,14 @@ export default function WebSocketTestPage() {
               type="button"
               onClick={() => setSelectedIds(new Set())}
               disabled={selectedIds.size === 0}
-              className="h-9 px-3 rounded-[2px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="h-9 px-3 rounded-[8px] border border-surface-border text-[13px] text-[#bfc7d4] transition-colors enabled:hover:border-[#475569] enabled:hover:text-[#e5e2e1] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               Снять всё
             </button>
           </div>
 
           <div
-            className="rounded-[2px] border border-surface-border bg-surface-1 p-2 overflow-y-auto"
+            className="rounded-[8px] border border-surface-border bg-surface-1 p-2 overflow-y-auto"
             style={{ maxHeight: "46vh" }}
           >
             {isLoadingList ? (
@@ -1137,7 +1150,7 @@ export default function WebSocketTestPage() {
                   return (
                     <label
                       key={entity.id}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded-[2px] cursor-pointer transition-colors ${
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-[8px] cursor-pointer transition-colors ${
                         checked ? "bg-primary/10" : "hover:bg-surface-3/60"
                       }`}
                     >
@@ -1174,7 +1187,7 @@ export default function WebSocketTestPage() {
             <button
               type="button"
               onClick={() => setPickerOpen(false)}
-              className="h-9 px-4 rounded-[2px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="h-9 px-4 rounded-[8px] bg-primary text-white text-[13px] font-semibold transition-colors hover:bg-[#2563eb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               Готово
             </button>
@@ -1230,7 +1243,7 @@ function MetaField({ label, value, mono }) {
 /** Первый экран: что это за страница и единственное действие, с которого начинают. */
 function StartCard({ channelLabel, onPick, loading }) {
   return (
-    <div className="rounded-[2px] border border-surface-border bg-surface-2 px-4 py-12">
+    <div className="rounded-[8px] border border-surface-border bg-surface-2 px-4 py-12">
       <div className="max-w-lg mx-auto text-center">
         <h2 className="text-[17px] font-semibold text-[#e5e2e1] mb-2">
           Проверка потока значений
@@ -1243,7 +1256,7 @@ function StartCard({ channelLabel, onPick, loading }) {
           type="button"
           onClick={onPick}
           disabled={loading}
-          className="inline-flex items-center gap-2 h-10 px-5 rounded-[2px] bg-primary text-white text-[14px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          className="inline-flex items-center gap-2 h-10 px-5 rounded-[8px] bg-primary text-white text-[14px] font-semibold transition-colors enabled:hover:bg-[#2563eb] enabled:active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           <TuneRoundedIcon sx={{ fontSize: 18 }} />
           {loading ? "Загрузка списка…" : `Выбрать ${channelLabel}`}
@@ -1265,9 +1278,23 @@ function TagTile({ t, color }) {
 
   return (
     <div
-      className="min-w-0 rounded-[2px] border border-surface-border bg-surface-2 p-3 flex flex-col gap-1.5"
+      className="relative min-w-0 rounded-[8px] border border-surface-border bg-surface-2 p-3 flex flex-col gap-1.5 overflow-hidden"
       title={`${last.tag_name || ""} · источник: ${t.sourceName || "—"}`}
     >
+      {/* Вспышка на приход нового значения — тот же приём, что у строки
+          значения на мнемосхеме (.mnemonic-value-flash): проигрывается один
+          раз на обновление, чтобы глаз поймал «вот это только что
+          изменилось», а не мигает постоянно. Ключ включает метку времени
+          сервера, поэтому повтор того же числа тоже виден. */}
+      <motion.span
+        key={`${last.time}:${last.value}`}
+        aria-hidden="true"
+        initial={{ opacity: 0.3 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="pointer-events-none absolute inset-0"
+        style={{ background: errored ? STATUS_COLOR.alarm : color }}
+      />
       <div className="flex items-center gap-1.5 min-w-0">
         <span
           className="w-1.5 h-1.5 rounded-full flex-shrink-0"

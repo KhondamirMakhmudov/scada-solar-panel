@@ -66,13 +66,18 @@ const VIEW_MODE_OPTIONS = [
 ];
 
 const cardRowClass =
-  "flex items-center justify-between rounded-[2px] border border-surface-border/50 bg-background-dark/60 px-3 py-2";
+  "flex items-center justify-between rounded-[8px] border border-surface-border/50 bg-background-dark/60 px-3 py-2";
 
-const SiteCard = ({ site, deviceCount, onView, onEdit, onDelete }) => (
+const SiteCard = ({ site, deviceCount, index = 0, onView, onEdit, onDelete }) => (
+  // Каскад, а не одновременное появление всех карточек: сдвиг по порядку
+  // читается как «список собирается сверху вниз». Потолок задержки — общий с
+  // остальными разделами (см. Reveal в наборе интерфейса), иначе последняя
+  // карточка из двух десятков выезжала бы спустя секунды.
   <motion.div
-    initial={{ opacity: 0, y: 12 }}
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className="rounded-[2px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.55)]"
+    transition={{ duration: 0.22, ease: "easeOut", delay: Math.min(index * 0.04, 0.24) }}
+    className="rounded-[8px] border border-surface-border/70 bg-surface-dark/70 p-5 shadow-[0_0_30px_rgba(15,23,42,0.55)]"
   >
     <div className="mb-4 flex items-start justify-between gap-3">
       <div className="min-w-0">
@@ -83,7 +88,7 @@ const SiteCard = ({ site, deviceCount, onView, onEdit, onDelete }) => (
           {site.code}
         </p>
       </div>
-      <span className="flex-shrink-0 rounded-[2px] border border-blue-400/30 bg-blue-500/15 px-2.5 py-1 text-xs font-medium text-blue-300">
+      <span className="flex-shrink-0 rounded-[8px] border border-blue-400/30 bg-blue-500/15 px-2.5 py-1 text-xs font-medium text-blue-300">
         {siteTypeLabel(site.type)}
       </span>
     </div>
@@ -199,7 +204,7 @@ const SiteFormFields = ({ form, errors, onChange }) => (
         placeholder={PASSPORT_PLACEHOLDER}
         spellCheck={false}
         rows={10}
-        className={`w-full resize-y rounded-lg border bg-[#2c2c32] px-3.5 py-3 text-[13.5px] leading-relaxed text-text-primary placeholder:text-text-faint font-ibmPlexMono focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary transition-colors hover:border-white/25 ${
+        className={`w-full resize-y rounded-[8px] border bg-[#2c2c32] px-3.5 py-3 text-[13.5px] leading-relaxed text-text-primary placeholder:text-text-faint font-ibmPlexMono focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary transition-colors hover:border-white/25 ${
           errors.passport ? "border-status-fault" : "border-white/15"
         }`}
       />
@@ -520,7 +525,7 @@ const Index = () => {
   });
 
   const actionButtonClass =
-    "hover:underline active:opacity-70 rounded-[2px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
+    "hover:underline active:opacity-70 rounded-[8px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/60";
 
   const columns = [
     {
@@ -631,7 +636,7 @@ const Index = () => {
   if (isSitesError && !sitesResponse) {
     return (
       <DashboardLayout headerTitle={"Станции"}>
-        <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
+        <div className="rounded-[8px] border border-white/[0.08] bg-surface-dark">
           <NoData
             title="Не удалось загрузить станции"
             description="GET /api/v1/sites не ответил — проверьте, что сервис конфигурации (8100) доступен."
@@ -683,7 +688,7 @@ const Index = () => {
             {formatInstalledPower(totalInstalledKw)}
           </span>
 
-          <div className="flex rounded-lg border border-white/15 overflow-hidden">
+          <div className="flex rounded-[8px] border border-white/15 overflow-hidden">
             {VIEW_MODE_OPTIONS.map((item, idx) => {
               const isActive = viewMode === item.value;
               return (
@@ -724,7 +729,7 @@ const Index = () => {
           </button>
         </div>
 
-        <div className="rounded-xl border border-white/[0.08] bg-surface-dark">
+        <div className="rounded-[8px] border border-white/[0.08] bg-surface-dark">
           {filteredSites.length === 0 ? (
             <NoData
               title={sites.length === 0 ? "Станций пока нет" : "Станции не найдены"}
@@ -738,10 +743,11 @@ const Index = () => {
             <CustomTable columns={columns} data={filteredSites} />
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3 p-4">
-              {filteredSites.map((site) => (
+              {filteredSites.map((site, index) => (
                 <SiteCard
                   key={site.id}
                   site={site}
+                  index={index}
                   deviceCount={deviceCountBySite.get(site.id) || 0}
                   onView={() => openViewModal(site)}
                   onEdit={() => openEditModal(site)}

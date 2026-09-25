@@ -87,7 +87,7 @@ export default function Sidebar() {
                   type="button"
                   onClick={() => router.push(item.path)}
                   title={item.hint}
-                  className={`group relative flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-[4px] text-[13.5px] font-medium transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 ${
+                  className={`group relative flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-[8px] text-[13.5px] font-medium transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 ${
                     isActive
                       ? "bg-primary/[0.12] text-primary"
                       : "text-text-secondary hover:text-text-primary hover:bg-white/[0.035]"

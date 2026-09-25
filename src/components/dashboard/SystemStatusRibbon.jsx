@@ -12,7 +12,7 @@ const Metric = ({ label, active, total }) => {
 
   return (
     <div
-      className="flex items-center gap-1.5 h-6 px-2 rounded-[2px] border border-surface-border bg-background-dark flex-shrink-0"
+      className="flex items-center gap-1.5 h-6 px-2 rounded-[8px] border border-surface-border bg-background-dark flex-shrink-0"
       title={`${label}: ${active} из ${total} активны`}
     >
       <span
